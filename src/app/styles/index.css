@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-aurora-50: #eef8ff;
+  --color-aurora-100: #d9ecff;
+  --color-aurora-200: #b6d8ff;
+  --color-aurora-300: #8abfff;
+  --color-aurora-400: #5d9fff;
+  --color-aurora-500: #3b84f6;
+  --color-aurora-600: #2768dc;
+  --color-aurora-700: #1c51b2;
+  --color-aurora-800: #173f8c;
+  --color-aurora-900: #18386f;
+
+  --color-coral-50: #fff2ee;
+  --color-coral-100: #ffe0d6;
+  --color-coral-200: #ffc0ad;
+  --color-coral-300: #ff9a80;
+  --color-coral-400: #ff7558;
+  --color-coral-500: #ff5d3f;
+  --color-coral-600: #f24a2a;
+  --color-coral-700: #d83a1c;
+  --color-coral-800: #b73016;
+  --color-coral-900: #942915;
+
+  --color-moss-50: #edf9f1;
+  --color-moss-100: #daf0e1;
+  --color-moss-200: #b7dfc4;
+  --color-moss-300: #8dcba2;
+  --color-moss-400: #63b57f;
+  --color-moss-500: #439d64;
+  --color-moss-600: #32814f;
+  --color-moss-700: #286641;
+  --color-moss-800: #225236;
+  --color-moss-900: #1c432d;
+}
+
+@layer base {
+  body {
+    @apply min-h-screen bg-linear-to-br from-aurora-50 via-white to-moss-50 text-slate-900 antialiased;
+  }
+}
