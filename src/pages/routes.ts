@@ -1,5 +1,6 @@
 import AuthPage from '@/pages/auth'
 import NotFoundPage from '@/pages/not-found'
+import RestaurantPage from '@/pages/restaurants'
 import { ROUTES } from '@/shared/config/routes'
 
 export const publicRoutes = [
@@ -13,4 +14,9 @@ export const publicRoutes = [
   }
 ]
 
-export const privateRoutes = []
+export const privateRoutes = [
+  {
+    Component: RestaurantPage,
+    path: ROUTES.RESTAURANTS
+  }
+]

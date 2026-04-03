@@ -5,6 +5,7 @@ import {
   type SignUpFormValues,
   validateWithZod
 } from '@/entities/auth'
+import { useRegisterMutation } from '@/entities/auth/model/hooks'
 
 export function SignUpForm() {
   const form = useForm<SignUpFormValues>({
@@ -13,11 +14,14 @@ export function SignUpForm() {
       lastName: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      phone: ''
     },
     validate: validateWithZod(signUpSchema),
     validateInputOnBlur: true
   })
+
+  const { mutate } = useRegisterMutation()
 
   const canSubmit =
     form.values.firstName.trim().length > 0 &&
@@ -26,8 +30,13 @@ export function SignUpForm() {
     form.values.password.trim().length > 0 &&
     form.values.confirmPassword.trim().length > 0
 
+  const handleSubmit = (data: SignUpFormValues) => {
+    const { confirmPassword: _confirmPassword, ...restData } = data
+    mutate(restData)
+  }
+
   return (
-    <form onSubmit={form.onSubmit(() => {})}>
+    <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="lg">
         <div className="grid gap-4 sm:grid-cols-2">
           <TextInput
@@ -53,6 +62,13 @@ export function SignUpForm() {
           size="md"
           radius="md"
           {...form.getInputProps('email')}
+        />
+        <TextInput
+          label="Телефон"
+          placeholder="you@example.com"
+          size="md"
+          radius="md"
+          {...form.getInputProps('phone')}
         />
 
         <PasswordInput
