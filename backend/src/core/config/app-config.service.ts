@@ -38,4 +38,29 @@ export class AppConfigService {
   get jwtExpiresIn(): StringValue {
     return this.configService.get<StringValue>('JWT_EXPIRES_IN', '1d');
   }
+
+  get jwtAccessSecret(): string {
+    return this.configService.get(
+      'JWT_ACCESS_SECRET',
+      this.configService.get('JWT_SECRET', 'change-me'),
+    );
+  }
+
+  get jwtAccessExpiresIn(): StringValue {
+    return this.configService.get<StringValue>(
+      'JWT_ACCESS_EXPIRES_IN',
+      this.configService.get<StringValue>('JWT_EXPIRES_IN', '15m'),
+    );
+  }
+
+  get jwtRefreshSecret(): string {
+    return this.configService.get(
+      'JWT_REFRESH_SECRET',
+      this.configService.get('JWT_SECRET', 'change-me'),
+    );
+  }
+
+  get jwtRefreshExpiresIn(): StringValue {
+    return this.configService.get<StringValue>('JWT_REFRESH_EXPIRES_IN', '7d');
+  }
 }

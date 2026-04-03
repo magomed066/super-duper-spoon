@@ -147,6 +147,17 @@ export class UsersService {
     };
   }
 
+  async updateRefreshTokenHash(
+    userId: string,
+    refreshTokenHash: string | null,
+  ): Promise<void> {
+    await this.findById(userId);
+
+    await this.usersRepository.update(userId, {
+      refreshTokenHash,
+    });
+  }
+
   private async ensureUniqueFields(email: string, phone: string): Promise<void> {
     await Promise.all([
       this.ensureEmailAvailable(email),

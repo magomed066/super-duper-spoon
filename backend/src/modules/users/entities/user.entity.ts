@@ -32,6 +32,14 @@ export class User {
   passwordHash: string;
 
   @Column({
+    name: 'refresh_token_hash',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  refreshTokenHash: string | null;
+
+  @Column({
     type: 'enum',
     enum: UserStatus,
     default: UserStatus.ACTIVE,

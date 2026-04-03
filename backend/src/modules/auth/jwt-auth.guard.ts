@@ -42,6 +42,10 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Authorization token is invalid');
     }
 
+    if (payload.type !== 'access') {
+      throw new UnauthorizedException('Authorization token is invalid');
+    }
+
     const user = await this.usersService.findById(payload.sub);
     request.user = user;
 
