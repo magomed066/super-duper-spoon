@@ -31,7 +31,7 @@ export function SignUpForm() {
     form.values.confirmPassword.trim().length > 0
 
   const handleSubmit = (data: SignUpFormValues) => {
-    const { confirmPassword, ...restData } = data
+    const { confirmPassword: _confirmPassword, ...restData } = data
     mutate(restData)
   }
 

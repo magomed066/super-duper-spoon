@@ -1,41 +1,50 @@
-import { AuthService } from '@/shared/api/services/auth'
-import type { UserLogin, UserRegister } from '@/shared/api/services/auth/types'
 import { useMutation } from '@tanstack/react-query'
-
-type RequestError = {
-  message: string
-}
+import { notifications } from '@mantine/notifications'
+import type { ApiError } from '@/shared/api/errors'
+import { AuthService } from '@/shared/api/services/auth'
+import type {
+  AuthRegisterResponse,
+  UserLogin,
+  UserLoginResponse,
+  UserRegister
+} from '@/shared/api/services/auth/types'
 
 export const useLoginMutation = (
-  onSuccess?: (data: any) => void,
-  onError?: (err: string) => void
+  onSuccess?: (data: UserLoginResponse) => void,
+  onError?: (error: ApiError) => void
 ) => {
-  return useMutation({
-    mutationFn: async (data: UserLogin) => AuthService.login(data),
+  return useMutation<UserLoginResponse, ApiError, UserLogin>({
+    mutationFn: (data) => AuthService.login(data),
     onSuccess: (data) => {
       onSuccess?.(data)
     },
-    onError: (err: RequestError) => {
-      if (err?.message) {
-        onError?.(err.message)
-      }
+    onError: (error) => {
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка',
+        message: error.message
+      })
+      onError?.(error)
     }
   })
 }
 
 export const useRegisterMutation = (
-  onSuccess?: (data: any) => void,
-  onError?: (err: string) => void
+  onSuccess?: (data: AuthRegisterResponse) => void,
+  onError?: (error: ApiError) => void
 ) => {
-  return useMutation({
-    mutationFn: async (data: UserRegister) => AuthService.register(data),
+  return useMutation<AuthRegisterResponse, ApiError, UserRegister>({
+    mutationFn: (data) => AuthService.register(data),
     onSuccess: (data) => {
       onSuccess?.(data)
     },
-    onError: (err: RequestError) => {
-      if (err?.message) {
-        onError?.(err.message)
-      }
+    onError: (error) => {
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка',
+        message: error.message
+      })
+      onError?.(error)
     }
   })
 }

@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios'
+import { normalizeApiError } from '@/shared/api/errors'
 
 export class ApiBase {
   private client: AxiosInstance
@@ -42,7 +43,7 @@ export class ApiBase {
         //   window.location.replace('/')
         // }
 
-        return Promise.reject(error)
+        return Promise.reject(normalizeApiError(error))
       }
     )
   }

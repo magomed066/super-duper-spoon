@@ -21,3 +21,7 @@ export type UserLoginResponse = {
   accessToken: string
   user: User
 }
+
+export type AuthRegisterResponse = {
+  message: string
+}

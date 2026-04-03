@@ -6,11 +6,14 @@ export const signInSchema = z.object({
   password: z.string().min(6, 'Пароль должен содержать минимум 6 символов')
 })
 
+export type SignInFormValues = z.infer<typeof signInSchema>
+
 export const signUpSchema = z
   .object({
     firstName: z.string().min(2, 'Имя должно содержать минимум 2 символа'),
     lastName: z.string().min(2, 'Фамилия должна содержать минимум 2 символа'),
     email: z.email('Введите корректный email'),
+    phone: z.string().min(1, 'Введите номер телефона'),
     password: z.string().min(8, 'Пароль должен содержать минимум 8 символов'),
     confirmPassword: z.string().min(8, 'Подтвердите пароль')
   })
@@ -18,6 +21,8 @@ export const signUpSchema = z
     message: 'Пароли не совпадают',
     path: ['confirmPassword']
   })
+
+export type SignUpFormValues = z.infer<typeof signUpSchema>
 
 export function getFieldErrors<T extends Record<string, unknown>>(
   result: z.ZodError<T>

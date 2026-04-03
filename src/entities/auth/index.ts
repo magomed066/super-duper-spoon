@@ -6,4 +6,4 @@ export {
   signUpSchema,
   validateWithZod
 } from './model/validation'
-export type { SignInFormValues, SignUpFormValues } from './model/types'
+export type { SignInFormValues, SignUpFormValues } from './model/validation'
