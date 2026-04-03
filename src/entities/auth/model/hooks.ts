@@ -1,12 +1,26 @@
+import { AuthService } from '@/shared/api/services/auth'
+import type { UserLogin, UserRegister } from '@/shared/api/services/auth/types'
 import { useMutation } from '@tanstack/react-query'
-
-type LoginUser = {
-  email: string
-  password: string
-}
 
 type RequestError = {
   message: string
+}
+
+export const useLoginMutation = (
+  onSuccess?: (data: any) => void,
+  onError?: (err: string) => void
+) => {
+  return useMutation({
+    mutationFn: async (data: UserLogin) => AuthService.login(data),
+    onSuccess: (data) => {
+      onSuccess?.(data)
+    },
+    onError: (err: RequestError) => {
+      if (err?.message) {
+        onError?.(err.message)
+      }
+    }
+  })
 }
 
 export const useRegisterMutation = (
@@ -14,32 +28,11 @@ export const useRegisterMutation = (
   onError?: (err: string) => void
 ) => {
   return useMutation({
-    mutationFn: async (data: LoginUser) => {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        // пробрасываем ошибку в onError
-        throw result as RequestError
-      }
-
-      return result
-    },
-
+    mutationFn: async (data: UserRegister) => AuthService.register(data),
     onSuccess: (data) => {
       onSuccess?.(data)
     },
-
     onError: (err: RequestError) => {
-      console.error(err)
-
       if (err?.message) {
         onError?.(err.message)
       }
