@@ -1,7 +1,13 @@
+import { AuthInitializer } from '@/entities/auth'
 import Routing from '@/pages/routing'
 
 function App() {
-  return <Routing />
+  return (
+    <>
+      <AuthInitializer />
+      <Routing />
+    </>
+  )
 }
 
 export default App

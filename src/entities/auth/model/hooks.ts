@@ -8,14 +8,18 @@ import type {
   UserLoginResponse,
   UserRegister
 } from '@/shared/api/services/auth/types'
+import { useAuthStore } from './store'
 
 export const useLoginMutation = (
   onSuccess?: (data: UserLoginResponse) => void,
   onError?: (error: ApiError) => void
 ) => {
+  const setAuth = useAuthStore((state) => state.setAuth)
+
   return useMutation<UserLoginResponse, ApiError, UserLogin>({
     mutationFn: (data) => AuthService.login(data),
     onSuccess: (data) => {
+      setAuth(data)
       onSuccess?.(data)
     },
     onError: (error) => {

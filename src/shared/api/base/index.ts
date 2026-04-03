@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios'
 import { normalizeApiError } from '@/shared/api/errors'
+import { ACCESS_TOKEN_STORAGE_KEY } from '@/entities/auth/model/storage'
 
 export class ApiBase {
   private client: AxiosInstance
@@ -21,7 +22,7 @@ export class ApiBase {
         return req
       }
 
-      const token = localStorage.getItem('accessToken')
+      const token = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
 
       if (token) {
         req.headers.authorization = `Bearer ${token}`

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useForm } from '@mantine/form'
+import { useNavigate } from 'react-router'
 import {
   Anchor,
   Button,
@@ -13,11 +14,13 @@ import {
 import { signInSchema, validateWithZod } from '@/entities/auth'
 import { useLoginMutation } from '@/entities/auth/model/hooks'
 import type { UserLogin } from '@/shared/api/services/auth/types'
+import { ROUTES } from '@/shared/config/routes'
 
 export function SignInForm() {
   const [rememberMe, setRememberMe] = useState(true)
 
-  const { mutate, isPending } = useLoginMutation()
+  const { mutateAsync, isPending } = useLoginMutation()
+  const navigate = useNavigate()
 
   const form = useForm<UserLogin>({
     initialValues: {
@@ -32,7 +35,11 @@ export function SignInForm() {
     form.values.email.trim().length > 0 &&
     form.values.password.trim().length > 0
 
-  const handleSubmit = (data: UserLogin) => mutate(data)
+  const handleSubmit = (data: UserLogin) => {
+    mutateAsync(data).then(() => {
+      navigate(ROUTES.RESTAURANTS)
+    })
+  }
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>

@@ -5,17 +5,27 @@ export enum UserStatus {
 }
 
 export type User = {
+  id: string
   firstName: string
   lastName: string
   phone: string
   email: string
-  password: string
-  status: typeof UserStatus
+  status: UserStatus
+  createdAt: string
+  updatedAt: string
 }
 
-export type UserLogin = Pick<User, 'email' | 'password'>
+export type UserLogin = {
+  email: string
+  password: string
+}
 
-export type UserRegister = Omit<User, 'status'>
+export type UserRegister = Pick<
+  User,
+  'firstName' | 'lastName' | 'phone' | 'email'
+> & {
+  password: string
+}
 
 export type UserLoginResponse = {
   accessToken: string
