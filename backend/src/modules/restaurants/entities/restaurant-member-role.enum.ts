@@ -2,5 +2,7 @@ export enum RestaurantMemberRole {
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
   MANAGER = 'MANAGER',
-  STAFF = 'STAFF',
+  CASHIER = 'CASHIER',
+  KITCHEN = 'KITCHEN',
+  WAITER = 'WAITER',
 }

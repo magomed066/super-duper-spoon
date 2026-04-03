@@ -1,5 +1,6 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 
@@ -27,9 +28,19 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Restaurant Management API')
+    .setDescription('MVP API for restaurant and member management')
+    .setVersion('1.0.0')
+    .addBearerAuth()
+    .build();
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, swaggerDocument);
+
   await app.listen(port);
 
   logger.log(`Server is running on http://localhost:${port}/`);
+  logger.log(`Swagger is running on http://localhost:${port}/api/docs`);
 }
 
 void bootstrap();
