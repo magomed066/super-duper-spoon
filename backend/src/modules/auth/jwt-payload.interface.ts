@@ -4,4 +4,5 @@ export interface JwtPayload {
   sub: string;
   email: string;
   status: UserStatus;
+  type: 'access' | 'refresh';
 }

@@ -7,6 +7,7 @@ import { UsersModule } from '../users/users.module';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AuthTokenService } from './auth-token.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { PasswordService } from './password.service';
 
@@ -18,13 +19,19 @@ import { PasswordService } from './password.service';
       useFactory: (appConfigService: AppConfigService): JwtModuleOptions => ({
         secret: appConfigService.jwtSecret,
         signOptions: {
-          expiresIn: appConfigService.jwtExpiresIn,
+          expiresIn: appConfigService.jwtAccessExpiresIn,
         },
       }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, PasswordService, JwtAuthGuard],
-  exports: [AuthService, PasswordService, JwtAuthGuard, JwtModule],
+  providers: [AuthService, AuthTokenService, PasswordService, JwtAuthGuard],
+  exports: [
+    AuthService,
+    AuthTokenService,
+    PasswordService,
+    JwtAuthGuard,
+    JwtModule,
+  ],
 })
 export class AuthModule {}

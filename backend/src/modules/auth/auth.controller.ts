@@ -6,6 +6,8 @@ import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
+import { LogoutDto } from './dto/logout.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 
@@ -21,6 +23,16 @@ export class AuthController {
   @Post('login')
   login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(dto);
+  }
+
+  @Post('refresh')
+  refresh(@Body() dto: RefreshTokenDto): Promise<AuthResponseDto> {
+    return this.authService.refresh(dto);
+  }
+
+  @Post('logout')
+  logout(@Body() dto: LogoutDto): Promise<{ success: true }> {
+    return this.authService.logout(dto);
   }
 
   @Get('me')
