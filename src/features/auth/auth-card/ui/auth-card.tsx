@@ -1,20 +1,11 @@
-import { useState } from 'react'
-import { Badge, Card, Stack, Text, Title, UnstyledButton } from '@mantine/core'
+import { Badge, Card, Stack, Text, Title } from '@mantine/core'
 import { SignInForm } from '@/features/auth/sign-in'
-import { SignUpForm } from '@/features/auth/sign-up'
 import { authCardContent } from '../model/content'
-import type { AuthMode } from '../types/auth-card.types'
+import { Link } from 'react-router'
+import { ROUTES } from '@/shared/config/routes'
 
 export function AuthCard() {
-  const [mode, setMode] = useState<AuthMode>('sign-in')
-
-  const content = authCardContent[mode]
-
-  const toggleMode = () => {
-    setMode((currentMode) =>
-      currentMode === 'sign-in' ? 'sign-up' : 'sign-in'
-    )
-  }
+  const content = authCardContent['sign-in']
 
   return (
     <Card
@@ -24,11 +15,7 @@ export function AuthCard() {
     >
       <Stack gap="xl">
         <div>
-          <Badge
-            color={mode === 'sign-in' ? 'aurora' : 'coral'}
-            variant="light"
-            mb="md"
-          >
+          <Badge color="aurora" variant="light" mb="md">
             {content.badge}
           </Badge>
           <Title
@@ -39,16 +26,16 @@ export function AuthCard() {
           </Title>
         </div>
 
-        {mode === 'sign-in' ? <SignInForm /> : <SignUpForm />}
+        <SignInForm />
 
-        <Text ta="center" size="sm" c="dimmed">
+        <Text ta="center" size="m" c="dimmed">
           {content.toggleLabel}{' '}
-          <UnstyledButton
-            onClick={toggleMode}
-            className="font-semibold text-(--mantine-color-coral-6) transition hover:text-(--mantine-color-coral-7)"
+          <Link
+            to={ROUTES.REQUEST}
+            className="font-semibold text-(--mantine-color-aurora-5) transition hover:text-(--mantine-color-aurora-7)"
           >
             {content.toggleAction}
-          </UnstyledButton>
+          </Link>
         </Text>
       </Stack>
     </Card>

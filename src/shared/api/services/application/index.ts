@@ -3,6 +3,6 @@ import type { RequestClient, RequestClientCreate } from './types'
 
 export class ApplocationService {
   static register(data: RequestClientCreate): Promise<RequestClient> {
-    return apiService.post('/api/applocations', data)
+    return apiService.post('/applications', data)
   }
 }
