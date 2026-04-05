@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { type NextFunction, type Request, type Response } from 'express'
 import cors from 'cors'
 import swaggerUi from 'swagger-ui-express'
 
@@ -11,9 +11,14 @@ export const createApp = (): express.Express => {
   const app = express()
 
   app.use(cors())
-
   app.use(express.json({ limit: '50mb' }))
   app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+
+  app.get('/api', (_req: Request, res: Response) => {
+    res.status(200).json({
+      status: 'ok'
+    })
+  })
 
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
   app.get('/docs.json', (_req, res) => {
@@ -22,6 +27,14 @@ export const createApp = (): express.Express => {
 
   app.use('/auth', authRouter)
   app.use('/applications', applicationsRouter)
+
+  app.use((_req: Request, _res: Response, next: NextFunction) => {
+    next(
+      Object.assign(new Error('Route not found'), {
+        statusCode: 404
+      })
+    )
+  })
 
   app.use(errorHandler)
 
