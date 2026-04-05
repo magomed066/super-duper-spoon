@@ -10,6 +10,17 @@ const PORT = Number(process.env.PORT ?? 3000)
 const startServer = async (): Promise<void> => {
   const app = createApp()
 
+  /**
+   * @openapi
+   * /api:
+   *   get:
+   *     tags:
+   *       - Health
+   *     summary: Check that the API server is running.
+   *     responses:
+   *       200:
+   *         description: API server is available.
+   */
   app.get('/api', (_: Request, res: Response) => {
     res.send(`Server has been started on port http://localhost:${PORT}`)
   })
