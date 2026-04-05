@@ -21,6 +21,12 @@ export class Application {
   @Column({ type: 'varchar', length: 255 })
   restaurantName!: string
 
+  @Column({ type: 'varchar', length: 255 })
+  address!: string
+
+  @Column({ type: 'varchar', length: 255 })
+  phone!: string
+
   @Column({
     type: 'enum',
     enum: ApplicationStatus,
