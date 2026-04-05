@@ -3,16 +3,21 @@ import 'dotenv/config'
 
 import { createApp } from './app.js'
 import { AppDataSource } from './database/data-source.js'
+import { Request, Response } from 'express'
 
-const port = Number(process.env.PORT ?? 3000)
+const PORT = Number(process.env.PORT ?? 3000)
 
 const startServer = async (): Promise<void> => {
   const app = createApp()
 
+  app.get('/api', (_: Request, res: Response) => {
+    res.send(`Server has been started on port http://localhost:${PORT}`)
+  })
+
   AppDataSource.initialize().then(() => {
     console.log('DB is connected')
-    app.listen(port, () => {
-      console.log(`Server is running on port ${port}`)
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`)
     })
   })
 }
