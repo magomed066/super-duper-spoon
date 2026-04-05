@@ -1,4 +1,5 @@
 import {
+  AfterLoad,
   BeforeInsert,
   BeforeUpdate,
   Column,
@@ -10,6 +11,10 @@ import {
 import type { Relation } from 'typeorm'
 
 import {
+  decryptEmail,
+  decryptPhone,
+  encryptEmail,
+  encryptPhone,
   hashEmail,
   hashPhone
 } from '../../../common/utils/encryption.js'
@@ -27,11 +32,17 @@ export class User {
   @Column({ type: 'varchar', length: 255 })
   lastName!: string
 
-  @Column({ type: 'varchar', length: 512 })
+  @Column({ type: 'text' })
   phone!: string
 
-  @Column({ type: 'varchar', length: 512 })
+  @Column({ type: 'varchar', length: 64 })
+  phoneHash!: string
+
+  @Column({ type: 'text' })
   email!: string
+
+  @Column({ type: 'varchar', length: 64, unique: true })
+  emailHash!: string
 
   @Column({ type: 'varchar', length: 255 })
   password!: string
@@ -57,7 +68,15 @@ export class User {
   @BeforeInsert()
   @BeforeUpdate()
   protectSensitiveFields(): void {
-    this.email = hashEmail(this.email)
-    this.phone = hashPhone(this.phone)
+    this.emailHash = hashEmail(this.email)
+    this.phoneHash = hashPhone(this.phone)
+    this.email = encryptEmail(this.email)
+    this.phone = encryptPhone(this.phone)
+  }
+
+  @AfterLoad()
+  unprotectSensitiveFields(): void {
+    this.email = decryptEmail(this.email)
+    this.phone = decryptPhone(this.phone)
   }
 }

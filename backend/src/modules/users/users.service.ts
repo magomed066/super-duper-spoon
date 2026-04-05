@@ -19,6 +19,18 @@ export interface CreateUserDto {
   isActive?: boolean
 }
 
+export type UserDto = {
+  id: string
+  firstName: string
+  lastName: string
+  phone: string
+  email: string
+  status: string
+  role: UserRole
+  isActive: boolean
+  createdAt: Date
+}
+
 export class UsersHttpError extends Error {
   constructor(public readonly statusCode: number, message: string) {
     super(message)
@@ -40,7 +52,7 @@ export class UsersService {
 
     return this.userRepository.findOne({
       where: {
-        email: hashEmail(normalizedEmail)
+        emailHash: hashEmail(normalizedEmail)
       }
     })
   }
@@ -59,12 +71,14 @@ export class UsersService {
     })
   }
 
-  findAll(): Promise<User[]> {
-    return this.userRepository.find({
+  async findAll(): Promise<UserDto[]> {
+    const users = await this.userRepository.find({
       order: {
         createdAt: 'DESC'
       }
     })
+
+    return users.map((user) => this.toUserDto(user))
   }
 
   async create(payload: CreateUserDto): Promise<User> {
@@ -81,11 +95,11 @@ export class UsersService {
     )
   }
 
-  blockUser(id: string): Promise<User> {
+  blockUser(id: string): Promise<UserDto> {
     return this.updateUserActiveStatus(id, false)
   }
 
-  unblockUser(id: string): Promise<User> {
+  unblockUser(id: string): Promise<UserDto> {
     return this.updateUserActiveStatus(id, true)
   }
 
@@ -137,7 +151,7 @@ export class UsersService {
   private async updateUserActiveStatus(
     id: string,
     isActive: boolean
-  ): Promise<User> {
+  ): Promise<UserDto> {
     const user = await this.findById(id)
 
     if (!user) {
@@ -156,6 +170,20 @@ export class UsersService {
       })
     }
 
-    return updatedUser
+    return this.toUserDto(updatedUser)
+  }
+
+  private toUserDto(user: User): UserDto {
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      email: user.email,
+      status: user.status,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt
+    }
   }
 }
