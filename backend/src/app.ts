@@ -4,6 +4,7 @@ import swaggerUi from 'swagger-ui-express'
 
 import { errorHandler } from './common/middleware/error-handler.middleware.js'
 import { swaggerSpec } from './config/swagger.js'
+import { applicationsRouter } from './modules/applications/applications.routes.js'
 import { authRouter } from './modules/auth/auth.routes.js'
 
 export const createApp = (): express.Express => {
@@ -20,6 +21,7 @@ export const createApp = (): express.Express => {
   })
 
   app.use('/auth', authRouter)
+  app.use('/applications', applicationsRouter)
 
   app.use(errorHandler)
 

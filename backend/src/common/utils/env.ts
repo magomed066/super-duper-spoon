@@ -18,4 +18,5 @@ export const env = {
   dbSsl: process.env.DB_SSL === 'true',
   accessTokenSecret: getRequiredEnv('ACCESS_TOKEN_SECRET'),
   refreshTokenSecret: getRequiredEnv('REFRESH_TOKEN_SECRET'),
+  dataEncryptionKey: getRequiredEnv('DATA_ENCRYPTION_KEY'),
 };

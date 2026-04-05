@@ -1,4 +1,5 @@
 import { AppDataSource } from '../../database/data-source.js'
+import { hashEmail } from '../../common/utils/encryption.js'
 import { User } from '../users/entities/user.entity.js'
 import { RefreshToken } from './entities/refresh-token.entity.js'
 
@@ -9,7 +10,7 @@ export class AuthRepository {
 
   findUserByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { email }
+      where: { email: hashEmail(email) }
     })
   }
 

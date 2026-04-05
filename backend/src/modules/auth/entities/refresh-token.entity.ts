@@ -6,6 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn
 } from 'typeorm'
+import type { Relation } from 'typeorm'
 
 import { User } from '../../users/entities/user.entity.js'
 
@@ -28,5 +29,5 @@ export class RefreshToken {
     onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'userId' })
-  user!: User
+  user!: Relation<User>
 }
