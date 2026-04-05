@@ -8,7 +8,8 @@ const swaggerOptions = {
     info: {
       title: 'Restaurant Management API',
       version: '1.0.0',
-      description: 'Backend API documentation for the restaurant management system.'
+      description:
+        'Backend API documentation for the restaurant management system.'
     },
     components: {
       securitySchemes: {
@@ -211,7 +212,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`,
+        url: `http://localhost:${PORT}/api`,
         description: 'Local server'
       }
     ],

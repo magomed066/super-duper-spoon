@@ -3,11 +3,11 @@ import type { AuthCardContent, AuthMode } from '../types/auth-card.types'
 export const authCardContent: Record<AuthMode, AuthCardContent> = {
   'sign-in': {
     badge: 'Авторизация',
-    title: 'С возвращением',
+    title: 'Добро пожаловать',
     description:
       'Войдите, чтобы продолжить работу с займами, платежами и документами.',
     toggleLabel: 'Нет аккаунта?',
-    toggleAction: 'Создать профиль'
+    toggleAction: 'Подать заявку'
   },
   'sign-up': {
     badge: 'Регистрация',
