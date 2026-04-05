@@ -16,7 +16,6 @@ usersRouter.patch(
   roleMiddleware([UserRole.OWNER]),
   usersController.block
 )
-
 usersRouter.patch(
   '/:id/unblock',
   authMiddleware,
