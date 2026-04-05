@@ -1,4 +1,7 @@
-export { useRequestClientMutation } from './model/hooks'
+export {
+  useApplicationsListQuery,
+  useRequestClientMutation
+} from './model/hooks'
 export {
   applicationSchema,
   type ApplicationFormValues,

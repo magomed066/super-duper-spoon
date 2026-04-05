@@ -11,8 +11,10 @@ import {
 } from '../../helpers/constants.js'
 import {
   AccessTokenDto,
+  AuthLoginResponseDto,
   AccessTokenPayload,
-  AuthTokensDto
+  AuthTokensDto,
+  type AuthUserDto
 } from './types/auth.types.js'
 import { isRefreshTokenPayload, isValidEmail } from '../../helpers/utils.js'
 
@@ -26,7 +28,7 @@ export class AuthHttpError extends Error {
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
 
-  async login({ email, password }: LoginDto): Promise<AuthTokensDto> {
+  async login({ email, password }: LoginDto): Promise<AuthLoginResponseDto> {
     this.validateCredentials(email, password)
 
     const user = await this.authRepository.findUserByEmail(email.toLowerCase())
@@ -56,7 +58,8 @@ export class AuthService {
 
     return {
       accessToken,
-      refreshToken
+      refreshToken,
+      user: this.toAuthUserDto(user)
     }
   }
 
@@ -144,5 +147,19 @@ export class AuthService {
         expiresIn: REFRESH_TOKEN_EXPIRES_IN_SECONDS
       }
     )
+  }
+
+  private toAuthUserDto(user: User): AuthUserDto {
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      email: user.email,
+      status: user.status,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt
+    }
   }
 }

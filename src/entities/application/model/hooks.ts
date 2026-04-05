@@ -1,5 +1,5 @@
 import { notifications } from '@mantine/notifications'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type { ApiError } from '@/shared/api/errors'
 import { ApplocationService } from '@/shared/api/services/application'
 import type {
@@ -24,5 +24,13 @@ export const useRequestClientMutation = (
       })
       onError?.(error)
     }
+  })
+}
+
+export const useApplicationsListQuery = (enabled = true) => {
+  return useQuery<RequestClient[], ApiError>({
+    queryKey: ['applications'],
+    queryFn: () => ApplocationService.list(),
+    enabled
   })
 }
