@@ -6,6 +6,7 @@ import { errorHandler } from './common/middleware/error-handler.middleware.js'
 import { swaggerSpec } from './config/swagger.js'
 import { applicationsRouter } from './modules/applications/applications.routes.js'
 import { authRouter } from './modules/auth/auth.routes.js'
+import { usersRouter } from './modules/users/users.routes.js'
 
 export const createApp = (): express.Express => {
   const app = express()
@@ -27,6 +28,7 @@ export const createApp = (): express.Express => {
 
   app.use('/auth', authRouter)
   app.use('/applications', applicationsRouter)
+  app.use('/users', usersRouter)
 
   app.use((_req: Request, _res: Response, next: NextFunction) => {
     next(
