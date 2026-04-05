@@ -6,6 +6,18 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ): void => {
+  if (
+    error instanceof Error &&
+    'statusCode' in error &&
+    typeof error.statusCode === 'number'
+  ) {
+    res.status(error.statusCode).json({
+      status: 'error',
+      message: error.message
+    })
+    return
+  }
+
   console.error(error)
 
   res.status(500).json({

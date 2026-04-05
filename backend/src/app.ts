@@ -4,6 +4,7 @@ import swaggerUi from 'swagger-ui-express'
 
 import { errorHandler } from './common/middleware/error-handler.middleware.js'
 import { swaggerSpec } from './config/swagger.js'
+import { authRouter } from './modules/auth/auth.routes.js'
 
 export const createApp = (): express.Express => {
   const app = express()
@@ -17,6 +18,8 @@ export const createApp = (): express.Express => {
   app.get('/docs.json', (_req, res) => {
     res.json(swaggerSpec)
   })
+
+  app.use('/auth', authRouter)
 
   app.use(errorHandler)
 
