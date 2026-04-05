@@ -31,7 +31,7 @@ export class AuthService {
 
     const user = await this.authRepository.findUserByEmail(email.toLowerCase())
 
-    if (!user || !user.isActive) {
+    if (!user) {
       throw new AuthHttpError(401, 'Invalid email or password')
     }
 
@@ -39,6 +39,10 @@ export class AuthService {
 
     if (!isPasswordValid) {
       throw new AuthHttpError(401, 'Invalid email or password')
+    }
+
+    if (!user.isActive) {
+      throw new AuthHttpError(403, 'User is blocked')
     }
 
     const accessToken = this.generateAccessToken(user)
@@ -86,8 +90,13 @@ export class AuthService {
       throw new AuthHttpError(401, 'Refresh token expired')
     }
 
-    if (tokenRecord.user.id !== payload.sub || !tokenRecord.user.isActive) {
+    if (tokenRecord.user.id !== payload.sub) {
       throw new AuthHttpError(401, 'User is not authorized')
+    }
+
+    if (!tokenRecord.user.isActive) {
+      await this.authRepository.deleteRefreshTokenById(tokenRecord.id)
+      throw new AuthHttpError(403, 'User is blocked')
     }
 
     return {
