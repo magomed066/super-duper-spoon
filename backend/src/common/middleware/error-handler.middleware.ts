@@ -9,6 +9,7 @@ export const errorHandler = (
   console.error(error)
 
   res.status(500).json({
+    status: 'error',
     message: 'Internal server error'
   })
 }
