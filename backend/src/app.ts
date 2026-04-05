@@ -14,25 +14,26 @@ import { usersRouter } from './modules/users/users.routes.js'
 
 export const createApp = (): express.Express => {
   const app = express()
+  const apiPrefix = '/api'
 
   app.use(cors())
   app.use(express.json({ limit: '50mb' }))
   app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 
-  app.get('/api', (_req: Request, res: Response) => {
+  app.get(apiPrefix, (_req: Request, res: Response) => {
     res.status(200).json({
       status: 'ok'
     })
   })
 
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
-  app.get('/docs.json', (_req, res) => {
+  app.use(`${apiPrefix}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+  app.get(`${apiPrefix}/docs.json`, (_req, res) => {
     res.json(swaggerSpec)
   })
 
-  app.use('/auth', authRouter)
-  app.use('/applications', applicationsRouter)
-  app.use('/users', usersRouter)
+  app.use(`${apiPrefix}/auth`, authRouter)
+  app.use(`${apiPrefix}/applications`, applicationsRouter)
+  app.use(`${apiPrefix}/users`, usersRouter)
 
   app.use((_req: Request, _res: Response, next: NextFunction) => {
     next(
