@@ -83,4 +83,8 @@ export class RestaurantService {
   ): Promise<Restaurant> {
     return apiService.patch(`/restaurants/${id}`, data)
   }
+
+  static delete(id: string): Promise<{ message?: string }> {
+    return apiService.delete(`/restaurants/${id}`)
+  }
 }

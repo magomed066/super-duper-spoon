@@ -14,6 +14,8 @@ import { IoMailOpenOutline } from 'react-icons/io5'
 import cn from 'classnames'
 import type { ReactNode } from 'react'
 import { UserRole } from '@/shared/api/services/auth/types'
+import { BiFoodMenu } from 'react-icons/bi'
+import { FaTasks } from 'react-icons/fa'
 
 type SidebarItem = {
   link: string
@@ -38,13 +40,13 @@ const data: SidebarItem[] = [
   {
     link: ROUTES.MENU,
     label: 'Меню',
-    icon: () => <FaListCheck size={20} />,
+    icon: () => <BiFoodMenu size={20} />,
     permission: AuthPermission.VIEW_MENU
   },
   {
     link: ROUTES.ORDERS,
     label: 'Заказы',
-    icon: () => <FaListCheck size={20} />,
+    icon: () => <FaTasks size={20} />,
     permission: AuthPermission.VIEW_ORDERS
   }
 ]
@@ -105,10 +107,7 @@ export function Sidebar() {
           <div className="min-w-0 flex-1">
             <Text
               fw={600}
-              className={cn(
-                'truncate text-[15px]',
-                'text-moss-900'
-              )}
+              className={cn('truncate text-[15px]', 'text-moss-900')}
             >
               {item.label}
             </Text>

@@ -28,7 +28,11 @@ export function RestaurantPage() {
   if (!canViewRestaurants) {
     return (
       <Navigate
-        to={user ? getDefaultRouteByRole(user) : getRouteFallback(ROUTES.RESTAURANTS)}
+        to={
+          user
+            ? getDefaultRouteByRole(user)
+            : getRouteFallback(ROUTES.RESTAURANTS)
+        }
         replace
       />
     )
@@ -44,7 +48,7 @@ export function RestaurantPage() {
         ]}
       />
 
-      <Stack className="mt-3 px-5 flex flex-col gap">
+      <Stack className=" px-5 flex flex-col gap">
         <Group justify="space-between" align="end" gap="md">
           <Text maw={640} className="text-moss-700">
             {isSystemOwner

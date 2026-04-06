@@ -1,6 +1,7 @@
 export {
   useRestaurantsListQuery,
   useRestaurantStatusMutation,
+  useDeleteRestaurantMutation,
   useCreateRestaurantMutation
 } from './model/hooks'
 export * from './ui/card/card.ui'

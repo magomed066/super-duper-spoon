@@ -68,6 +68,32 @@ export const useRestaurantStatusMutation = () => {
   })
 }
 
+export const useDeleteRestaurantMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation<{ message?: string }, ApiError, string>({
+    mutationFn: (id) => RestaurantService.delete(id),
+    onSuccess: async () => {
+      notifications.show({
+        color: 'green',
+        title: 'Ресторан удален',
+        message: 'Ресторан был успешно удален'
+      })
+
+      await queryClient.invalidateQueries({
+        queryKey: ['restaurants']
+      })
+    },
+    onError: (error) => {
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка удаления ресторана',
+        message: error.message
+      })
+    }
+  })
+}
+
 export const useCreateRestaurantMutation = (onSuccess?: () => void) => {
   const queryClient = useQueryClient()
   const navigate = useNavigate()

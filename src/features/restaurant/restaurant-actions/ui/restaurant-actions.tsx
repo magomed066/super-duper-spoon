@@ -21,8 +21,7 @@ export function RestaurantActions({ data }: Props) {
       <MenuActions
         items={menuActions}
         actionIconProps={{
-          color: 'dark',
-          variant: 'filled',
+          variant: 'default',
           className: 'bg-black/35 hover:bg-black/45'
         }}
       />

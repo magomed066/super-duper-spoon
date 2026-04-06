@@ -88,7 +88,7 @@ export function RestaurantsListWidget() {
       ) : (
         <Stack className="w-full">
           <SimpleGrid
-            cols={{ base: 1, sm: 2, xl: 4, md: 3, lg: 4 }}
+            cols={{ base: 1, sm: 2, xl: 3, md: 3, lg: 4 }}
             spacing="lg"
           >
             {restaurants.map((item) => (

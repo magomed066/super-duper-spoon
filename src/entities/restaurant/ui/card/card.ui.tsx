@@ -1,8 +1,18 @@
 import type { Restaurant } from '@/shared/api/services/restaurant/types'
 import { resolveMediaUrl } from '@/shared/lib/helpers/media'
-import { Badge, Card, Flex, Group, Image, Stack, Text } from '@mantine/core'
+import {
+  Avatar,
+  Badge,
+  Card,
+  Flex,
+  Group,
+  Image,
+  Stack,
+  Text,
+  Title
+} from '@mantine/core'
 import type { ReactNode } from 'react'
-import { IoMdRestaurant } from 'react-icons/io'
+import { TbClockHour4 } from 'react-icons/tb'
 
 type Props = {
   data: Restaurant
@@ -10,81 +20,94 @@ type Props = {
 }
 
 export function RestaurantCard({ data, renderActions }: Props) {
+  const address = [data.city, data.address].filter(Boolean).join(', ')
+  const phone = data.phone || data.phones[0]
+  const secondaryInfo = [phone, data.email].filter(Boolean).join(' • ')
+  const cuisine = data.cuisine.length
+    ? data.cuisine.join(' • ')
+    : 'Кухня не указана'
+
+  const createdAt = new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }).format(new Date(data.createdAt))
+
   return (
     <Card
       withBorder
-      radius="lg"
+      radius={20}
       padding={0}
-      className="h-full bg-white shadow-sm transition-shadow duration-200 hover:shadow-md"
+      className=" overflow-hidden cursor-pointer bg-white transition-all duration-200 hover:shadow-md"
     >
-      <Stack gap={0} h="100%">
-        <div className="relative">
+      <Stack h="100%" gap={0}>
+        <div className="relative h-36 overflow-hidden bg-moss-100">
           <Image
             src={resolveMediaUrl(data.preview)}
             alt={`Превью ресторана ${data.name}`}
-            h={220}
-            fallbackSrc="https://placehold.co/1200x600?text=No+Preview"
+            h="100%"
+            w="100%"
+            fit="cover"
+            fallbackSrc="https://placehold.co/1200x600?text=Preview"
           />
-          <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/65 via-black/25 to-transparent px-5 pb-5 pt-10">
-            <Group justify="space-between" align="flex-end" wrap="nowrap">
-              <Stack gap={6} className="min-w-0 pl-18">
-                <Group gap="xs" wrap="nowrap"></Group>
-              </Stack>
-            </Group>
-          </div>
-          {renderActions ? (
-            <div className="absolute right-4 top-4 z-10">
-              {renderActions(data)}
-            </div>
-          ) : null}
-          <div className="absolute bottom-4 left-4 z-10 h-16 w-16 overflow-hidden rounded-xl border-2 border-white bg-white shadow-lg">
-            <Image
+          <div className="absolute inset-0 bg-linear-to-t from-black/35 via-black/10 to-transparent" />
+          <div className="absolute left-4 top-4">
+            <Avatar
               src={resolveMediaUrl(data.logo)}
-              alt={`Логотип ресторана ${data.name}`}
-              h="100%"
-              w="100%"
-              fit="cover"
-              fallbackSrc="https://placehold.co/128x128?text=Logo"
+              radius="xl"
+              w={58}
+              h={58}
             />
           </div>
         </div>
 
-        <Stack gap="md" p="lg" pt="lg" className="relative">
-          <Flex direction="column">
-            <Flex align="center" justify="space-between">
-              <Text
-                className="text-moss-900 flex items-center"
-                size="lg"
-                fw={500}
-              >
-                <IoMdRestaurant className="mr-2" />
+        <Stack gap="sm" className="min-h-0 flex-1 px-6 py-5">
+          <Flex align="flex-start" justify="space-between" gap={12}>
+            <div className="min-w-0 flex-1">
+              <Title order={3} fw={600} className="truncate text-moss-950">
                 {data.name}
-              </Text>
-              <Badge
-                color={data.isActive ? 'green' : 'coral'}
-                variant="light"
-                size="md"
-              >
-                {data.isActive ? 'Активен' : 'Неактивен'}
-              </Badge>
-            </Flex>
+              </Title>
 
-            <div className="flex mt-1">
-              {data.cuisine.map((item, i) => (
-                <div className="flex">
-                  <Text size="sm" className="text-moss-700">
-                    {item}
-                  </Text>
-                  <Text size="sm" mx={3} className=" text-moss-700">
-                    {data.cuisine.length - 1 !== i ? '•' : ''}
-                  </Text>
-                </div>
-              ))}
+              <Text c="dimmed" size="sm" mt={4} className="line-clamp-1">
+                {address || 'Адрес не указан'}
+              </Text>
             </div>
 
-            <Text className="text-moss-700 line-clamp-3" mt={12} size="sm">
-              {data.description}
+            {renderActions ? (
+              <div className="shrink-0">{renderActions(data)}</div>
+            ) : null}
+          </Flex>
+
+          <Badge
+            color={data.isActive ? 'green' : 'coral'}
+            variant="light"
+            size="md"
+          >
+            {data.isActive ? 'Активен' : 'Неактивен'}
+          </Badge>
+
+          <Text size="sm" c="dimmed" className="line-clamp-1">
+            {cuisine}
+          </Text>
+
+          {secondaryInfo ? (
+            <Text size="sm" c="dimmed" className="line-clamp-2">
+              {secondaryInfo}
             </Text>
+          ) : null}
+
+          <Flex
+            align="center"
+            justify="space-between"
+            mt="auto"
+            className="border-t border-gray-200 pt-3"
+          >
+            <Group gap="sm" wrap="nowrap" className="min-w-0">
+              <Group gap={6} wrap="nowrap" c="dimmed">
+                <TbClockHour4 size={15} />
+                <Text size="sm">{createdAt}</Text>
+              </Group>
+            </Group>
           </Flex>
         </Stack>
       </Stack>
