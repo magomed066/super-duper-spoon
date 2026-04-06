@@ -10,12 +10,12 @@ export function RestaurantCreatePage() {
     <Stack pb={20}>
       <PageHeaderWidget title="Создание ресторана" />
 
-      <section className="px-5 py-6">
-        <div className="mx-auto flex min-h-[calc(100vh-13rem)] w-full max-w-5xl items-center justify-center">
+      <section className="bg-[radial-gradient(circle_at_top,_rgba(242,243,247,0.9),_transparent_45%),linear-gradient(180deg,#f6f3ee_0%,#f8f9fc_100%)] px-5 py-8">
+        <div className="mx-auto flex min-h-[calc(100vh-13rem)] w-full max-w-6xl items-center justify-center">
           <Card
             padding="xl"
-            radius="20px"
-            className="w-full border border-black/8 bg-white "
+            radius="28px"
+            className="w-full border border-black/8 bg-white/94 shadow-[0_24px_80px_rgba(16,19,31,0.08)] backdrop-blur"
           >
             <Stack gap="xl">
               <Button
@@ -35,10 +35,11 @@ export function RestaurantCreatePage() {
                   order={3}
                   className="text-[28px] tracking-[-0.03em] text-moss-900"
                 >
-                  Данные ресторана
+                  Регистрация ресторана
                 </Title>
                 <Text size="sm" className="mt-2 leading-6 text-moss-700">
-                  Заполните форму для создания ресторана.
+                  Заполните карточку по шагам: сначала контакты, затем доставку
+                  и расписание, после этого добавьте изображения.
                 </Text>
               </div>
 

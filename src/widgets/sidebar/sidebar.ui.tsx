@@ -13,13 +13,13 @@ const data = [
   {
     link: ROUTES.APPLICATIONS,
     label: 'Заявки',
-    icon: () => <IoMailOpenOutline size={18} />,
+    icon: () => <IoMailOpenOutline size={20} />,
     permission: AuthPermission.VIEW_APPLICATIONS
   },
   {
     link: ROUTES.RESTAURANTS,
     label: 'Рестораны',
-    icon: () => <FaListCheck size={18} />,
+    icon: () => <FaListCheck size={20} />,
     permission: AuthPermission.VIEW_RESTAURANTS
   }
 ]
@@ -47,15 +47,22 @@ export function Sidebar() {
       to={item.link}
       className={cn(
         'p-2.5 transition hover:bg-moss-50 rounded-md flex items-center gap-3',
-        active === item.link && 'bg-moss-200 hover:bg-moss-200'
+        active === item.link && 'bg-moss-100 hover:bg-moss-100'
       )}
       key={item.label}
       onClick={() => {
         setActive(item.link)
       }}
     >
-      {item.icon()}
-      <span>{item.label}</span>
+      <div
+        className={cn(
+          'flex justify-center items-center w-7 h-7 rounded-sm p-1.5',
+          active === item.link && 'bg-aurora-500 text-white'
+        )}
+      >
+        {item.icon()}
+      </div>
+      <span className="text-lg">{item.label}</span>
     </Link>
   ))
 

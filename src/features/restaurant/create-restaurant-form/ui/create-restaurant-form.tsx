@@ -1,22 +1,22 @@
+import { useState } from 'react'
 import { useForm } from '@mantine/form'
+import { Button, Group, Paper, Stack } from '@mantine/core'
 import {
-  Box,
-  Button,
-  Divider,
-  NumberInput,
-  Stack,
-  Text,
-  TextInput,
-  Textarea
-} from '@mantine/core'
-import { PhoneInput } from '@/shared/ui/phone-input'
-import {
+  createRestaurantSchema,
   useCreateRestaurantMutation,
   validateCreateRestaurantForm,
   type CreateRestaurantFormValues
 } from '@/entities/restaurant'
-
-import { UploadLogoPreviewFeature } from './upload-logo/upload-logo-preview'
+import { BasicInfoStep } from './components/basic-info-step'
+import {
+  BASIC_STEP_FIELDS,
+  DELIVERY_STEP_FIELDS,
+  FORM_STEPS,
+  WEEK_DAYS
+} from './components/constants'
+import { DeliveryScheduleStep } from './components/delivery-schedule-step'
+import { FormStepHeader } from './components/form-step-header'
+import { MediaStep } from './components/media-step'
 
 const initialValues: CreateRestaurantFormValues = {
   name: '',
@@ -27,12 +27,19 @@ const initialValues: CreateRestaurantFormValues = {
   description: '',
   email: '',
   city: '',
-  deliveryTime: 0,
+  deliveryTime: '',
   deliveryConditions: '',
-  cuisine: ''
+  cuisine: '',
+  workSchedule: WEEK_DAYS.map(({ day }) => ({
+    day,
+    enabled: false,
+    open: '09:00',
+    close: '22:00'
+  }))
 }
 
 export function CreateRestaurantForm() {
+  const [activeStep, setActiveStep] = useState(0)
   const form = useForm<CreateRestaurantFormValues>({
     initialValues,
     validate: validateCreateRestaurantForm,
@@ -43,11 +50,7 @@ export function CreateRestaurantForm() {
     form.reset()
   })
 
-  const canSubmit =
-    form.values.name.trim().length > 0 &&
-    form.values.phone.trim().length > 0 &&
-    form.values.address.trim().length > 0 &&
-    form.values.description.trim().length > 0
+  const canSubmit = createRestaurantSchema.safeParse(form.values).success
 
   const handleUpload = (file: File, uploadType?: 'logo' | 'preview') => {
     if (!uploadType) {
@@ -64,179 +67,106 @@ export function CreateRestaurantForm() {
       city: data.city.trim() || undefined,
       logo: data.logo.trim() || undefined,
       preview: data.preview.trim() || undefined,
-      deliveryTime: data.deliveryTime ?? undefined,
+      deliveryTime: data.deliveryTime ? Number(data.deliveryTime) : undefined,
       deliveryConditions: data.deliveryConditions.trim() || undefined,
       cuisine: data.cuisine
         .split(',')
         .map((item) => item.trim())
-        .filter(Boolean)
+        .filter(Boolean),
+      workSchedule: data.workSchedule
+        .filter((item) => item.enabled)
+        .map(({ day, open, close }) => ({
+          day,
+          open,
+          close
+        }))
     })
+  }
+
+  const validateStep = (step: number) => {
+    if (step === 0) {
+      return BASIC_STEP_FIELDS.every(
+        (field) => !form.validateField(field).hasError
+      )
+    }
+
+    if (step === 1) {
+      return DELIVERY_STEP_FIELDS.every(
+        (field) => !form.validateField(field).hasError
+      )
+    }
+
+    return true
+  }
+
+  const goNextStep = () => {
+    if (!validateStep(activeStep)) {
+      return
+    }
+
+    setActiveStep((current) => Math.min(current + 1, FORM_STEPS.length - 1))
+  }
+
+  const goPrevStep = () => {
+    setActiveStep((current) => Math.max(current - 1, 0))
   }
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="lg">
-        <TextInput
-          required
-          label="Название бизнеса"
-          placeholder="Basilico Bistro"
-          size="md"
-          radius="md"
-          classNames={{
-            input:
-              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-            label: 'mb-2 text-sm font-medium text-moss-900'
-          }}
-          {...form.getInputProps('name')}
-        />
+      <Paper
+        radius="24px"
+        p="xl"
+        className="border border-black/8 bg-white shadow-[0_18px_60px_rgba(16,19,31,0.08)]"
+      >
+        <Stack gap="xl">
+          <FormStepHeader activeStep={activeStep} />
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <PhoneInput
-            required
-            label="Телефон"
-            placeholder="+7 (999) 123-45-67"
-            size="md"
-            radius="md"
-            classNames={{
-              input:
-                'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-              label: 'mb-2 text-sm font-medium text-moss-900'
-            }}
-            {...form.getInputProps('phone')}
-          />
+          {activeStep === 0 && <BasicInfoStep form={form} />}
+          {activeStep === 1 && <DeliveryScheduleStep form={form} />}
+          {activeStep === 2 && (
+            <MediaStep
+              defaultLogo={form.values.logo}
+              defaultPreview={form.values.preview}
+              isPending={isPending}
+              onUpload={handleUpload}
+            />
+          )}
 
-          <TextInput
-            required
-            label="Email"
-            placeholder="owner@restaurant.com"
-            size="md"
-            radius="md"
-            classNames={{
-              input:
-                'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-              label: 'mb-2 text-sm font-medium text-moss-900'
-            }}
-            {...form.getInputProps('email')}
-          />
-        </div>
+          <Group justify="space-between" pt="sm">
+            <Button
+              type="button"
+              variant="default"
+              radius="md"
+              disabled={activeStep === 0}
+              onClick={goPrevStep}
+            >
+              Назад
+            </Button>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput
-            required
-            label="Город"
-            placeholder="Москва"
-            size="md"
-            radius="md"
-            classNames={{
-              input:
-                'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-              label: 'mb-2 text-sm font-medium text-moss-900'
-            }}
-            {...form.getInputProps('city')}
-          />
-
-          <NumberInput
-            label="Время доставки, мин"
-            placeholder="45"
-            size="md"
-            radius="md"
-            min={0}
-            allowDecimal={false}
-            hideControls
-            classNames={{
-              input:
-                'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-              label: 'mb-2 text-sm font-medium text-moss-900'
-            }}
-            {...form.getInputProps('deliveryTime')}
-          />
-        </div>
-
-        <TextInput
-          required
-          label="Адрес"
-          placeholder="Москва, ул. Лесная, 12"
-          size="md"
-          radius="md"
-          classNames={{
-            input:
-              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-            label: 'mb-2 text-sm font-medium text-moss-900'
-          }}
-          {...form.getInputProps('address')}
-        />
-
-        <TextInput
-          label="Кухня"
-          placeholder="Итальянская, Пицца, Завтраки"
-          size="md"
-          radius="md"
-          description="Перечислите направления через запятую."
-          classNames={{
-            input:
-              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-            label: 'mb-2 text-sm font-medium text-moss-900',
-            description: 'mt-2 text-xs leading-5 text-moss-600'
-          }}
-          {...form.getInputProps('cuisine')}
-        />
-
-        <Textarea
-          required
-          label="Описание"
-          placeholder="Кратко опишите концепцию ресторана, меню и особенности сервиса."
-          minRows={4}
-          autosize
-          radius="md"
-          classNames={{
-            input:
-              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-            label: 'mb-2 text-sm font-medium text-moss-900'
-          }}
-          {...form.getInputProps('description')}
-        />
-
-        <Textarea
-          label="Условия доставки"
-          placeholder="Бесплатная доставка от 1500 ₽, зона доставки до 5 км."
-          minRows={3}
-          autosize
-          radius="md"
-          classNames={{
-            input:
-              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
-            label: 'mb-2 text-sm font-medium text-moss-900'
-          }}
-          {...form.getInputProps('deliveryConditions')}
-        />
-
-        <Box my={24}>
-          <UploadLogoPreviewFeature
-            required
-            isLoading={isPending}
-            onUpload={handleUpload}
-            defaultLogo={form.values.logo}
-            defaultPreview={form.values.preview}
-          />
-          <Divider className="border-black/8" mt="0" />
-        </Box>
-
-        <Button
-          type="submit"
-          size="md"
-          radius="md"
-          loading={isPending}
-          disabled={!canSubmit}
-          className="mt-2"
-        >
-          Создать ресторан
-        </Button>
-
-        <Text size="sm" className="leading-6 text-moss-700">
-          После создания ресторан появится в общем списке и будет привязан к
-          вашей учетной записи как к владельцу.
-        </Text>
-      </Stack>
+            {activeStep < FORM_STEPS.length - 1 ? (
+              <Button
+                type="button"
+                radius="md"
+                color="aurora"
+                onClick={goNextStep}
+              >
+                Продолжить
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                size="md"
+                radius="md"
+                color="dark"
+                loading={isPending}
+                disabled={!canSubmit}
+              >
+                Создать ресторан
+              </Button>
+            )}
+          </Group>
+        </Stack>
+      </Paper>
     </form>
   )
 }
