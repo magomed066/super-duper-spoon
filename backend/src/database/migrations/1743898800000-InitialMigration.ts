@@ -9,6 +9,8 @@ export class InitialMigration1743898800000 implements MigrationInterface {
   name = 'InitialMigration1743898800000'
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
+
     await queryRunner.createTable(
       new Table({
         name: 'users',
@@ -32,13 +34,21 @@ export class InitialMigration1743898800000 implements MigrationInterface {
           },
           {
             name: 'phone',
+            type: 'text'
+          },
+          {
+            name: 'phoneHash',
             type: 'varchar',
-            length: '255'
+            length: '64'
           },
           {
             name: 'email',
+            type: 'text'
+          },
+          {
+            name: 'emailHash',
             type: 'varchar',
-            length: '255',
+            length: '64',
             isUnique: true
           },
           {
@@ -85,8 +95,12 @@ export class InitialMigration1743898800000 implements MigrationInterface {
           },
           {
             name: 'email',
+            type: 'text'
+          },
+          {
+            name: 'emailHash',
             type: 'varchar',
-            length: '512'
+            length: '64'
           },
           {
             name: 'name',
@@ -100,13 +114,21 @@ export class InitialMigration1743898800000 implements MigrationInterface {
           },
           {
             name: 'address',
+            type: 'text'
+          },
+          {
+            name: 'addressHash',
             type: 'varchar',
-            length: '512'
+            length: '64'
           },
           {
             name: 'phone',
+            type: 'text'
+          },
+          {
+            name: 'phoneHash',
             type: 'varchar',
-            length: '512'
+            length: '64'
           },
           {
             name: 'status',
