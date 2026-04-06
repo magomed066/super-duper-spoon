@@ -66,7 +66,8 @@ export class InitialMigration1743898800000 implements MigrationInterface {
             name: 'role',
             type: 'enum',
             enum: ['SYSTEM_OWNER', 'CLIENT', 'STAFF'],
-            enumName: 'users_role_enum'
+            enumName: 'users_role_enum',
+            default: "'CLIENT'"
           },
           {
             name: 'isActive',
