@@ -1,4 +1,5 @@
 import {
+  AfterLoad,
   BeforeInsert,
   BeforeUpdate,
   Column,
@@ -8,6 +9,12 @@ import {
 } from 'typeorm'
 
 import {
+  decryptAddress,
+  decryptEmail,
+  decryptPhone,
+  encryptAddress,
+  encryptEmail,
+  encryptPhone,
   hashAddress,
   hashEmail,
   hashPhone
@@ -19,8 +26,11 @@ export class Application {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
-  @Column({ type: 'varchar', length: 512 })
+  @Column({ type: 'text' })
   email!: string
+
+  @Column({ type: 'varchar', length: 64 })
+  emailHash!: string
 
   @Column({ type: 'varchar', length: 255 })
   name!: string
@@ -28,11 +38,17 @@ export class Application {
   @Column({ type: 'varchar', length: 255 })
   restaurantName!: string
 
-  @Column({ type: 'varchar', length: 512 })
+  @Column({ type: 'text' })
   address!: string
 
-  @Column({ type: 'varchar', length: 512 })
+  @Column({ type: 'varchar', length: 64 })
+  addressHash!: string
+
+  @Column({ type: 'text' })
   phone!: string
+
+  @Column({ type: 'varchar', length: 64 })
+  phoneHash!: string
 
   @Column({
     type: 'enum',
@@ -47,8 +63,18 @@ export class Application {
   @BeforeInsert()
   @BeforeUpdate()
   protectSensitiveFields(): void {
-    this.email = hashEmail(this.email)
-    this.phone = hashPhone(this.phone)
-    this.address = hashAddress(this.address)
+    this.emailHash = hashEmail(this.email)
+    this.addressHash = hashAddress(this.address)
+    this.phoneHash = hashPhone(this.phone)
+    this.email = encryptEmail(this.email)
+    this.phone = encryptPhone(this.phone)
+    this.address = encryptAddress(this.address)
+  }
+
+  @AfterLoad()
+  unprotectSensitiveFields(): void {
+    this.email = decryptEmail(this.email)
+    this.phone = decryptPhone(this.phone)
+    this.address = decryptAddress(this.address)
   }
 }

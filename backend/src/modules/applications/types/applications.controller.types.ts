@@ -1,5 +1,3 @@
-import { Application } from '../entities/application.entity.js'
-
 export type CreateApplicationDto = {
   email: string
   name: string
@@ -8,7 +6,18 @@ export type CreateApplicationDto = {
   phone: string
 }
 
+export type ApplicationDto = {
+  id: string
+  email: string
+  name: string
+  restaurantName: string
+  address: string
+  phone: string
+  status: string
+  createdAt: Date
+}
+
 export type ApprovalResult = {
-  application: Application
+  application: ApplicationDto
   password: string
 }

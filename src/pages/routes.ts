@@ -1,4 +1,5 @@
 import AuthPage from '@/pages/auth'
+import ApplicationsPage from '@/pages/applications'
 import NotFoundPage from '@/pages/not-found'
 import RestaurantPage from '@/pages/restaurants'
 import RequestPage from '@/pages/request'
@@ -11,10 +12,6 @@ export const publicRoutes = [
   },
   {
     Component: RequestPage,
-    path: ROUTES.APPLICATION
-  },
-  {
-    Component: RequestPage,
     path: ROUTES.REQUEST
   },
   {
@@ -24,6 +21,10 @@ export const publicRoutes = [
 ]
 
 export const privateRoutes = [
+  {
+    Component: ApplicationsPage,
+    path: ROUTES.APPLICATIONS
+  },
   {
     Component: RestaurantPage,
     path: ROUTES.RESTAURANTS

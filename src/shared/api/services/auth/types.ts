@@ -1,7 +1,7 @@
-export enum UserStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  BLOCKED = 'blocked'
+export enum UserRole {
+  OWNER = 'OWNER',
+  CLIENT = 'CLIENT',
+  MANAGER = 'MANAGER'
 }
 
 export type User = {
@@ -10,7 +10,8 @@ export type User = {
   lastName: string
   phone: string
   email: string
-  status: UserStatus
+  role: UserRole
+  isActive: boolean
   createdAt: string
   updatedAt: string
 }
@@ -29,9 +30,14 @@ export type UserRegister = Pick<
 
 export type UserLoginResponse = {
   accessToken: string
+  refreshToken: string
   user: User
 }
 
 export type AuthRegisterResponse = {
   message: string
+}
+
+export type LogoutPayload = {
+  refreshToken: string
 }

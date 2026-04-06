@@ -1,6 +1,7 @@
 import { apiService } from '@/shared/api/base'
 import type {
   AuthRegisterResponse,
+  LogoutPayload,
   UserLogin,
   UserLoginResponse,
   UserRegister
@@ -18,5 +19,9 @@ export class AuthService {
 
   static register(data: UserRegister): Promise<AuthRegisterResponse> {
     return apiService.post<AuthRegisterResponse>('/auth/register', data)
+  }
+
+  static logout(data: LogoutPayload): Promise<void> {
+    return apiService.post<void>('/auth/logout', data)
   }
 }

@@ -77,6 +77,9 @@ const swaggerOptions = {
             refreshToken: {
               type: 'string',
               example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+            },
+            user: {
+              $ref: '#/components/schemas/User'
             }
           }
         },
@@ -125,7 +128,7 @@ const swaggerOptions = {
             },
             email: {
               type: 'string',
-              example: 'hashed-email'
+              example: 'owner@sunrise.example'
             },
             name: {
               type: 'string',
@@ -137,11 +140,11 @@ const swaggerOptions = {
             },
             address: {
               type: 'string',
-              example: 'hashed-address'
+              example: '1 Tverskaya Street, Moscow'
             },
             phone: {
               type: 'string',
-              example: 'hashed-phone'
+              example: '+79991234567'
             },
             status: {
               type: 'string',

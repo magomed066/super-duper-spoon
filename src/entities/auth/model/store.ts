@@ -1,9 +1,14 @@
 import { create } from 'zustand'
 import type { User, UserLoginResponse } from '@/shared/api/services/auth/types'
-import { ACCESS_TOKEN_STORAGE_KEY, AUTH_USER_STORAGE_KEY } from './storage'
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  AUTH_USER_STORAGE_KEY,
+  REFRESH_TOKEN_STORAGE_KEY
+} from './storage'
 
 type AuthState = {
   accessToken: string | null
+  refreshToken: string | null
   user: User | null
   isAuthenticated: boolean
   isHydrated: boolean
@@ -29,15 +34,18 @@ const readUserFromStorage = (): User | null => {
 
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
+  refreshToken: null,
   user: null,
   isAuthenticated: false,
   isHydrated: false,
-  setAuth: ({ accessToken, user }) => {
+  setAuth: ({ accessToken, refreshToken, user }) => {
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, accessToken)
+    localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken)
     localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user))
 
     set({
       accessToken,
+      refreshToken,
       user,
       isAuthenticated: true,
       isHydrated: true
@@ -45,6 +53,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   clearAuth: () => {
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
+    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
     localStorage.removeItem(AUTH_USER_STORAGE_KEY)
 
     set({
@@ -56,10 +65,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   hydrateAuth: () => {
     const accessToken = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)
     const user = readUserFromStorage()
 
     set({
       accessToken,
+      refreshToken,
       user,
       isAuthenticated: Boolean(accessToken),
       isHydrated: true

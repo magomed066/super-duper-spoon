@@ -5,6 +5,22 @@ export type AuthTokensDto = {
   refreshToken: string
 }
 
+export type AuthUserDto = {
+  id: string
+  firstName: string
+  lastName: string
+  phone: string
+  email: string
+  status: string
+  role: string
+  isActive: boolean
+  createdAt: Date
+}
+
+export type AuthLoginResponseDto = AuthTokensDto & {
+  user: AuthUserDto
+}
+
 export type AccessTokenDto = {
   accessToken: string
 }

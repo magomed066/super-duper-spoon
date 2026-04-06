@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAuthStore } from '@/entities/auth'
-import { ROUTES } from '@/shared/config/routes'
+import { getDefaultRouteByRole, useAuthStore } from '@/entities/auth'
 
 type RequireGuestProps = {
   children: ReactNode
@@ -10,13 +9,14 @@ type RequireGuestProps = {
 export function RequireGuest({ children }: RequireGuestProps) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const isHydrated = useAuthStore((state) => state.isHydrated)
+  const user = useAuthStore((state) => state.user)
 
   if (!isHydrated) {
     return null
   }
 
   if (isAuthenticated) {
-    return <Navigate to={ROUTES.RESTAURANTS} replace />
+    return <Navigate to={getDefaultRouteByRole(user)} replace />
   }
 
   return <>{children}</>

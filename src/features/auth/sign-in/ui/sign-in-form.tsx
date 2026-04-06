@@ -11,10 +11,13 @@ import {
   Text,
   TextInput
 } from '@mantine/core'
-import { signInSchema, validateWithZod } from '@/entities/auth'
+import {
+  getDefaultRouteByRole,
+  signInSchema,
+  validateWithZod
+} from '@/entities/auth'
 import { useLoginMutation } from '@/entities/auth/model/hooks'
 import type { UserLogin } from '@/shared/api/services/auth/types'
-import { ROUTES } from '@/shared/config/routes'
 
 export function SignInForm() {
   const [rememberMe, setRememberMe] = useState(true)
@@ -36,8 +39,8 @@ export function SignInForm() {
     form.values.password.trim().length > 0
 
   const handleSubmit = (data: UserLogin) => {
-    mutateAsync(data).then(() => {
-      navigate(ROUTES.RESTAURANTS)
+    mutateAsync(data).then((response) => {
+      navigate(getDefaultRouteByRole(response.user))
     })
   }
 

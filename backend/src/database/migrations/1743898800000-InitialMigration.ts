@@ -33,7 +33,7 @@ export class InitialMigration1743898800000 implements MigrationInterface {
           {
             name: 'phone',
             type: 'varchar',
-            length: '30'
+            length: '255'
           },
           {
             name: 'email',
@@ -86,7 +86,7 @@ export class InitialMigration1743898800000 implements MigrationInterface {
           {
             name: 'email',
             type: 'varchar',
-            length: '255'
+            length: '512'
           },
           {
             name: 'name',
@@ -101,12 +101,12 @@ export class InitialMigration1743898800000 implements MigrationInterface {
           {
             name: 'address',
             type: 'varchar',
-            length: '255'
+            length: '512'
           },
           {
             name: 'phone',
             type: 'varchar',
-            length: '255'
+            length: '512'
           },
           {
             name: 'status',

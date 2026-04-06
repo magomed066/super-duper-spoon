@@ -10,7 +10,7 @@ export class AuthRepository {
 
   findUserByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { email: hashEmail(email) }
+      where: { emailHash: hashEmail(email) }
     })
   }
 
