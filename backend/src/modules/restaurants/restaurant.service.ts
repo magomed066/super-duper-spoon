@@ -138,9 +138,7 @@ const assignRestaurantManagerSchema = z.object({
 })
 
 type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>
-type NormalizedCreateRestaurantInput = Omit<CreateRestaurantInput, 'slug'> & {
-  slug: string
-}
+type NormalizedCreateRestaurantInput = CreateRestaurantInput
 type UpdateRestaurantInput = z.infer<typeof updateRestaurantSchema>
 type AssignRestaurantManagerInput = z.infer<typeof assignRestaurantManagerSchema>
 
@@ -288,23 +286,33 @@ export class RestaurantService {
     this.assertCanCreateRestaurant(currentUser)
 
     const normalizedPayload = this.parseCreateRestaurantPayload(payload)
-    const email = normalizedPayload.email ?? this.buildRestaurantEmail(normalizedPayload.slug)
 
     return AppDataSource.transaction(async (manager) => {
       const restaurantRepository = manager.getRepository(Restaurant)
       const restaurantUserRepository = manager.getRepository(RestaurantUser)
       const userRepository = manager.getRepository(User)
+      const slug = await this.resolveCreateRestaurantSlug(
+        restaurantRepository,
+        normalizedPayload
+      )
+      const email = normalizedPayload.email ?? this.buildRestaurantEmail(slug)
 
-      const existingRestaurant = await restaurantRepository.findOne({
-        where: [{ slug: normalizedPayload.slug }, { email }]
+      const existingRestaurantByEmail = await restaurantRepository.findOneBy({
+        email
       })
 
-      if (existingRestaurant) {
-        throw new RestaurantsHttpError(409, 'Restaurant slug is already in use')
+      if (existingRestaurantByEmail) {
+        throw new RestaurantsHttpError(409, 'Restaurant email is already in use')
       }
 
       const restaurant = restaurantRepository.create(
-        this.toRestaurantEntity(normalizedPayload, email)
+        this.toRestaurantEntity(
+          {
+            ...normalizedPayload,
+            slug
+          },
+          email
+        )
       )
 
       const savedRestaurant = await restaurantRepository.save(restaurant)
@@ -628,20 +636,60 @@ export class RestaurantService {
       )
     }
 
-    const normalizedPayload = validationResult.data
-    const slug = normalizedPayload.slug ?? this.generateSlug(normalizedPayload.name)
+    return validationResult.data
+  }
 
-    if (!slug) {
+  private async resolveCreateRestaurantSlug(
+    restaurantRepository: Repository<Restaurant>,
+    payload: NormalizedCreateRestaurantInput
+  ): Promise<string> {
+    if (payload.slug) {
+      const existingRestaurant = await restaurantRepository.findOneBy({
+        slug: payload.slug
+      })
+
+      if (existingRestaurant) {
+        throw new RestaurantsHttpError(409, 'Restaurant slug is already in use')
+      }
+
+      return payload.slug
+    }
+
+    const baseSlug = this.generateSlug(payload.name)
+
+    if (!baseSlug) {
       throw new RestaurantsHttpError(
         400,
         'Slug could not be generated from name, provide slug manually'
       )
     }
 
-    return {
-      ...normalizedPayload,
-      slug
+    const existingSlugs = await restaurantRepository
+      .createQueryBuilder('restaurant')
+      .select('restaurant.slug', 'slug')
+      .where('restaurant.slug = :baseSlug', { baseSlug })
+      .orWhere('restaurant.slug LIKE :slugPattern', {
+        slugPattern: this.buildSlugPattern(baseSlug)
+      })
+      .getRawMany<{ slug: string }>()
+
+    if (existingSlugs.length === 0) {
+      return baseSlug
     }
+
+    const usedSlugs = new Set(existingSlugs.map(({ slug }) => slug))
+
+    if (!usedSlugs.has(baseSlug)) {
+      return baseSlug
+    }
+
+    let suffix = 2
+
+    while (usedSlugs.has(`${baseSlug}-${suffix}`)) {
+      suffix += 1
+    }
+
+    return `${baseSlug}-${suffix}`
   }
 
   private parseAssignRestaurantManagerPayload(
@@ -737,6 +785,10 @@ export class RestaurantService {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .replace(/-{2,}/g, '-')
+  }
+
+  private buildSlugPattern(slug: string): string {
+    return `${slug}-%`
   }
 
   private escapeLikePattern(value: string): string {
