@@ -17,7 +17,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: Get a single restaurant available to the current user
- *     description: Returns the restaurant for system owners, clients with active OWNER membership, and managers with active MANAGER membership.
+ *     description: Returns the restaurant for system owners, clients with active OWNER membership, and staff with active MANAGER membership.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -40,7 +40,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: Update a restaurant
- *     description: System owners can update any restaurant. Clients can update only restaurants they own. Managers can update restaurants they manage.
+ *     description: System owners can update any restaurant. Clients can update only restaurants they own. Staff can update restaurants they manage.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -73,7 +73,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: Delete a restaurant
- *     description: System owners can delete any restaurant. Clients can delete only restaurants they own. Managers cannot delete restaurants.
+ *     description: System owners can delete any restaurant. Clients can delete only restaurants they own. Staff cannot delete restaurants.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -192,7 +192,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: List restaurants available to the current user
- *     description: Returns all restaurants for system owners, restaurants with active OWNER membership for clients, and restaurants with active MANAGER membership for managers. Active memberships are used by default.
+ *     description: Returns all restaurants for system owners, restaurants with active OWNER membership for clients, and restaurants with active MANAGER membership for staff. Active memberships are used by default.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -201,7 +201,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *         required: false
  *         schema:
  *           type: boolean
- *         description: When true, CLIENT and MANAGER users can also receive restaurants from inactive memberships.
+ *         description: When true, CLIENT and STAFF users can also receive restaurants from inactive memberships.
  *     responses:
  *       200:
  *         description: Restaurants fetched successfully
@@ -290,56 +290,56 @@ const restaurantController = new RestaurantController(restaurantService)
 restaurantsRouter.get(
   '/:id',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
   restaurantController.getById
 )
 
 restaurantsRouter.patch(
   '/:id',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
   restaurantController.update
 )
 
 restaurantsRouter.delete(
   '/:id',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
   restaurantController.delete
 )
 
 restaurantsRouter.get(
   '/:id/users',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
   restaurantController.getUsers
 )
 
 restaurantsRouter.post(
   '/:id/managers',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER, UserRole.CLIENT]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT]),
   restaurantController.assignManager
 )
 
 restaurantsRouter.delete(
   '/:id/managers/:userId',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER, UserRole.CLIENT]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT]),
   restaurantController.removeManager
 )
 
 restaurantsRouter.get(
   '/',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
   restaurantController.list
 )
 
 restaurantsRouter.post(
   '/',
   authMiddleware,
-  roleMiddleware([UserRole.CLIENT, UserRole.OWNER]),
+  roleMiddleware([UserRole.CLIENT, UserRole.SYSTEM_OWNER]),
   restaurantController.create
 )
 
