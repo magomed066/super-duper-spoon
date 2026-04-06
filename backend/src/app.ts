@@ -3,10 +3,12 @@ import express, {
   type Request,
   type Response
 } from 'express'
+import path from 'node:path'
 import cors from 'cors'
 import swaggerUi from 'swagger-ui-express'
 
 import { errorHandler } from './common/middleware/error-handler.middleware.js'
+import { uploadsRootDir } from './common/uploads/file-storage.js'
 import { swaggerSpec } from './config/swagger.js'
 import { applicationsRouter } from './modules/applications/applications.routes.js'
 import { authRouter } from './modules/auth/auth.routes.js'
@@ -20,6 +22,7 @@ export const createApp = (): express.Express => {
   app.use(cors())
   app.use(express.json({ limit: '50mb' }))
   app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+  app.use('/uploads', express.static(path.resolve(uploadsRootDir)))
 
   app.get(apiPrefix, (_req: Request, res: Response) => {
     res.status(200).json({

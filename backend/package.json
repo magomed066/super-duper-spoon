@@ -13,11 +13,13 @@
     "migration:run": "npm run typeorm -- migration:run"
   },
   "dependencies": {
+    "@types/multer": "^2.1.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.6",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
     "swagger-jsdoc": "^6.2.8",

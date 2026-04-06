@@ -1,9 +1,17 @@
+import { unlink } from 'node:fs/promises'
 import type { NextFunction, Request, Response } from 'express'
+import type { MulterError } from 'multer'
 
 import {
   RestaurantsHttpError,
   RestaurantService
 } from './restaurant.service.js'
+import { toPublicUploadPath } from '../../common/uploads/file-storage.js'
+
+type UploadedRestaurantFiles = {
+  logoFile?: Express.Multer.File[]
+  previewFile?: Express.Multer.File[]
+}
 
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
@@ -72,14 +80,30 @@ export class RestaurantController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
+    const uploadedFiles = this.getUploadedFiles(req.files)
+
     try {
+      const normalizedBody = this.normalizeRestaurantPayload(req.body)
+      const logoFile = uploadedFiles.logoFile?.[0]
+      const previewFile = uploadedFiles.previewFile?.[0]
+
+      this.assertUploadedFileSize(logoFile, 5, 'Логотип')
+      this.assertUploadedFileSize(previewFile, 10, 'Обложка')
+
       const creationResult = await this.restaurantService.createRestaurant(
-        req.body,
+        {
+          ...normalizedBody,
+          logo: logoFile ? toPublicUploadPath(logoFile.filename) : normalizedBody.logo,
+          preview: previewFile
+            ? toPublicUploadPath(previewFile.filename)
+            : normalizedBody.preview
+        },
         req.user
       )
 
       res.status(201).json(creationResult)
     } catch (error: unknown) {
+      await this.cleanupUploadedFiles(uploadedFiles)
       next(this.normalizeError(error))
     }
   }
@@ -177,6 +201,16 @@ export class RestaurantController {
       return error
     }
 
+    if (
+      error &&
+      typeof error === 'object' &&
+      'name' in error &&
+      error.name === 'MulterError'
+    ) {
+      const multerError = error as MulterError
+      return new RestaurantsHttpError(400, this.getMulterErrorMessage(multerError))
+    }
+
     return new Error('Unexpected restaurant error')
   }
 
@@ -243,5 +277,100 @@ export class RestaurantController {
     }
 
     return parsedValue
+  }
+
+  private getUploadedFiles(files: Request['files']): UploadedRestaurantFiles {
+    if (!files || Array.isArray(files)) {
+      return {}
+    }
+
+    return files as UploadedRestaurantFiles
+  }
+
+  private normalizeRestaurantPayload(body: Request['body']): Record<string, unknown> {
+    return {
+      ...body,
+      phones: this.parseOptionalJsonField(body.phones),
+      cuisine: this.parseOptionalJsonField(body.cuisine),
+      workSchedule: this.parseOptionalJsonField(body.workSchedule),
+      deliveryTime: this.parseOptionalNumberField(body.deliveryTime)
+    }
+  }
+
+  private parseOptionalJsonField(value: unknown): unknown {
+    if (typeof value !== 'string') {
+      return value
+    }
+
+    const trimmedValue = value.trim()
+
+    if (!trimmedValue) {
+      return undefined
+    }
+
+    try {
+      return JSON.parse(trimmedValue)
+    } catch {
+      return value
+    }
+  }
+
+  private parseOptionalNumberField(value: unknown): unknown {
+    if (typeof value !== 'string') {
+      return value
+    }
+
+    const trimmedValue = value.trim()
+
+    if (!trimmedValue) {
+      return undefined
+    }
+
+    const parsedValue = Number(trimmedValue)
+
+    return Number.isNaN(parsedValue) ? value : parsedValue
+  }
+
+  private assertUploadedFileSize(
+    file: Express.Multer.File | undefined,
+    maxSizeMb: number,
+    label: string
+  ): void {
+    if (!file) {
+      return
+    }
+
+    if (file.size > maxSizeMb * 1024 * 1024) {
+      throw new RestaurantsHttpError(
+        400,
+        `${label} должен быть не больше ${maxSizeMb} МБ`
+      )
+    }
+  }
+
+  private async cleanupUploadedFiles(files: UploadedRestaurantFiles): Promise<void> {
+    const uploadedFiles = [...(files.logoFile ?? []), ...(files.previewFile ?? [])]
+
+    await Promise.all(
+      uploadedFiles.map(async (file) => {
+        try {
+          await unlink(file.path)
+        } catch {
+          // Best-effort cleanup for failed requests.
+        }
+      })
+    )
+  }
+
+  private getMulterErrorMessage(error: MulterError): string {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return 'Файл должен быть не больше 10 МБ'
+    }
+
+    if (error.code === 'LIMIT_FILE_COUNT') {
+      return 'Можно загрузить не более двух файлов'
+    }
+
+    return error.message
   }
 }

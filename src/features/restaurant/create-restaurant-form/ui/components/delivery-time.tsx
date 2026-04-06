@@ -42,7 +42,6 @@ export function DeliveryTime(props: Props) {
           form.setFieldValue('deliveryTime', event.currentTarget.value)
         }
         error={form.errors.deliveryTime}
-        rightSection={<Text size="xs" className="pr-3 text-moss-500">мин</Text>}
         classNames={FORM_FIELD_CLASSNAMES}
       />
     </Box>

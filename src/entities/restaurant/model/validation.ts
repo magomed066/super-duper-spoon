@@ -10,8 +10,8 @@ export const createRestaurantWorkDaySchema = z.object({
 
 export const createRestaurantSchema = z.object({
   name: z.string().min(2, 'Введите название ресторана'),
-  logo: z.string().url('Введите корректный URL логотипа').or(z.literal('')),
-  preview: z.string().url('Введите корректный URL обложки').or(z.literal('')),
+  logo: z.string().optional(),
+  preview: z.string().optional(),
   phone: z
     .string()
     .regex(

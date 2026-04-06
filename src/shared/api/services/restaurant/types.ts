@@ -40,6 +40,8 @@ export type CreateRestaurantPayload = {
   city?: string
   logo?: string
   preview?: string
+  logoFile?: File
+  previewFile?: File
   deliveryTime?: number
   deliveryConditions?: string
   cuisine?: string[]

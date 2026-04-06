@@ -269,11 +269,11 @@ const swaggerOptions = {
             },
             logo: {
               type: 'string',
-              example: 'https://cdn.example.com/restaurants/sunrise/logo.png'
+              example: '/uploads/restaurants/logo-1712497612345-123456789.png'
             },
             preview: {
               type: 'string',
-              example: 'https://cdn.example.com/restaurants/sunrise/preview.png'
+              example: '/uploads/restaurants/preview-1712497612345-987654321.png'
             },
             workSchedule: {
               type: 'array',
@@ -444,11 +444,23 @@ const swaggerOptions = {
             },
             logo: {
               type: 'string',
-              example: 'https://cdn.example.com/restaurants/sunrise/logo.png'
+              description:
+                'Optional existing image URL. Ignored when logoFile is uploaded.',
+              example: '/uploads/restaurants/logo-1712497612345-123456789.png'
             },
             preview: {
               type: 'string',
-              example: 'https://cdn.example.com/restaurants/sunrise/preview.png'
+              description:
+                'Optional existing image URL. Ignored when previewFile is uploaded.',
+              example: '/uploads/restaurants/preview-1712497612345-987654321.png'
+            },
+            logoFile: {
+              type: 'string',
+              format: 'binary'
+            },
+            previewFile: {
+              type: 'string',
+              format: 'binary'
             },
             deliveryTime: {
               type: 'integer',

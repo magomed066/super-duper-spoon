@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import cn from 'classnames'
 import {
   BackgroundImage,
@@ -26,6 +26,14 @@ export function UploadLogoPreviewFeature(props: Props) {
 
   const [preview, setPreview] = useState(defaultPreview)
   const [logo, setLogo] = useState(defaultLogo)
+
+  useEffect(() => {
+    setPreview(defaultPreview)
+  }, [defaultPreview])
+
+  useEffect(() => {
+    setLogo(defaultLogo)
+  }, [defaultLogo])
 
   const handleFile = (file: File | null, type: 'logo' | 'preview') => {
     if (!file) {
@@ -69,7 +77,7 @@ export function UploadLogoPreviewFeature(props: Props) {
 
           <FileButton
             onChange={(file) => handleFile(file, 'logo')}
-            accept="image/png,image/jpeg"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
           >
             {({ onClick }) => (
               <Button
@@ -99,7 +107,7 @@ export function UploadLogoPreviewFeature(props: Props) {
 
           <FileButton
             onChange={(file) => handleFile(file, 'preview')}
-            accept="image/png,image/jpeg"
+            accept="image/png,image/jpeg,image/webp"
           >
             {({ onClick }) => (
               <Button

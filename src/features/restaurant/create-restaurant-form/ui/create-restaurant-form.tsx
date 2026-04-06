@@ -40,6 +40,10 @@ const initialValues: CreateRestaurantFormValues = {
 
 export function CreateRestaurantForm() {
   const [activeStep, setActiveStep] = useState(0)
+  const [uploadedFiles, setUploadedFiles] = useState<{
+    logoFile?: File
+    previewFile?: File
+  }>({})
   const form = useForm<CreateRestaurantFormValues>({
     initialValues,
     validate: validateCreateRestaurantForm,
@@ -58,6 +62,19 @@ export function CreateRestaurantForm() {
     }
 
     form.setFieldValue(uploadType, URL.createObjectURL(file))
+
+    if (uploadType === 'logo') {
+      setUploadedFiles((current) => ({
+        ...current,
+        logoFile: file
+      }))
+      return
+    }
+
+    setUploadedFiles((current) => ({
+      ...current,
+      previewFile: file
+    }))
   }
 
   const handleSubmit = (data: CreateRestaurantFormValues) => {
@@ -65,8 +82,10 @@ export function CreateRestaurantForm() {
       ...data,
       email: data.email.trim() || undefined,
       city: data.city.trim() || undefined,
-      logo: data.logo.trim() || undefined,
-      preview: data.preview.trim() || undefined,
+      logo: data.logo?.trim() || undefined,
+      preview: data.preview?.trim() || undefined,
+      logoFile: uploadedFiles.logoFile,
+      previewFile: uploadedFiles.previewFile,
       deliveryTime: data.deliveryTime ? Number(data.deliveryTime) : undefined,
       deliveryConditions: data.deliveryConditions.trim() || undefined,
       cuisine: data.cuisine
@@ -125,8 +144,8 @@ export function CreateRestaurantForm() {
           {activeStep === 1 && <DeliveryScheduleStep form={form} />}
           {activeStep === 2 && (
             <MediaStep
-              defaultLogo={form.values.logo}
-              defaultPreview={form.values.preview}
+              defaultLogo={form.values.logo ?? ''}
+              defaultPreview={form.values.preview ?? ''}
               isPending={isPending}
               onUpload={handleUpload}
             />

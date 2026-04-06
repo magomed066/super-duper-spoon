@@ -62,7 +62,7 @@ export function Sidebar() {
       >
         {item.icon()}
       </div>
-      <span className="text-lg">{item.label}</span>
+      <span className="text-[18px]">{item.label}</span>
     </Link>
   ))
 
@@ -70,7 +70,7 @@ export function Sidebar() {
     <nav className="w-full flex-1 flex flex-col">
       <div className="flex-1">
         <Group
-          className="flex border-b border-moss-300 p-3"
+          className="flex border-b border-moss-300 p-3 text-xl font-bold"
           justify="space-between"
         >
           Delivery App
