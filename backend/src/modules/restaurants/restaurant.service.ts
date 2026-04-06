@@ -233,8 +233,6 @@ export class RestaurantService {
       })
     }
 
-    const membershipRole = this.resolveMembershipRole(currentUser.role)
-
     return this.restaurantRepository
       .createQueryBuilder('restaurant')
       .innerJoin(
@@ -242,8 +240,7 @@ export class RestaurantService {
         'membership',
         this.buildMembershipJoinCondition(includeInactiveMemberships),
         {
-          userId: currentUser.id,
-          membershipRole
+          userId: currentUser.id
         }
       )
       .orderBy('restaurant.createdAt', 'DESC')
@@ -600,23 +597,10 @@ export class RestaurantService {
     return normalizedValue
   }
 
-  private resolveMembershipRole(userRole: UserRole): RestaurantRole {
-    if (userRole === UserRole.CLIENT) {
-      return RestaurantRole.OWNER
-    }
-
-    if (userRole === UserRole.STAFF) {
-      return RestaurantRole.MANAGER
-    }
-
-    throw new RestaurantsHttpError(403, 'Access denied')
-  }
-
   private buildMembershipJoinCondition(includeInactiveMemberships: boolean): string {
     const conditions = [
       'membership.restaurantId = restaurant.id',
-      'membership.userId = :userId',
-      'membership.role = :membershipRole'
+      'membership.userId = :userId'
     ]
 
     if (!includeInactiveMemberships) {
