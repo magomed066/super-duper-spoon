@@ -7,11 +7,15 @@ import {
 import type { ApiError } from '@/shared/api/errors'
 import { RestaurantService } from '@/shared/api/services/restaurant'
 import type {
+  CreateRestaurantPayload,
+  CreateRestaurantResponse,
   Restaurant,
   RestaurantsListParams,
   RestouranstsResponse
 } from '@/shared/api/services/restaurant/types'
 import { restauranstsQueryKeys } from './constants'
+import { useNavigate } from 'react-router'
+import { ROUTES } from '@/shared/config/routes'
 
 export const useRestaurantsListQuery = (
   enabled = true,
@@ -58,6 +62,40 @@ export const useRestaurantStatusMutation = () => {
       notifications.show({
         color: 'red',
         title: 'Ошибка обновления ресторана',
+        message: error.message
+      })
+    }
+  })
+}
+
+export const useCreateRestaurantMutation = (onSuccess?: () => void) => {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  return useMutation<
+    CreateRestaurantResponse,
+    ApiError,
+    CreateRestaurantPayload
+  >({
+    mutationFn: (payload) => RestaurantService.create(payload),
+    onSuccess: async ({ restaurant }) => {
+      notifications.show({
+        color: 'green',
+        title: 'Ресторан создан',
+        message: `${restaurant.name} добавлен в систему`
+      })
+
+      await queryClient.invalidateQueries({
+        queryKey: ['restaurants']
+      })
+
+      onSuccess?.()
+      navigate(ROUTES.RESTAURANTS)
+    },
+    onError: (error) => {
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка создания ресторана',
         message: error.message
       })
     }

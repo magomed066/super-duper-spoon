@@ -5,7 +5,8 @@ import { ROUTES } from '@/shared/config/routes'
 export enum PlatformPermission {
   VIEW_APPLICATIONS = 'view_applications',
   MANAGE_APPLICATIONS = 'manage_applications',
-  VIEW_RESTAURANTS = 'view_restaurants'
+  VIEW_RESTAURANTS = 'view_restaurants',
+  CREATE_RESTAURANT = 'create_restaurant'
 }
 
 type RouteAccess = {
@@ -17,9 +18,13 @@ export const PLATFORM_PERMISSIONS_BY_ROLE: Record<UserRole, PlatformPermission[]
   [UserRole.SYSTEM_OWNER]: [
     PlatformPermission.VIEW_APPLICATIONS,
     PlatformPermission.MANAGE_APPLICATIONS,
-    PlatformPermission.VIEW_RESTAURANTS
+    PlatformPermission.VIEW_RESTAURANTS,
+    PlatformPermission.CREATE_RESTAURANT
   ],
-  [UserRole.CLIENT]: [PlatformPermission.VIEW_RESTAURANTS],
+  [UserRole.CLIENT]: [
+    PlatformPermission.VIEW_RESTAURANTS,
+    PlatformPermission.CREATE_RESTAURANT
+  ],
   [UserRole.STAFF]: [PlatformPermission.VIEW_RESTAURANTS]
 }
 
@@ -31,6 +36,10 @@ export const PLATFORM_ROUTE_ACCESS: Partial<Record<string, RouteAccess>> = {
   [ROUTES.RESTAURANTS]: {
     permission: PlatformPermission.VIEW_RESTAURANTS,
     fallbackRoute: ROUTES.AUTH
+  },
+  [ROUTES.RESTAURANTS_CREATE]: {
+    permission: PlatformPermission.CREATE_RESTAURANT,
+    fallbackRoute: ROUTES.RESTAURANTS
   }
 }
 

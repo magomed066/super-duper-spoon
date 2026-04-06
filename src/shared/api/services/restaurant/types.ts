@@ -30,6 +30,39 @@ export type RestouranstsResponse = {
   items: Restaurant[]
 }
 
+export type CreateRestaurantPayload = {
+  name: string
+  slug?: string
+  phone: string
+  address: string
+  description: string
+  email?: string
+  city?: string
+  logo?: string
+  preview?: string
+  deliveryTime?: number
+  deliveryConditions?: string
+  cuisine?: string[]
+  phones?: string[]
+  workSchedule?: Array<{
+    day: string
+    open: string
+    close: string
+  }>
+}
+
+export type CreateRestaurantResponse = {
+  restaurant: Restaurant
+  membership: {
+    id: string
+    restaurantId: string
+    userId: string
+    role: string
+    isActive: boolean
+    createdAt: string
+  }
+}
+
 export type RestaurantsListParams = {
   search?: string
   isActive?: boolean
