@@ -65,7 +65,34 @@ const createRestaurantSchema = z.object({
   workSchedule: z.array(workScheduleItemSchema).default([])
 })
 
+const assignRestaurantManagerSchema = z.object({
+  userId: z.string().trim().min(1, 'User id is required')
+})
+
 type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>
+type AssignRestaurantManagerInput = z.infer<typeof assignRestaurantManagerSchema>
+
+export interface RestaurantMembershipUserDto {
+  id: string
+  firstName: string
+  lastName: string
+  phone: string
+  email: string
+  status: string
+  role: UserRole
+  isActive: boolean
+  createdAt: Date
+}
+
+export interface RestaurantMembershipDto {
+  id: string
+  restaurantId: string
+  userId: string
+  role: RestaurantMembershipRole
+  isActive: boolean
+  createdAt: Date
+  user: RestaurantMembershipUserDto
+}
 
 export class RestaurantsHttpError extends Error {
   constructor(public readonly statusCode: number, message: string) {
@@ -228,8 +255,195 @@ export class RestaurantService {
     })
   }
 
+  async assignManager(
+    restaurantId: string,
+    payload: unknown,
+    currentUser: User | undefined
+  ): Promise<RestaurantMembershipDto> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const normalizedRestaurantId = await this.assertManagerAssignmentAccess(
+      restaurantId,
+      currentUser
+    )
+    const normalizedPayload = this.parseAssignRestaurantManagerPayload(payload)
+
+    return AppDataSource.transaction(async (manager) => {
+      const userRepository = manager.getRepository(User)
+      const restaurantUserRepository = manager.getRepository(RestaurantUser)
+
+      const user = await userRepository.findOne({
+        where: {
+          id: normalizedPayload.userId
+        }
+      })
+
+      if (!user) {
+        throw new RestaurantsHttpError(404, 'User not found')
+      }
+
+      if (!user.isActive) {
+        throw new RestaurantsHttpError(409, 'Only active users can be assigned')
+      }
+
+      const existingMembership = await restaurantUserRepository.findOne({
+        where: {
+          restaurantId: normalizedRestaurantId,
+          userId: normalizedPayload.userId
+        },
+        relations: {
+          user: true
+        }
+      })
+
+      if (existingMembership) {
+        throw new RestaurantsHttpError(409, 'User is already a restaurant member')
+      }
+
+      const membership = restaurantUserRepository.create({
+        restaurantId: normalizedRestaurantId,
+        userId: normalizedPayload.userId,
+        role: RestaurantMembershipRole.MANAGER,
+        isActive: true
+      })
+
+      const savedMembership = await restaurantUserRepository.save(membership)
+
+      return this.toRestaurantMembershipDto({
+        ...savedMembership,
+        user
+      })
+    })
+  }
+
+  async removeManager(
+    restaurantId: string,
+    userId: string,
+    currentUser: User | undefined
+  ): Promise<void> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const normalizedRestaurantId = await this.assertManagerAssignmentAccess(
+      restaurantId,
+      currentUser
+    )
+    const normalizedUserId = this.normalizeId(userId, 'User id is required')
+
+    const membership = await this.restaurantUserRepository.findOne({
+      where: {
+        restaurantId: normalizedRestaurantId,
+        userId: normalizedUserId
+      }
+    })
+
+    if (!membership) {
+      throw new RestaurantsHttpError(404, 'Restaurant membership not found')
+    }
+
+    if (membership.role !== RestaurantMembershipRole.MANAGER) {
+      throw new RestaurantsHttpError(409, 'Only manager memberships can be removed')
+    }
+
+    await this.restaurantUserRepository.remove(membership)
+  }
+
+  async getRestaurantUsers(
+    restaurantId: string,
+    currentUser: User | undefined
+  ): Promise<RestaurantMembershipDto[]> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const normalizedRestaurantId = this.normalizeId(
+      restaurantId,
+      'Restaurant id is required'
+    )
+
+    await this.getAccessibleRestaurantById(normalizedRestaurantId, currentUser)
+
+    const memberships = await this.restaurantUserRepository.find({
+      where: {
+        restaurantId: normalizedRestaurantId
+      },
+      relations: {
+        user: true
+      },
+      order: {
+        createdAt: 'DESC'
+      }
+    })
+
+    return memberships.map((membership) => this.toRestaurantMembershipDto(membership))
+  }
+
   private buildRestaurantEmail(slug: string): string {
     return `${slug}@restaurant.local`
+  }
+
+  private parseAssignRestaurantManagerPayload(
+    payload: unknown
+  ): AssignRestaurantManagerInput {
+    const validationResult = assignRestaurantManagerSchema.safeParse(payload)
+
+    if (!validationResult.success) {
+      throw new RestaurantsHttpError(
+        400,
+        validationResult.error.issues[0]?.message ??
+          'Invalid manager assignment payload'
+      )
+    }
+
+    return validationResult.data
+  }
+
+  private async assertManagerAssignmentAccess(
+    restaurantId: string,
+    currentUser: User
+  ): Promise<string> {
+    const normalizedRestaurantId = this.normalizeId(
+      restaurantId,
+      'Restaurant id is required'
+    )
+
+    const restaurant = await this.restaurantRepository.findOne({
+      where: {
+        id: normalizedRestaurantId
+      }
+    })
+
+    if (!restaurant) {
+      throw new RestaurantsHttpError(404, 'Restaurant not found')
+    }
+
+    if (currentUser.role === UserRole.OWNER) {
+      return normalizedRestaurantId
+    }
+
+    const isRestaurantOwner = await this.restaurantAccessService.isRestaurantOwner(
+      currentUser.id,
+      normalizedRestaurantId
+    )
+
+    if (!isRestaurantOwner) {
+      throw new RestaurantsHttpError(403, 'Access denied')
+    }
+
+    return normalizedRestaurantId
+  }
+
+  private normalizeId(value: string, errorMessage: string): string {
+    const normalizedValue = value.trim()
+
+    if (!normalizedValue) {
+      throw new RestaurantsHttpError(400, errorMessage)
+    }
+
+    return normalizedValue
   }
 
   private resolveMembershipRole(userRole: UserRole): RestaurantMembershipRole {
@@ -256,6 +470,30 @@ export class RestaurantService {
     }
 
     return conditions.join(' AND ')
+  }
+
+  private toRestaurantMembershipDto(
+    membership: RestaurantUser & { user: User }
+  ): RestaurantMembershipDto {
+    return {
+      id: membership.id,
+      restaurantId: membership.restaurantId,
+      userId: membership.userId,
+      role: membership.role,
+      isActive: membership.isActive,
+      createdAt: membership.createdAt,
+      user: {
+        id: membership.user.id,
+        firstName: membership.user.firstName,
+        lastName: membership.user.lastName,
+        phone: membership.user.phone,
+        email: membership.user.email,
+        status: membership.user.status,
+        role: membership.user.role,
+        isActive: membership.user.isActive,
+        createdAt: membership.user.createdAt
+      }
+    }
   }
 
   private toRestaurantEntity(

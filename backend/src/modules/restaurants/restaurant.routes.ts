@@ -36,6 +36,101 @@ const restaurantController = new RestaurantController(restaurantService)
  *         description: Access denied
  *       404:
  *         description: Restaurant not found
+ * /restaurants/{id}/users:
+ *   get:
+ *     tags:
+ *       - Restaurants
+ *     summary: List restaurant memberships with linked users
+ *     description: Returns all memberships for a restaurant with linked user data for system owners and users who already have access to that restaurant.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant id
+ *     responses:
+ *       200:
+ *         description: Restaurant memberships fetched successfully
+ *       401:
+ *         description: Authentication failed
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Restaurant not found
+ * /restaurants/{id}/managers:
+ *   post:
+ *     tags:
+ *       - Restaurants
+ *     summary: Assign restaurant manager
+ *     description: Creates a MANAGER restaurant membership. Only system owners or restaurant owners can assign managers.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *             properties:
+ *               userId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Manager assigned successfully
+ *       400:
+ *         description: Invalid request payload
+ *       401:
+ *         description: Authentication failed
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Restaurant or user not found
+ *       409:
+ *         description: User is inactive or already has a membership
+ * /restaurants/{id}/managers/{userId}:
+ *   delete:
+ *     tags:
+ *       - Restaurants
+ *     summary: Remove restaurant manager
+ *     description: Removes a MANAGER restaurant membership. Only system owners or restaurant owners can remove managers.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant id
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User id
+ *     responses:
+ *       204:
+ *         description: Manager removed successfully
+ *       401:
+ *         description: Authentication failed
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Restaurant or membership not found
+ *       409:
+ *         description: Membership is not a manager membership
  * /restaurants:
  *   get:
  *     tags:
@@ -141,6 +236,27 @@ restaurantsRouter.get(
   authMiddleware,
   roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
   restaurantController.getById
+)
+
+restaurantsRouter.get(
+  '/:id/users',
+  authMiddleware,
+  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  restaurantController.getUsers
+)
+
+restaurantsRouter.post(
+  '/:id/managers',
+  authMiddleware,
+  roleMiddleware([UserRole.OWNER, UserRole.CLIENT]),
+  restaurantController.assignManager
+)
+
+restaurantsRouter.delete(
+  '/:id/managers/:userId',
+  authMiddleware,
+  roleMiddleware([UserRole.OWNER, UserRole.CLIENT]),
+  restaurantController.removeManager
 )
 
 restaurantsRouter.get(

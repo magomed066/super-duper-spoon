@@ -64,6 +64,59 @@ export class RestaurantController {
     }
   }
 
+  assignManager = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const membership = await this.restaurantService.assignManager(
+        this.getIdParam(req.params.id),
+        req.body,
+        req.user
+      )
+
+      res.status(201).json(membership)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  removeManager = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      await this.restaurantService.removeManager(
+        this.getIdParam(req.params.id),
+        this.getIdParam(req.params.userId),
+        req.user
+      )
+
+      res.status(204).send()
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  getUsers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const memberships = await this.restaurantService.getRestaurantUsers(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(memberships)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
   private normalizeError(error: unknown): Error {
     if (error instanceof RestaurantsHttpError) {
       return error
