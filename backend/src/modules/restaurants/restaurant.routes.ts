@@ -17,9 +17,16 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: List restaurants available to the current user
- *     description: Returns all restaurants for system owners, restaurants with active OWNER membership for clients, and restaurants with active MANAGER membership for managers.
+ *     description: Returns all restaurants for system owners, restaurants with active OWNER membership for clients, and restaurants with active MANAGER membership for managers. Active memberships are used by default.
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: includeInactiveMemberships
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         description: When true, CLIENT and MANAGER users can also receive restaurants from inactive memberships.
  *     responses:
  *       200:
  *         description: Restaurants fetched successfully

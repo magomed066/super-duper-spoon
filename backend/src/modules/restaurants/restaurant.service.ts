@@ -73,13 +73,21 @@ export class RestaurantsHttpError extends Error {
   }
 }
 
+interface GetAccessibleRestaurantsOptions {
+  includeInactiveMemberships?: boolean
+}
+
 export class RestaurantService {
-  async getAccessibleRestaurants(currentUser: User | undefined): Promise<Restaurant[]> {
+  async getAccessibleRestaurants(
+    currentUser: User | undefined,
+    options: GetAccessibleRestaurantsOptions = {}
+  ): Promise<Restaurant[]> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
     }
 
     const restaurantRepository = AppDataSource.getRepository(Restaurant)
+    const includeInactiveMemberships = options.includeInactiveMemberships ?? false
 
     if (currentUser.role === UserRole.OWNER) {
       return restaurantRepository.find({
@@ -96,16 +104,10 @@ export class RestaurantService {
       .innerJoin(
         RestaurantUser,
         'membership',
-        [
-          'membership.restaurantId = restaurant.id',
-          'membership.userId = :userId',
-          'membership.role = :membershipRole',
-          'membership.isActive = :isActive'
-        ].join(' AND '),
+        this.buildMembershipJoinCondition(includeInactiveMemberships),
         {
           userId: currentUser.id,
-          membershipRole,
-          isActive: true
+          membershipRole
         }
       )
       .orderBy('restaurant.createdAt', 'DESC')
@@ -177,6 +179,20 @@ export class RestaurantService {
     }
 
     throw new RestaurantsHttpError(403, 'Access denied')
+  }
+
+  private buildMembershipJoinCondition(includeInactiveMemberships: boolean): string {
+    const conditions = [
+      'membership.restaurantId = restaurant.id',
+      'membership.userId = :userId',
+      'membership.role = :membershipRole'
+    ]
+
+    if (!includeInactiveMemberships) {
+      conditions.push('membership.isActive = true')
+    }
+
+    return conditions.join(' AND ')
   }
 
   private toRestaurantEntity(

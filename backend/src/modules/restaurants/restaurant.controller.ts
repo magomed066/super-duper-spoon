@@ -14,8 +14,14 @@ export class RestaurantController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      const includeInactiveMemberships =
+        req.query.includeInactiveMemberships === 'true'
+
       const restaurants = await this.restaurantService.getAccessibleRestaurants(
-        req.user
+        req.user,
+        {
+          includeInactiveMemberships
+        }
       )
 
       res.status(200).json(restaurants)
