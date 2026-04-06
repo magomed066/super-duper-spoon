@@ -6,8 +6,12 @@ import {
   useRejectApplicationMutation
 } from '@/entities/application'
 import { useAuthStore } from '@/entities/auth'
-import { ApplicationStatus } from '@/shared/api/services/application/types'
+import {
+  ApplicationStatus,
+  type RequestClient
+} from '@/shared/api/services/application/types'
 import { UserRole } from '@/shared/api/services/auth/types'
+import MenuActions from '@/shared/ui/menu'
 import {
   ActionIcon,
   Badge,
@@ -16,14 +20,12 @@ import {
   Divider,
   Group,
   Loader,
-  Menu,
   SimpleGrid,
   Stack,
   Text
 } from '@mantine/core'
 import {
   TbBuildingStore,
-  TbDots,
   TbMail,
   TbMapPin,
   TbPhone,
@@ -97,6 +99,28 @@ export function ApplicationsListWidget() {
     rejectMutation.mutate(id)
   }
 
+  const getMenuActions = (
+    isPending: boolean,
+    isActionLoading: boolean,
+    item: RequestClient
+  ) => {
+    return [
+      {
+        key: 'approve',
+        label: 'Подтвердить',
+        disabled: !isPending || isActionLoading,
+        onClick: () => handleApprove(item.id, item.restaurantName)
+      },
+      {
+        key: 'reject',
+        label: 'Отказать',
+        color: 'red',
+        disabled: !isPending || isActionLoading,
+        onClick: () => handleReject(item.id, item.restaurantName)
+      }
+    ]
+  }
+
   if (!data) {
     return <ApplicationsEmptyPlaceholder />
   }
@@ -130,33 +154,9 @@ export function ApplicationsListWidget() {
                     {status.label}
                   </Badge>
 
-                  <Menu withinPortal position="bottom-end" shadow="sm">
-                    <Menu.Target>
-                      <ActionIcon variant="subtle" color="gray" radius="xl">
-                        <TbDots size={16} />
-                      </ActionIcon>
-                    </Menu.Target>
-
-                    <Menu.Dropdown>
-                      <Menu.Item
-                        disabled={!isPending || isActionLoading}
-                        onClick={() =>
-                          handleApprove(item.id, item.restaurantName)
-                        }
-                      >
-                        Подтвердить
-                      </Menu.Item>
-                      <Menu.Item
-                        color="red"
-                        disabled={!isPending || isActionLoading}
-                        onClick={() =>
-                          handleReject(item.id, item.restaurantName)
-                        }
-                      >
-                        Отказать
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
+                  <MenuActions
+                    items={getMenuActions(isPending, isActionLoading, item)}
+                  />
                 </Group>
 
                 <Stack gap={6} mt="lg">
