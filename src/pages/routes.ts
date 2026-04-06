@@ -3,6 +3,7 @@ import ApplicationsPage from '@/pages/applications'
 import NotFoundPage from '@/pages/not-found'
 import RestaurantPage from '@/pages/restaurants'
 import RequestPage from '@/pages/request'
+import RequestSuccessPage from '@/pages/request-success'
 import { ROUTES } from '@/shared/config/routes'
 
 export const publicRoutes = [
@@ -13,6 +14,10 @@ export const publicRoutes = [
   {
     Component: RequestPage,
     path: ROUTES.REQUEST
+  },
+  {
+    Component: RequestSuccessPage,
+    path: ROUTES.REQUEST_SUCCESS
   },
   {
     Component: NotFoundPage,
