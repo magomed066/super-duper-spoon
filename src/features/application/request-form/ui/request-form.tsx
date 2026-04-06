@@ -6,8 +6,10 @@ import {
   validateApplicationForm
 } from '@/entities/application'
 import { PhoneInput } from '@/shared/ui/phone-input'
+import { useNavigate } from 'react-router'
+import { ROUTES } from '@/shared/config/routes'
 
-const initialValues: ApplicationFormValues = {
+export const initialValues: ApplicationFormValues = {
   email: '',
   name: '',
   restaurantName: '',
@@ -15,11 +17,8 @@ const initialValues: ApplicationFormValues = {
   phone: ''
 }
 
-type RequestFormProps = {
-  onSuccess: () => void
-}
-
-export function RequestForm({ onSuccess }: RequestFormProps) {
+export function RequestForm() {
+  const navigate = useNavigate()
 
   const form = useForm<ApplicationFormValues>({
     initialValues,
@@ -29,7 +28,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
 
   const { mutateAsync, isPending } = useRequestClientMutation(() => {
     form.reset()
-    onSuccess()
+    navigate(ROUTES.REQUEST_SUCCESS)
   })
 
   const canSubmit = Object.values(form.values).every(
@@ -47,7 +46,11 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           label="Email"
           placeholder="owner@restaurant.com"
           size="md"
-          radius="md"
+          classNames={{
+            input:
+              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
+            label: 'mb-2 text-sm font-medium text-moss-900'
+          }}
           {...form.getInputProps('email')}
         />
 
@@ -55,7 +58,11 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           label="Ваше имя"
           placeholder="Анна Петрова"
           size="md"
-          radius="md"
+          classNames={{
+            input:
+              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
+            label: 'mb-2 text-sm font-medium text-moss-900 '
+          }}
           {...form.getInputProps('name')}
         />
 
@@ -63,7 +70,11 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           label="Название бизнеса"
           placeholder="Basilico Bistro"
           size="md"
-          radius="md"
+          classNames={{
+            input:
+              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
+            label: 'mb-2 text-sm font-medium text-moss-900'
+          }}
           {...form.getInputProps('restaurantName')}
         />
 
@@ -71,7 +82,11 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           label="Адрес"
           placeholder="Москва, ул. Лесная, 12"
           size="md"
-          radius="md"
+          classNames={{
+            input:
+              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
+            label: 'mb-2 text-sm font-medium ttext-moss-900'
+          }}
           {...form.getInputProps('address')}
         />
 
@@ -79,14 +94,16 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           label="Телефон"
           placeholder="+7 (999) 123-45-67"
           size="md"
-          radius="md"
+          classNames={{
+            input:
+              'border-black/10 bg-[#fcfbf8] text-moss-900 placeholder:text-[#9b9387]',
+            label: 'mb-2 text-sm font-medium text-moss-900'
+          }}
           {...form.getInputProps('phone')}
         />
 
         <Button
-          color="aurora"
           size="md"
-          radius="md"
           type="submit"
           fullWidth
           disabled={!canSubmit}
@@ -95,7 +112,7 @@ export function RequestForm({ onSuccess }: RequestFormProps) {
           Отправить заявку
         </Button>
 
-        <Text size="sm" c="dimmed">
+        <Text size="sm" className="leading-6 text-moss-700">
           Оставляя заявку, вы подтверждаете, что мы можем связаться с вами для
           обсуждения подключения, демо и условий сотрудничества.
         </Text>

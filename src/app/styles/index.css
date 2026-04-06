@@ -1,42 +1,42 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-aurora-50: #eef8ff;
-  --color-aurora-100: #d9ecff;
-  --color-aurora-200: #b6d8ff;
-  --color-aurora-300: #8abfff;
-  --color-aurora-400: #5d9fff;
-  --color-aurora-500: #3b84f6;
-  --color-aurora-600: #2768dc;
-  --color-aurora-700: #1c51b2;
-  --color-aurora-800: #173f8c;
-  --color-aurora-900: #18386f;
+  --color-aurora-50: #edf4ff;
+  --color-aurora-100: #dae7ff;
+  --color-aurora-200: #b7cdff;
+  --color-aurora-300: #89abff;
+  --color-aurora-400: #5e84f1;
+  --color-aurora-500: #0d4fdc;
+  --color-aurora-600: #0942bc;
+  --color-aurora-700: #05369c;
+  --color-aurora-800: #082d7f;
+  --color-aurora-900: #0b255f;
 
-  --color-coral-50: #fff2ee;
-  --color-coral-100: #ffe0d6;
-  --color-coral-200: #ffc0ad;
-  --color-coral-300: #ff9a80;
-  --color-coral-400: #ff7558;
-  --color-coral-500: #ff5d3f;
-  --color-coral-600: #f24a2a;
-  --color-coral-700: #d83a1c;
-  --color-coral-800: #b73016;
-  --color-coral-900: #942915;
+  --color-coral-50: #fdeeed;
+  --color-coral-100: #fcd8d5;
+  --color-coral-200: #f8b2ac;
+  --color-coral-300: #f2867d;
+  --color-coral-400: #eb574c;
+  --color-coral-500: #e52a20;
+  --color-coral-600: #c91f16;
+  --color-coral-700: #a51a14;
+  --color-coral-800: #871915;
+  --color-coral-900: #541110;
 
-  --color-moss-50: #edf9f1;
-  --color-moss-100: #daf0e1;
-  --color-moss-200: #b7dfc4;
-  --color-moss-300: #8dcba2;
-  --color-moss-400: #63b57f;
-  --color-moss-500: #439d64;
-  --color-moss-600: #32814f;
-  --color-moss-700: #286641;
-  --color-moss-800: #225236;
-  --color-moss-900: #1c432d;
+  --color-moss-50: #f8f9fc;
+  --color-moss-100: #f2f3f7;
+  --color-moss-200: #e5e7ef;
+  --color-moss-300: #d2d5e1;
+  --color-moss-400: #b5b9cc;
+  --color-moss-500: #999fb6;
+  --color-moss-600: #7c839b;
+  --color-moss-700: #525975;
+  --color-moss-800: #2b3145;
+  --color-moss-900: #10131f;
 }
 
 @layer base {
-  body {
-    @apply min-h-screen bg-linear-to-br from-aurora-50 via-white to-moss-50 text-slate-900 antialiased;
-  }
+  /* body {
+    @apply min-h-screen text-[#10131f] antialiased;
+  } */
 }

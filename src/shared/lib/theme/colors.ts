@@ -1,40 +1,40 @@
 import type { MantineColorsTuple } from '@mantine/core'
 
 export const auroraColors: MantineColorsTuple = [
-  '#eef8ff',
-  '#d9ecff',
-  '#b6d8ff',
-  '#8abfff',
-  '#5d9fff',
-  '#3b84f6',
-  '#2768dc',
-  '#1c51b2',
-  '#173f8c',
-  '#18386f'
-] 
+  '#edf4ff',
+  '#dae7ff',
+  '#b7cdff',
+  '#89abff',
+  '#5e84f1',
+  '#0d4fdc',
+  '#0942bc',
+  '#05369c',
+  '#082d7f',
+  '#0b255f'
+]
 
 export const coralColors: MantineColorsTuple = [
-  '#fff2ee',
-  '#ffe0d6',
-  '#ffc0ad',
-  '#ff9a80',
-  '#ff7558',
-  '#ff5d3f',
-  '#f24a2a',
-  '#d83a1c',
-  '#b73016',
-  '#942915'
-] 
+  '#fdeeed',
+  '#fcd8d5',
+  '#f8b2ac',
+  '#f2867d',
+  '#eb574c',
+  '#e52a20',
+  '#c91f16',
+  '#a51a14',
+  '#871915',
+  '#541110'
+]
 
 export const mossColors: MantineColorsTuple = [
-  '#edf9f1',
-  '#daf0e1',
-  '#b7dfc4',
-  '#8dcba2',
-  '#63b57f',
-  '#439d64',
-  '#32814f',
-  '#286641',
-  '#225236',
-  '#1c432d'
-] 
+  '#f8f9fc',
+  '#f2f3f7',
+  '#e5e7ef',
+  '#d2d5e1',
+  '#b5b9cc',
+  '#999fb6',
+  '#7c839b',
+  '#525975',
+  '#2b3145',
+  '#10131f'
+]
