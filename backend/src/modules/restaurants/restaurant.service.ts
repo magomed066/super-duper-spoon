@@ -157,6 +157,11 @@ export interface RestaurantMembershipDto {
   user: RestaurantMembershipUserDto
 }
 
+export interface CreateRestaurantResultDto {
+  restaurant: Restaurant
+  membership: RestaurantMembershipDto
+}
+
 export class RestaurantsHttpError extends Error {
   constructor(public readonly statusCode: number, message: string) {
     super(message)
@@ -247,10 +252,12 @@ export class RestaurantService {
   async createRestaurant(
     payload: unknown,
     currentUser: User | undefined
-  ): Promise<Restaurant> {
+  ): Promise<CreateRestaurantResultDto> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
     }
+
+    this.assertCanCreateRestaurant(currentUser)
 
     const validationResult = createRestaurantSchema.safeParse(payload)
 
@@ -282,13 +289,19 @@ export class RestaurantService {
 
       const savedRestaurant = await restaurantRepository.save(restaurant)
 
-      await this.assignOwnerMembership(
+      const membership = await this.createOwnerMembership(
         restaurantUserRepository,
         savedRestaurant.id,
         currentUser.id
       )
 
-      return savedRestaurant
+      return {
+        restaurant: savedRestaurant,
+        membership: this.toRestaurantMembershipDto({
+          ...membership,
+          user: currentUser
+        })
+      }
     })
   }
 
@@ -511,11 +524,20 @@ export class RestaurantService {
     return validationResult.data
   }
 
-  private async assignOwnerMembership(
+  private assertCanCreateRestaurant(currentUser: User): void {
+    if (
+      currentUser.role !== UserRole.CLIENT &&
+      currentUser.role !== UserRole.SYSTEM_OWNER
+    ) {
+      throw new RestaurantsHttpError(403, 'Access denied')
+    }
+  }
+
+  private async createOwnerMembership(
     restaurantUserRepository: Repository<RestaurantUser>,
     restaurantId: string,
     userId: string
-  ): Promise<void> {
+  ): Promise<RestaurantUser> {
     const membership = restaurantUserRepository.create({
       restaurantId,
       userId,
@@ -523,7 +545,7 @@ export class RestaurantService {
       isActive: true
     })
 
-    await restaurantUserRepository.save(membership)
+    return restaurantUserRepository.save(membership)
   }
 
   private parseUpdateRestaurantPayload(payload: unknown): UpdateRestaurantInput {

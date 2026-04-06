@@ -53,12 +53,12 @@ export class RestaurantController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const restaurant = await this.restaurantService.createRestaurant(
+      const creationResult = await this.restaurantService.createRestaurant(
         req.body,
         req.user
       )
 
-      res.status(201).json(restaurant)
+      res.status(201).json(creationResult)
     } catch (error: unknown) {
       next(this.normalizeError(error))
     }
