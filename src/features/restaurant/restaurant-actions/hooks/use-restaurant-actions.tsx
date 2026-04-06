@@ -59,7 +59,7 @@ function useRestaurantActions(data: Restaurant) {
     },
     {
       key: 'deactivate',
-      label: 'Деактивировать',
+      label: 'Отключить',
       color: 'red',
       disabled: !data.isActive || isActionPending,
       onClick: openDeactivateConfirm
@@ -78,9 +78,9 @@ function useRestaurantActions(data: Restaurant) {
       : pendingAction === 'deactivate'
       ? {
           opened: true,
-          title: 'Деактивировать ресторан?',
-          description: `Ресторан «${data.name}» будет деактивирован.`,
-          confirmLabel: 'Деактивировать',
+          title: 'Отключить ресторан?',
+          description: `Ресторан «${data.name}» будет отключен.`,
+          confirmLabel: 'Отключить',
           confirmColor: 'coral' as const
         }
       : {

@@ -16,8 +16,7 @@ export function RestaurantsListWidget() {
   const { search, status, hasActiveFilters } = useRestaurantFilters()
   const restaurantListParams = {
     search: search || undefined,
-    isActive:
-      status === 'all' ? undefined : status === 'active'
+    isActive: status === 'all' ? undefined : status === 'active'
   }
 
   const canViewRestaurants = hasPermission(
@@ -25,8 +24,10 @@ export function RestaurantsListWidget() {
     AuthPermission.VIEW_RESTAURANTS
   )
 
-  const { data, error, isError, isLoading } =
-    useRestaurantsListQuery(canViewRestaurants, restaurantListParams)
+  const { data, error, isError, isLoading } = useRestaurantsListQuery(
+    canViewRestaurants,
+    restaurantListParams
+  )
 
   if (isError) {
     return (
@@ -65,10 +66,8 @@ export function RestaurantsListWidget() {
           <RestaurantsEmptyPlaceholder />
         )
       ) : (
-        <Stack
-          className="w-full"
-        >
-          <SimpleGrid cols={{ base: 1, sm: 2, xl: 3 }} spacing="lg">
+        <Stack className="w-full">
+          <SimpleGrid cols={{ base: 1, sm: 2, xl: 4 }} spacing="lg">
             {data.items.map((item) => (
               <RestaurantCard
                 key={item.id}
