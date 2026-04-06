@@ -1,14 +1,45 @@
+import {
+  AuthPermission,
+  getDefaultRouteByRole,
+  getRouteFallback,
+  hasPermission,
+  useAuthStore
+} from '@/entities/auth'
 import { CreateRestaurantForm } from '@/features/restaurant/create-restaurant-form'
 import { ROUTES } from '@/shared/config/routes'
 import PageHeaderWidget from '@/widgets/page-header'
 import { Button, Stack, Text, Title } from '@mantine/core'
 import { FiArrowLeft } from 'react-icons/fi'
-import { Link } from 'react-router'
+import { Link, Navigate } from 'react-router'
 
 export function RestaurantCreatePage() {
+  const user = useAuthStore((state) => state.user)
+  const canCreateRestaurant = hasPermission(
+    user,
+    AuthPermission.CREATE_RESTAURANT
+  )
+
+  if (!canCreateRestaurant) {
+    return (
+      <Navigate
+        to={
+          user
+            ? getDefaultRouteByRole(user)
+            : getRouteFallback(ROUTES.RESTAURANTS_CREATE)
+        }
+        replace
+      />
+    )
+  }
+
   return (
     <Stack pb={20}>
-      <PageHeaderWidget title="Создание ресторана" />
+      <PageHeaderWidget
+        items={[
+          { label: 'Список ресторанов', href: ROUTES.RESTAURANTS },
+          { label: 'Создание ресторана' }
+        ]}
+      />
 
       <Stack className="mt-3 px-5 flex flex-col gap">
         <Button

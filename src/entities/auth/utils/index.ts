@@ -7,5 +7,9 @@ export const getDefaultRouteByRole = (user: User | null) => {
     return ROUTES.APPLICATIONS
   }
 
-  return ROUTES.RESTAURANTS
+  if (hasPlatformPermission(user, PlatformPermission.VIEW_RESTAURANTS)) {
+    return ROUTES.RESTAURANTS
+  }
+
+  return ROUTES.UNAUTHORIZED
 }

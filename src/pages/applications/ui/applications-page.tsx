@@ -2,6 +2,7 @@ import { Divider, Stack, Text } from '@mantine/core'
 import { Navigate } from 'react-router-dom'
 import {
   AuthPermission,
+  getDefaultRouteByRole,
   getRouteFallback,
   hasPermission,
   useAuthStore
@@ -19,12 +20,17 @@ export function ApplicationsPage() {
   )
 
   if (!canViewApplications) {
-    return <Navigate to={getRouteFallback(ROUTES.APPLICATIONS)} replace />
+    return (
+      <Navigate
+        to={user ? getDefaultRouteByRole(user) : getRouteFallback(ROUTES.APPLICATIONS)}
+        replace
+      />
+    )
   }
 
   return (
     <Stack pb={20}>
-      <PageHeaderWidget title="Список заявок" />
+      <PageHeaderWidget items={[{ label: 'Список заявок' }]} />
 
       <Stack className="mt-3 px-5 flex flex-col gap">
         <Text maw={640} className="text-moss-700">

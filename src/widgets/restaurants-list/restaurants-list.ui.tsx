@@ -26,14 +26,8 @@ export function RestaurantsListWidget() {
     AuthPermission.VIEW_RESTAURANTS
   )
 
-  const {
-    data,
-    error,
-    fetchNextPage,
-    isError,
-    isFetchingNextPage,
-    isLoading
-  } = useRestaurantsListQuery(canViewRestaurants, restaurantListParams)
+  const { data, error, fetchNextPage, isError, isFetchingNextPage, isLoading } =
+    useRestaurantsListQuery(canViewRestaurants, restaurantListParams)
   const { isIntersecting, ref } = useIntersectionObserver({
     threshold: 0.2
   })
@@ -42,17 +36,18 @@ export function RestaurantsListWidget() {
   const hasNextPage = lastPage?.pagination.hasNextPage ?? false
 
   useEffect(() => {
-    if (
-      !isIntersecting ||
-      !hasNextPage ||
-      isLoading ||
-      isFetchingNextPage
-    ) {
+    if (!isIntersecting || !hasNextPage || isLoading || isFetchingNextPage) {
       return
     }
 
     void fetchNextPage()
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isIntersecting, isLoading])
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isIntersecting,
+    isLoading
+  ])
 
   if (isError) {
     return (
@@ -92,7 +87,10 @@ export function RestaurantsListWidget() {
         )
       ) : (
         <Stack className="w-full">
-          <SimpleGrid cols={{ base: 1, sm: 2, xl: 4 }} spacing="lg">
+          <SimpleGrid
+            cols={{ base: 1, sm: 2, xl: 4, md: 3, lg: 4 }}
+            spacing="lg"
+          >
             {restaurants.map((item) => (
               <RestaurantCard
                 key={item.id}

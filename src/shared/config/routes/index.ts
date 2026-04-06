@@ -6,6 +6,8 @@ export const ROUTES = {
   REQUEST: '/request',
   REQUEST_SUCCESS: '/request/success',
   RESTAURANTS: '/restaurants',
+  MENU: '/menu',
+  ORDERS: '/orders',
   RESTAURANTS_CREATE: '/restaurants/create',
   NOT_FOUND: '*'
 }

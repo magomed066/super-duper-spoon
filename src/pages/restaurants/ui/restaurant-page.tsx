@@ -1,5 +1,6 @@
 import {
   AuthPermission,
+  getDefaultRouteByRole,
   getRouteFallback,
   hasPermission,
   useAuthStore
@@ -25,13 +26,22 @@ export function RestaurantPage() {
   const isSystemOwner = user?.role === UserRole.SYSTEM_OWNER
 
   if (!canViewRestaurants) {
-    return <Navigate to={getRouteFallback(ROUTES.RESTAURANTS)} replace />
+    return (
+      <Navigate
+        to={user ? getDefaultRouteByRole(user) : getRouteFallback(ROUTES.RESTAURANTS)}
+        replace
+      />
+    )
   }
 
   return (
     <Stack pb={20}>
       <PageHeaderWidget
-        title={isSystemOwner ? 'Рестораны системы' : 'Список ресторанов'}
+        items={[
+          {
+            label: isSystemOwner ? 'Рестораны системы' : 'Список ресторанов'
+          }
+        ]}
       />
 
       <Stack className="mt-3 px-5 flex flex-col gap">
