@@ -9,18 +9,16 @@ import {
 } from 'typeorm'
 import type { Relation } from 'typeorm'
 
+import { RestaurantScopedEntity } from '../../../common/restaurant-scope/index.js'
 import { User } from '../../users/entities/user.entity.js'
 import { RestaurantMembershipRole } from '../enums/restaurant-membership-role.enum.js'
 import { Restaurant } from './restaurant.entity.js'
 
 @Entity({ name: 'restaurant_users' })
 @Unique(['restaurantId', 'userId'])
-export class RestaurantUser {
+export class RestaurantUser extends RestaurantScopedEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string
-
-  @Column({ type: 'uuid' })
-  restaurantId!: string
 
   @Column({ type: 'uuid' })
   userId!: string

@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm'
 
 import { AppDataSource } from '../../database/data-source.js'
+import { normalizeRestaurantScopeId } from '../../common/restaurant-scope/index.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantMembershipRole } from './enums/restaurant-membership-role.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
@@ -166,7 +167,7 @@ export class RestaurantAccessService {
   }
 
   private normalizeId(value: string): string {
-    return value.trim()
+    return normalizeRestaurantScopeId(value)
   }
 
   private resolveMembershipRole(
