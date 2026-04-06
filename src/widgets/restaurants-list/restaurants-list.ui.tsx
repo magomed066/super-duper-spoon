@@ -9,7 +9,9 @@ import { useRestaurantFilters } from '@/features/restaurant/filters/hooks/use-re
 import RestaurantActions from '@/features/restaurant/restaurant-actions'
 import { getApiErrorMessage } from '@/shared/api/errors'
 import { Alert, Loader, SimpleGrid, Stack, Text } from '@mantine/core'
+import { useEffect } from 'react'
 import { TbAlertCircle } from 'react-icons/tb'
+import { useIntersectionObserver } from 'usehooks-ts'
 
 export function RestaurantsListWidget() {
   const user = useAuthStore((state) => state.user)
@@ -24,10 +26,33 @@ export function RestaurantsListWidget() {
     AuthPermission.VIEW_RESTAURANTS
   )
 
-  const { data, error, isError, isLoading } = useRestaurantsListQuery(
-    canViewRestaurants,
-    restaurantListParams
-  )
+  const {
+    data,
+    error,
+    fetchNextPage,
+    isError,
+    isFetchingNextPage,
+    isLoading
+  } = useRestaurantsListQuery(canViewRestaurants, restaurantListParams)
+  const { isIntersecting, ref } = useIntersectionObserver({
+    threshold: 0.2
+  })
+  const restaurants = data?.pages.flatMap((page) => page.items) ?? []
+  const lastPage = data?.pages.at(-1)
+  const hasNextPage = lastPage?.pagination.hasNextPage ?? false
+
+  useEffect(() => {
+    if (
+      !isIntersecting ||
+      !hasNextPage ||
+      isLoading ||
+      isFetchingNextPage
+    ) {
+      return
+    }
+
+    void fetchNextPage()
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isIntersecting, isLoading])
 
   if (isError) {
     return (
@@ -50,7 +75,7 @@ export function RestaurantsListWidget() {
     <Stack className="w-full">
       <FiltersRestaurants />
 
-      {!data?.items?.length ? (
+      {!restaurants.length ? (
         hasActiveFilters ? (
           <Stack
             align="center"
@@ -68,7 +93,7 @@ export function RestaurantsListWidget() {
       ) : (
         <Stack className="w-full">
           <SimpleGrid cols={{ base: 1, sm: 2, xl: 4 }} spacing="lg">
-            {data.items.map((item) => (
+            {restaurants.map((item) => (
               <RestaurantCard
                 key={item.id}
                 data={item}
@@ -76,6 +101,10 @@ export function RestaurantsListWidget() {
               />
             ))}
           </SimpleGrid>
+          <Stack align="center" gap="sm">
+            <div ref={ref} className="h-px w-full" aria-hidden="true" />
+            {isFetchingNextPage ? <Loader size="sm" /> : null}
+          </Stack>
         </Stack>
       )}
     </Stack>

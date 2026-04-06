@@ -33,4 +33,6 @@ export type RestouranstsResponse = {
 export type RestaurantsListParams = {
   search?: string
   isActive?: boolean
+  page?: number
+  limit?: number
 }

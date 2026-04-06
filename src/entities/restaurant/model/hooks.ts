@@ -1,5 +1,9 @@
 import { notifications } from '@mantine/notifications'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient
+} from '@tanstack/react-query'
 import type { ApiError } from '@/shared/api/errors'
 import { RestaurantService } from '@/shared/api/services/restaurant'
 import type {
@@ -13,10 +17,19 @@ export const useRestaurantsListQuery = (
   enabled = true,
   params?: RestaurantsListParams
 ) => {
-  return useQuery<RestouranstsResponse, ApiError>({
+  return useInfiniteQuery<RestouranstsResponse, ApiError>({
     queryKey: restauranstsQueryKeys.all(params),
-    queryFn: () => RestaurantService.list(params),
-    enabled
+    queryFn: ({ pageParam }) =>
+      RestaurantService.list({
+        ...params,
+        page: Number(pageParam)
+      }),
+    enabled,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination.hasNextPage
+        ? lastPage.pagination.page + 1
+        : undefined
   })
 }
 
