@@ -163,6 +163,11 @@ export interface CreateRestaurantResultDto {
   membership: RestaurantMembershipDto
 }
 
+export interface AssignManagerResultDto {
+  membership: RestaurantMembershipDto
+  created: boolean
+}
+
 export class RestaurantsHttpError extends Error {
   constructor(public readonly statusCode: number, message: string) {
     super(message)
@@ -233,9 +238,10 @@ export class RestaurantService {
       })
     }
 
-    const membershipRole = this.getAccessibleMembershipRole(currentUser.role)
-
-    if (!membershipRole) {
+    if (
+      currentUser.role !== UserRole.CLIENT &&
+      currentUser.role !== UserRole.STAFF
+    ) {
       return []
     }
 
@@ -246,8 +252,7 @@ export class RestaurantService {
         'membership',
         this.buildMembershipJoinCondition(includeInactiveMemberships),
         {
-          userId: currentUser.id,
-          membershipRole
+          userId: currentUser.id
         }
       )
       .orderBy('restaurant.createdAt', 'DESC')
@@ -387,7 +392,7 @@ export class RestaurantService {
     restaurantId: string,
     payload: unknown,
     currentUser: AuthenticatedRequestUser | undefined
-  ): Promise<RestaurantMembershipDto> {
+  ): Promise<AssignManagerResultDto> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
     }
@@ -416,6 +421,8 @@ export class RestaurantService {
         throw new RestaurantsHttpError(409, 'Only active users can be assigned')
       }
 
+      await this.ensureAssignableManagerUser(userRepository, user)
+
       const existingMembership = await restaurantUserRepository.findOne({
         where: {
           restaurantId: normalizedRestaurantId,
@@ -427,7 +434,18 @@ export class RestaurantService {
       })
 
       if (existingMembership) {
-        throw new RestaurantsHttpError(409, 'User is already a restaurant member')
+        existingMembership.role = RestaurantRole.MANAGER
+        existingMembership.isActive = true
+
+        const savedMembership = await restaurantUserRepository.save(existingMembership)
+
+        return {
+          membership: this.toRestaurantMembershipDto({
+            ...savedMembership,
+            user
+          }),
+          created: false
+        }
       }
 
       const membership = restaurantUserRepository.create(
@@ -443,10 +461,13 @@ export class RestaurantService {
 
       const savedMembership = await restaurantUserRepository.save(membership)
 
-      return this.toRestaurantMembershipDto({
-        ...savedMembership,
-        user
-      })
+      return {
+        membership: this.toRestaurantMembershipDto({
+          ...savedMembership,
+          user
+        }),
+        created: true
+      }
     })
   }
 
@@ -607,8 +628,7 @@ export class RestaurantService {
   private buildMembershipJoinCondition(includeInactiveMemberships: boolean): string {
     const conditions = [
       'membership.restaurantId = restaurant.id',
-      'membership.userId = :userId',
-      'membership.role = :membershipRole'
+      'membership.userId = :userId'
     ]
 
     if (!includeInactiveMemberships) {
@@ -618,18 +638,20 @@ export class RestaurantService {
     return conditions.join(' AND ')
   }
 
-  private getAccessibleMembershipRole(
-    systemRole: UserRole
-  ): RestaurantRole | null {
-    if (systemRole === UserRole.CLIENT) {
-      return RestaurantRole.OWNER
+  private async ensureAssignableManagerUser(
+    userRepository: Repository<User>,
+    user: User
+  ): Promise<void> {
+    if (user.role === UserRole.STAFF) {
+      return
     }
 
-    if (systemRole === UserRole.STAFF) {
-      return RestaurantRole.MANAGER
+    if (user.role !== UserRole.CLIENT) {
+      throw new RestaurantsHttpError(409, 'User cannot be assigned as a manager')
     }
 
-    return null
+    user.role = UserRole.STAFF
+    await userRepository.save(user)
   }
 
   private toRestaurantMembershipDto(

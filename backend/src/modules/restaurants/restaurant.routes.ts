@@ -17,7 +17,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: Get a single restaurant available to the current user
- *     description: Returns the restaurant for system owners, clients with active OWNER membership, and staff with active MANAGER membership.
+ *     description: Returns the restaurant for system owners and users with an active restaurant membership.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -40,7 +40,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: Update a restaurant
- *     description: System owners can update any restaurant. Clients can update only restaurants they own. Staff can update restaurants they manage.
+ *     description: System owners can update any restaurant. Restaurant owners and managers can update restaurants they belong to.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -97,7 +97,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: List restaurant memberships with linked users
- *     description: Returns all memberships for a restaurant with linked user data for system owners and users who already have access to that restaurant.
+ *     description: Returns all memberships for a restaurant with linked user data for system owners and users who already have access to that restaurant through RestaurantUser.role.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -192,7 +192,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: List restaurants available to the current user
- *     description: Returns all restaurants for system owners, restaurants with active OWNER membership for clients, and restaurants with active MANAGER membership for staff. Active memberships are used by default.
+ *     description: Returns all restaurants for system owners and restaurants with active memberships for the current user. Active memberships are used by default.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -201,7 +201,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *         required: false
  *         schema:
  *           type: boolean
- *         description: When true, CLIENT and STAFF users can also receive restaurants from inactive memberships.
+ *         description: When true, non-system users can also receive restaurants from inactive memberships.
  *     responses:
  *       200:
  *         description: Restaurants fetched successfully
@@ -318,14 +318,14 @@ restaurantsRouter.get(
 restaurantsRouter.post(
   '/:id/managers',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
   restaurantController.assignManager
 )
 
 restaurantsRouter.delete(
   '/:id/managers/:userId',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT]),
+  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
   restaurantController.removeManager
 )
 

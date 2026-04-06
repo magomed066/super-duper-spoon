@@ -147,9 +147,7 @@ export class RestaurantAccessService {
       return restaurants.map((restaurant) => restaurant.id)
     }
 
-    const membershipRole = this.getAccessibleMembershipRole(systemRole)
-
-    if (!membershipRole) {
+    if (systemRole !== UserRole.CLIENT && systemRole !== UserRole.STAFF) {
       return []
     }
 
@@ -159,7 +157,6 @@ export class RestaurantAccessService {
       },
       where: {
         userId: normalizedUserId,
-        role: membershipRole,
         isActive: true
       }
     })
@@ -179,19 +176,5 @@ export class RestaurantAccessService {
 
   private normalizeId(value: string): string {
     return normalizeRestaurantScopeId(value)
-  }
-
-  private getAccessibleMembershipRole(
-    systemRole: UserRole
-  ): RestaurantRole | null {
-    if (systemRole === UserRole.CLIENT) {
-      return RestaurantRole.OWNER
-    }
-
-    if (systemRole === UserRole.STAFF) {
-      return RestaurantRole.MANAGER
-    }
-
-    return null
   }
 }

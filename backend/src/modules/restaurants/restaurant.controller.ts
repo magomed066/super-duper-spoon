@@ -105,13 +105,13 @@ export class RestaurantController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const membership = await this.restaurantService.assignManager(
+      const result = await this.restaurantService.assignManager(
         this.getIdParam(req.params.id),
         req.body,
         req.user
       )
 
-      res.status(201).json(membership)
+      res.status(result.created ? 201 : 200).json(result.membership)
     } catch (error: unknown) {
       next(this.normalizeError(error))
     }
