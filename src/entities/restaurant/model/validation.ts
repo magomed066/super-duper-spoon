@@ -3,6 +3,8 @@ import { validateWithZod } from '@/entities/auth'
 
 export const createRestaurantSchema = z.object({
   name: z.string().min(2, 'Введите название ресторана'),
+  logo: z.string().url('Введите корректный URL логотипа').or(z.literal('')),
+  preview: z.string().url('Введите корректный URL обложки').or(z.literal('')),
   phone: z
     .string()
     .regex(

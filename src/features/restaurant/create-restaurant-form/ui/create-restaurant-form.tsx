@@ -20,6 +20,8 @@ import { UploadLogoPreviewFeature } from './upload-logo/upload-logo-preview'
 
 const initialValues: CreateRestaurantFormValues = {
   name: '',
+  logo: '',
+  preview: '',
   phone: '',
   address: '',
   description: '',
@@ -47,11 +49,21 @@ export function CreateRestaurantForm() {
     form.values.address.trim().length > 0 &&
     form.values.description.trim().length > 0
 
+  const handleUpload = (file: File, uploadType?: 'logo' | 'preview') => {
+    if (!uploadType) {
+      return
+    }
+
+    form.setFieldValue(uploadType, URL.createObjectURL(file))
+  }
+
   const handleSubmit = (data: CreateRestaurantFormValues) => {
     mutate({
       ...data,
       email: data.email.trim() || undefined,
       city: data.city.trim() || undefined,
+      logo: data.logo.trim() || undefined,
+      preview: data.preview.trim() || undefined,
       deliveryTime: data.deliveryTime ?? undefined,
       deliveryConditions: data.deliveryConditions.trim() || undefined,
       cuisine: data.cuisine
@@ -94,6 +106,7 @@ export function CreateRestaurantForm() {
           />
 
           <TextInput
+            required
             label="Email"
             placeholder="owner@restaurant.com"
             size="md"
@@ -109,6 +122,7 @@ export function CreateRestaurantForm() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <TextInput
+            required
             label="Город"
             placeholder="Москва"
             size="md"
@@ -197,7 +211,13 @@ export function CreateRestaurantForm() {
         />
 
         <Box my={24}>
-          <UploadLogoPreviewFeature required isLoading={isPending} />
+          <UploadLogoPreviewFeature
+            required
+            isLoading={isPending}
+            onUpload={handleUpload}
+            defaultLogo={form.values.logo}
+            defaultPreview={form.values.preview}
+          />
           <Divider className="border-black/8" mt="0" />
         </Box>
 
