@@ -78,6 +78,54 @@ interface GetAccessibleRestaurantsOptions {
 }
 
 export class RestaurantService {
+  async getAccessibleRestaurantById(
+    restaurantId: string,
+    currentUser: User | undefined
+  ): Promise<Restaurant> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const normalizedRestaurantId = restaurantId.trim()
+
+    if (!normalizedRestaurantId) {
+      throw new RestaurantsHttpError(400, 'Restaurant id is required')
+    }
+
+    const restaurantRepository = AppDataSource.getRepository(Restaurant)
+    const membershipRepository = AppDataSource.getRepository(RestaurantUser)
+
+    const restaurant = await restaurantRepository.findOne({
+      where: {
+        id: normalizedRestaurantId
+      }
+    })
+
+    if (!restaurant) {
+      throw new RestaurantsHttpError(404, 'Restaurant not found')
+    }
+
+    if (currentUser.role === UserRole.OWNER) {
+      return restaurant
+    }
+
+    const membershipRole = this.resolveMembershipRole(currentUser.role)
+    const membership = await membershipRepository.findOne({
+      where: {
+        restaurantId: normalizedRestaurantId,
+        userId: currentUser.id,
+        role: membershipRole,
+        isActive: true
+      }
+    })
+
+    if (!membership) {
+      throw new RestaurantsHttpError(403, 'Access denied')
+    }
+
+    return restaurant
+  }
+
   async getAccessibleRestaurants(
     currentUser: User | undefined,
     options: GetAccessibleRestaurantsOptions = {}

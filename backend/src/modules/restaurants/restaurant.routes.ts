@@ -12,6 +12,30 @@ const restaurantController = new RestaurantController(restaurantService)
 
 /**
  * @openapi
+ * /restaurants/{id}:
+ *   get:
+ *     tags:
+ *       - Restaurants
+ *     summary: Get a single restaurant available to the current user
+ *     description: Returns the restaurant for system owners, clients with active OWNER membership, and managers with active MANAGER membership.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant id
+ *     responses:
+ *       200:
+ *         description: Restaurant fetched successfully
+ *       401:
+ *         description: Authentication failed
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Restaurant not found
  * /restaurants:
  *   get:
  *     tags:
@@ -112,6 +136,13 @@ const restaurantController = new RestaurantController(restaurantService)
  *       409:
  *         description: Restaurant slug already exists
  */
+restaurantsRouter.get(
+  '/:id',
+  authMiddleware,
+  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  restaurantController.getById
+)
+
 restaurantsRouter.get(
   '/',
   authMiddleware,

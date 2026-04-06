@@ -8,6 +8,23 @@ import {
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
 
+  getById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.getAccessibleRestaurantById(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
   list = async (
     req: Request,
     res: Response,
@@ -53,5 +70,9 @@ export class RestaurantController {
     }
 
     return new Error('Unexpected restaurant error')
+  }
+
+  private getIdParam(idParam: string | string[]): string {
+    return Array.isArray(idParam) ? idParam[0] ?? '' : idParam
   }
 }
