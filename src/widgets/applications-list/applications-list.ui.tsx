@@ -6,12 +6,14 @@ import {
   useRejectApplicationMutation
 } from '@/entities/application'
 import { AuthPermission, hasPermission, useAuthStore } from '@/entities/auth'
+import { getApiErrorMessage } from '@/shared/api/errors'
 import {
   ApplicationStatus,
   type RequestClient
 } from '@/shared/api/services/application/types'
 import MenuActions from '@/shared/ui/menu'
 import {
+  Alert,
   ActionIcon,
   Badge,
   Card,
@@ -24,6 +26,7 @@ import {
   Text
 } from '@mantine/core'
 import {
+  TbAlertCircle,
   TbBuildingStore,
   TbMail,
   TbMapPin,
@@ -74,7 +77,8 @@ export function ApplicationsListWidget() {
     AuthPermission.MANAGE_APPLICATIONS
   )
 
-  const { data, isLoading } = useApplicationsListQuery(canViewApplications)
+  const { data, error, isError, isLoading } =
+    useApplicationsListQuery(canViewApplications)
   const approveMutation = useApproveApplicationMutation()
   const rejectMutation = useRejectApplicationMutation()
 
@@ -132,14 +136,29 @@ export function ApplicationsListWidget() {
     ]
   }
 
-  if (!data) {
+  if (isError) {
+    return (
+      <Alert
+        color="red"
+        radius="lg"
+        title="Не удалось загрузить заявки"
+        icon={<TbAlertCircle size={18} />}
+      >
+        {getApiErrorMessage(error)}
+      </Alert>
+    )
+  }
+
+  if (isLoading) {
+    return <Loader className="mx-auto" />
+  }
+
+  if (!data?.length) {
     return <ApplicationsEmptyPlaceholder />
   }
 
   return (
     <Stack className="w-full">
-      {isLoading && <Loader className="mx-auto" />}
-
       <SimpleGrid cols={{ base: 1, sm: 2, xl: 4 }} spacing="lg">
         {data.map((item) => {
           const status = applicationStatus[item.status]
