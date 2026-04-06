@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import type { Repository } from 'typeorm'
+import { Brackets } from 'typeorm'
+import type { Repository, SelectQueryBuilder } from 'typeorm'
 
 import {
   canCreateRestaurant,
@@ -175,6 +176,20 @@ export interface AssignManagerResultDto {
   created: boolean
 }
 
+export interface RestaurantPaginationDto {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
+export interface PaginatedRestaurantsDto {
+  items: Restaurant[]
+  pagination: RestaurantPaginationDto
+}
+
 export class RestaurantsHttpError extends Error {
   constructor(public readonly statusCode: number, message: string) {
     super(message)
@@ -184,6 +199,13 @@ export class RestaurantsHttpError extends Error {
 
 interface GetAccessibleRestaurantsOptions {
   includeInactiveMemberships?: boolean
+  page?: number
+  limit?: number
+  search?: string
+  name?: string
+  city?: string
+  slug?: string
+  isActive?: boolean
 }
 
 export class RestaurantService {
@@ -211,43 +233,23 @@ export class RestaurantService {
   async getAccessibleRestaurants(
     currentUser: AuthenticatedRequestUser | undefined,
     options: GetAccessibleRestaurantsOptions = {}
-  ): Promise<Restaurant[]> {
+  ): Promise<PaginatedRestaurantsDto> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
     }
 
     const includeInactiveMemberships = options.includeInactiveMemberships ?? false
+    const page = options.page ?? 1
+    const limit = options.limit ?? 10
+    const offset = (page - 1) * limit
 
-    if (isSystemOwner(currentUser.role)) {
-      return this.restaurantRepository.find({
-        order: {
-          createdAt: 'DESC'
-        }
-      })
-    }
-
-    if (!includeInactiveMemberships) {
-      const accessibleRestaurantIds =
-        await this.restaurantAccessService.getAccessibleRestaurantIds(
-          currentUser.id,
-          currentUser.role
-        )
-
-      if (accessibleRestaurantIds.length === 0) {
-        return []
-      }
-
-      return this.restaurantRepository.find({
-        where: accessibleRestaurantIds.map((id) => ({ id })),
-        order: {
-          createdAt: 'DESC'
-        }
-      })
-    }
-
-    return this.restaurantRepository
+    const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
-      .innerJoin(
+      .orderBy('restaurant.createdAt', 'DESC')
+      .distinct(true)
+
+    if (!isSystemOwner(currentUser.role)) {
+      query.innerJoin(
         RestaurantUser,
         'membership',
         this.buildMembershipJoinCondition(includeInactiveMemberships),
@@ -255,8 +257,24 @@ export class RestaurantService {
           userId: currentUser.id
         }
       )
-      .orderBy('restaurant.createdAt', 'DESC')
-      .getMany()
+    }
+
+    this.applyRestaurantFilters(query, options)
+
+    const [items, total] = await query.skip(offset).take(limit).getManyAndCount()
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit)
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1
+      }
+    }
   }
 
   async createRestaurant(
@@ -538,6 +556,66 @@ export class RestaurantService {
     return `${slug}@restaurant.local`
   }
 
+  private applyRestaurantFilters(
+    query: SelectQueryBuilder<Restaurant>,
+    options: GetAccessibleRestaurantsOptions
+  ): void {
+    if (options.isActive !== undefined) {
+      query.andWhere('restaurant.isActive = :isActive', {
+        isActive: options.isActive
+      })
+    }
+
+    if (options.slug) {
+      query.andWhere('restaurant.slug ILIKE :slug', {
+        slug: `%${this.escapeLikePattern(options.slug)}%`
+      })
+    }
+
+    if (options.name) {
+      query.andWhere('restaurant.name ILIKE :name', {
+        name: `%${this.escapeLikePattern(options.name)}%`
+      })
+    }
+
+    if (options.city) {
+      query.andWhere('restaurant.city ILIKE :city', {
+        city: `%${this.escapeLikePattern(options.city)}%`
+      })
+    }
+
+    if (options.search) {
+      const searchTerm = `%${this.escapeLikePattern(options.search)}%`
+
+      query.andWhere(
+        new Brackets((searchQuery) => {
+          searchQuery
+            .where('restaurant.name ILIKE :search', {
+              search: searchTerm
+            })
+            .orWhere('restaurant.slug ILIKE :search', {
+              search: searchTerm
+            })
+            .orWhere('restaurant.city ILIKE :search', {
+              search: searchTerm
+            })
+            .orWhere('restaurant.email ILIKE :search', {
+              search: searchTerm
+            })
+            .orWhere('restaurant.phone ILIKE :search', {
+              search: searchTerm
+            })
+            .orWhere('restaurant.address ILIKE :search', {
+              search: searchTerm
+            })
+            .orWhere('restaurant.description ILIKE :search', {
+              search: searchTerm
+            })
+        })
+      )
+    }
+  }
+
   private parseCreateRestaurantPayload(
     payload: unknown
   ): NormalizedCreateRestaurantInput {
@@ -659,6 +737,10 @@ export class RestaurantService {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .replace(/-{2,}/g, '-')
+  }
+
+  private escapeLikePattern(value: string): string {
+    return value.replace(/[\\%_]/g, '\\$&')
   }
 
   private buildMembershipJoinCondition(includeInactiveMemberships: boolean): string {

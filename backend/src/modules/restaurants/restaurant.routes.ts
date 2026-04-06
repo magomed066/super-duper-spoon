@@ -316,15 +316,59 @@ const restaurantController = new RestaurantController(restaurantService)
  *         schema:
  *           type: boolean
  *         description: When true, non-system users can also receive restaurants from inactive memberships.
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for paginated restaurant list.
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 10
+ *         description: Number of restaurants returned per page.
+ *       - in: query
+ *         name: search
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Full-text style search across name, slug, city, email, phone, address, and description.
+ *       - in: query
+ *         name: name
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Partial restaurant name filter.
+ *       - in: query
+ *         name: city
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Partial city filter.
+ *       - in: query
+ *         name: slug
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Partial slug filter.
+ *       - in: query
+ *         name: isActive
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         description: Filter restaurants by active status.
  *     responses:
  *       200:
  *         description: Restaurants fetched successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Restaurant'
+ *               $ref: '#/components/schemas/PaginatedRestaurantsResponse'
  *       401:
  *         description: Authentication failed
  *         content:

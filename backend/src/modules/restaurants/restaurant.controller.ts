@@ -8,6 +8,9 @@ import {
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
 
+  private static readonly DEFAULT_PAGE = 1
+  private static readonly DEFAULT_LIMIT = 10
+
   getById = async (
     req: Request,
     res: Response,
@@ -31,13 +34,30 @@ export class RestaurantController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const includeInactiveMemberships =
-        req.query.includeInactiveMemberships === 'true'
+      const includeInactiveMemberships = this.getBooleanQueryParam(
+        req.query.includeInactiveMemberships
+      )
+      const isActive = this.getOptionalBooleanQueryParam(req.query.isActive)
 
       const restaurants = await this.restaurantService.getAccessibleRestaurants(
         req.user,
         {
-          includeInactiveMemberships
+          includeInactiveMemberships,
+          page: this.getPositiveNumberQueryParam(
+            req.query.page,
+            RestaurantController.DEFAULT_PAGE,
+            'Page must be a positive integer'
+          ),
+          limit: this.getPositiveNumberQueryParam(
+            req.query.limit,
+            RestaurantController.DEFAULT_LIMIT,
+            'Limit must be a positive integer'
+          ),
+          search: this.getOptionalStringQueryParam(req.query.search),
+          name: this.getOptionalStringQueryParam(req.query.name),
+          city: this.getOptionalStringQueryParam(req.query.city),
+          slug: this.getOptionalStringQueryParam(req.query.slug),
+          isActive
         }
       )
 
@@ -162,5 +182,66 @@ export class RestaurantController {
 
   private getIdParam(idParam: string | string[]): string {
     return Array.isArray(idParam) ? idParam[0] ?? '' : idParam
+  }
+
+  private getOptionalStringQueryParam(
+    value: Request['query'][string]
+  ): string | undefined {
+    const normalizedValue = Array.isArray(value) ? value[0] : value
+
+    if (typeof normalizedValue !== 'string') {
+      return undefined
+    }
+
+    const trimmedValue = normalizedValue.trim()
+
+    return trimmedValue.length > 0 ? trimmedValue : undefined
+  }
+
+  private getBooleanQueryParam(value: Request['query'][string]): boolean {
+    return this.getOptionalStringQueryParam(value) === 'true'
+  }
+
+  private getOptionalBooleanQueryParam(
+    value: Request['query'][string]
+  ): boolean | undefined {
+    const normalizedValue = this.getOptionalStringQueryParam(value)
+
+    if (normalizedValue === undefined) {
+      return undefined
+    }
+
+    if (normalizedValue === 'true') {
+      return true
+    }
+
+    if (normalizedValue === 'false') {
+      return false
+    }
+
+    throw new RestaurantsHttpError(
+      400,
+      'isActive must be a boolean value'
+    )
+  }
+
+  private getPositiveNumberQueryParam(
+    value: Request['query'][string],
+    fallbackValue: number,
+    errorMessage: string
+  ): number {
+    const normalizedValue = this.getOptionalStringQueryParam(value)
+
+    if (normalizedValue === undefined) {
+      return fallbackValue
+    }
+
+    const parsedValue = Number(normalizedValue)
+
+    if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+      throw new RestaurantsHttpError(400, errorMessage)
+    }
+
+    return parsedValue
   }
 }

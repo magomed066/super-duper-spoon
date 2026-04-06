@@ -358,6 +358,49 @@ const swaggerOptions = {
             }
           }
         },
+        PaginationMeta: {
+          type: 'object',
+          properties: {
+            page: {
+              type: 'integer',
+              example: 1
+            },
+            limit: {
+              type: 'integer',
+              example: 10
+            },
+            total: {
+              type: 'integer',
+              example: 42
+            },
+            totalPages: {
+              type: 'integer',
+              example: 5
+            },
+            hasNextPage: {
+              type: 'boolean',
+              example: true
+            },
+            hasPreviousPage: {
+              type: 'boolean',
+              example: false
+            }
+          }
+        },
+        PaginatedRestaurantsResponse: {
+          type: 'object',
+          properties: {
+            items: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/Restaurant'
+              }
+            },
+            pagination: {
+              $ref: '#/components/schemas/PaginationMeta'
+            }
+          }
+        },
         CreateRestaurantRequest: {
           type: 'object',
           required: ['name', 'phone', 'address', 'description'],
