@@ -4,6 +4,7 @@ import type { ApiError } from '@/shared/api/errors'
 import { AuthService } from '@/shared/api/services/auth'
 import type {
   AuthRegisterResponse,
+  LogoutPayload,
   UserLogin,
   UserLoginResponse,
   UserRegister
@@ -46,6 +47,30 @@ export const useRegisterMutation = (
       notifications.show({
         color: 'red',
         title: 'Ошибка',
+        message: error.message
+      })
+      onError?.(error)
+    }
+  })
+}
+
+export const useLogoutMutation = (
+  onSuccess?: () => void,
+  onError?: (error: ApiError) => void
+) => {
+  const clearAuth = useAuthStore((state) => state.clearAuth)
+
+  return useMutation<void, ApiError, LogoutPayload>({
+    mutationFn: (data) => AuthService.logout(data),
+    onSuccess: () => {
+      clearAuth()
+      onSuccess?.()
+    },
+    onError: (error, _variables) => {
+      clearAuth()
+      notifications.show({
+        color: 'yellow',
+        title: 'Сессия завершена локально',
         message: error.message
       })
       onError?.(error)

@@ -30,9 +30,14 @@ export type UserRegister = Pick<
 
 export type UserLoginResponse = {
   accessToken: string
+  refreshToken: string
   user: User
 }
 
 export type AuthRegisterResponse = {
   message: string
+}
+
+export type LogoutPayload = {
+  refreshToken: string
 }

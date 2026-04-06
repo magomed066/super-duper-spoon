@@ -12,10 +12,6 @@ export const publicRoutes = [
   },
   {
     Component: RequestPage,
-    path: ROUTES.APPLICATION
-  },
-  {
-    Component: RequestPage,
     path: ROUTES.REQUEST
   },
   {
