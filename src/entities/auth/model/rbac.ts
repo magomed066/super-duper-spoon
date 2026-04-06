@@ -2,59 +2,64 @@ import type { User } from '@/shared/api/services/auth/types'
 import { UserRole } from '@/shared/api/services/auth/types'
 import { ROUTES } from '@/shared/config/routes'
 
-export enum AuthPermission {
+export enum PlatformPermission {
   VIEW_APPLICATIONS = 'view_applications',
   MANAGE_APPLICATIONS = 'manage_applications',
   VIEW_RESTAURANTS = 'view_restaurants'
 }
 
 type RouteAccess = {
-  permission: AuthPermission
+  permission: PlatformPermission
   fallbackRoute: string
 }
 
-const permissionsByRole: Record<UserRole, AuthPermission[]> = {
+export const PLATFORM_PERMISSIONS_BY_ROLE: Record<UserRole, PlatformPermission[]> = {
   [UserRole.SYSTEM_OWNER]: [
-    AuthPermission.VIEW_APPLICATIONS,
-    AuthPermission.MANAGE_APPLICATIONS,
-    AuthPermission.VIEW_RESTAURANTS
+    PlatformPermission.VIEW_APPLICATIONS,
+    PlatformPermission.MANAGE_APPLICATIONS,
+    PlatformPermission.VIEW_RESTAURANTS
   ],
-  [UserRole.CLIENT]: [AuthPermission.VIEW_RESTAURANTS],
-  [UserRole.STAFF]: [AuthPermission.VIEW_RESTAURANTS]
+  [UserRole.CLIENT]: [PlatformPermission.VIEW_RESTAURANTS],
+  [UserRole.STAFF]: [PlatformPermission.VIEW_RESTAURANTS]
 }
 
-const routeAccessMap: Partial<Record<string, RouteAccess>> = {
+export const PLATFORM_ROUTE_ACCESS: Partial<Record<string, RouteAccess>> = {
   [ROUTES.APPLICATIONS]: {
-    permission: AuthPermission.VIEW_APPLICATIONS,
+    permission: PlatformPermission.VIEW_APPLICATIONS,
     fallbackRoute: ROUTES.RESTAURANTS
   },
   [ROUTES.RESTAURANTS]: {
-    permission: AuthPermission.VIEW_RESTAURANTS,
+    permission: PlatformPermission.VIEW_RESTAURANTS,
     fallbackRoute: ROUTES.AUTH
   }
 }
 
-export const hasPermission = (
+export const hasPlatformPermission = (
   user: User | null,
-  permission: AuthPermission
+  permission: PlatformPermission
 ) => {
   if (!user) {
     return false
   }
 
-  return permissionsByRole[user.role].includes(permission)
+  return PLATFORM_PERMISSIONS_BY_ROLE[user.role].includes(permission)
 }
 
 export const canAccessRoute = (user: User | null, route: string) => {
-  const access = routeAccessMap[route]
+  const access = PLATFORM_ROUTE_ACCESS[route]
 
   if (!access) {
     return true
   }
 
-  return hasPermission(user, access.permission)
+  return hasPlatformPermission(user, access.permission)
 }
 
 export const getRouteFallback = (route: string) => {
-  return routeAccessMap[route]?.fallbackRoute ?? ROUTES.AUTH
+  return PLATFORM_ROUTE_ACCESS[route]?.fallbackRoute ?? ROUTES.AUTH
 }
+
+// Backward-compatible alias for existing UI checks. Restaurant membership checks
+// must stay separate from platform permissions and should not be added here.
+export const hasPermission = hasPlatformPermission
+export const AuthPermission = PlatformPermission

@@ -1,6 +1,11 @@
 import { z } from 'zod'
 import type { Repository } from 'typeorm'
 
+import {
+  canCreateRestaurant,
+  canUseRestaurantMembership,
+  isSystemOwner
+} from '../../common/rbac/index.js'
 import { AppDataSource } from '../../database/data-source.js'
 import type { AuthenticatedRequestUser } from '../auth/types/auth.types.js'
 import { User } from '../users/entities/user.entity.js'
@@ -211,7 +216,7 @@ export class RestaurantService {
 
     const includeInactiveMemberships = options.includeInactiveMemberships ?? false
 
-    if (currentUser.role === UserRole.SYSTEM_OWNER) {
+    if (isSystemOwner(currentUser.role)) {
       return this.restaurantRepository.find({
         order: {
           createdAt: 'DESC'
@@ -238,10 +243,7 @@ export class RestaurantService {
       })
     }
 
-    if (
-      currentUser.role !== UserRole.CLIENT &&
-      currentUser.role !== UserRole.STAFF
-    ) {
+    if (!canUseRestaurantMembership(currentUser.role)) {
       return []
     }
 
@@ -557,10 +559,7 @@ export class RestaurantService {
   }
 
   private assertCanCreateRestaurant(currentUser: AuthenticatedRequestUser): void {
-    if (
-      currentUser.role !== UserRole.CLIENT &&
-      currentUser.role !== UserRole.SYSTEM_OWNER
-    ) {
+    if (!canCreateRestaurant(currentUser.role)) {
       throw new RestaurantsHttpError(403, 'Access denied')
     }
   }
@@ -570,6 +569,8 @@ export class RestaurantService {
     restaurantId: string,
     userId: string
   ): Promise<RestaurantUser> {
+    // Creating a restaurant grants a restaurant-scoped OWNER membership.
+    // The user's platform role remains a UserRole and is evaluated separately.
     const membership = restaurantUserRepository.create({
       restaurantId,
       userId,

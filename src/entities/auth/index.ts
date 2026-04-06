@@ -13,7 +13,11 @@ export {
   AuthPermission,
   canAccessRoute,
   getRouteFallback,
-  hasPermission
+  hasPermission,
+  hasPlatformPermission,
+  PLATFORM_PERMISSIONS_BY_ROLE,
+  PLATFORM_ROUTE_ACCESS,
+  PlatformPermission
 } from './model/rbac'
 export {
   ACCESS_TOKEN_STORAGE_KEY,

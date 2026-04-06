@@ -10,6 +10,7 @@ import {
   withRestaurantScope,
   type RestaurantScoped
 } from '../../common/restaurant-scope/index.js'
+import { isSystemOwner } from '../../common/rbac/index.js'
 import { AppDataSource } from '../../database/data-source.js'
 import type { AuthenticatedRequestUser } from '../auth/types/auth.types.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
@@ -22,6 +23,8 @@ export type RestaurantTenantAction = 'read' | 'update' | 'delete' | 'manage'
 
 /**
  * Tenant boundary for restaurant-scoped modules.
+ * Platform role checks stop at UserRole here. Restaurant-level authorization
+ * must flow through RestaurantUser.role before any scoped data access is allowed.
  * Future modules should verify access here first, then apply restaurant scope
  * to every repository query that returns or mutates restaurant-owned data.
  */
@@ -167,7 +170,7 @@ export class RestaurantTenantService {
       )
     }
 
-    if (systemRole === UserRole.SYSTEM_OWNER) {
+    if (isSystemOwner(systemRole)) {
       return Promise.resolve(true)
     }
 

@@ -2,7 +2,10 @@ import { Router } from 'express'
 
 import { authMiddleware } from '../../common/middleware/auth.middleware.js'
 import { roleMiddleware } from '../../common/middleware/role.middleware.js'
-import { UserRole } from '../users/enums/user-role.enum.js'
+import {
+  PLATFORM_USER_ROLES,
+  RESTAURANT_CREATION_PLATFORM_ROLES
+} from '../../common/rbac/index.js'
 import { RestaurantController } from './restaurant.controller.js'
 import { RestaurantService } from './restaurant.service.js'
 
@@ -290,56 +293,56 @@ const restaurantController = new RestaurantController(restaurantService)
 restaurantsRouter.get(
   '/:id',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
+  roleMiddleware(PLATFORM_USER_ROLES),
   restaurantController.getById
 )
 
 restaurantsRouter.patch(
   '/:id',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
+  roleMiddleware(PLATFORM_USER_ROLES),
   restaurantController.update
 )
 
 restaurantsRouter.delete(
   '/:id',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
+  roleMiddleware(PLATFORM_USER_ROLES),
   restaurantController.delete
 )
 
 restaurantsRouter.get(
   '/:id/users',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
+  roleMiddleware(PLATFORM_USER_ROLES),
   restaurantController.getUsers
 )
 
 restaurantsRouter.post(
   '/:id/managers',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
+  roleMiddleware(PLATFORM_USER_ROLES),
   restaurantController.assignManager
 )
 
 restaurantsRouter.delete(
   '/:id/managers/:userId',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
+  roleMiddleware(PLATFORM_USER_ROLES),
   restaurantController.removeManager
 )
 
 restaurantsRouter.get(
   '/',
   authMiddleware,
-  roleMiddleware([UserRole.SYSTEM_OWNER, UserRole.CLIENT, UserRole.STAFF]),
+  roleMiddleware(PLATFORM_USER_ROLES),
   restaurantController.list
 )
 
 restaurantsRouter.post(
   '/',
   authMiddleware,
-  roleMiddleware([UserRole.CLIENT, UserRole.SYSTEM_OWNER]),
+  roleMiddleware(RESTAURANT_CREATION_PLATFORM_ROLES),
   restaurantController.create
 )
 

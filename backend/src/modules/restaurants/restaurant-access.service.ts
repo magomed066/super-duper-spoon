@@ -1,5 +1,10 @@
 import { Repository } from 'typeorm'
 
+import {
+  canUseRestaurantMembership,
+  hasRestaurantRole,
+  isSystemOwner
+} from '../../common/rbac/index.js'
 import { AppDataSource } from '../../database/data-source.js'
 import { normalizeRestaurantScopeId } from '../../common/restaurant-scope/index.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
@@ -37,7 +42,7 @@ export class RestaurantAccessService {
       return false
     }
 
-    if (systemRole === UserRole.SYSTEM_OWNER) {
+    if (isSystemOwner(systemRole)) {
       return this.restaurantRepository.exists({
         where: {
           id: normalizedRestaurantId
@@ -45,10 +50,7 @@ export class RestaurantAccessService {
       })
     }
 
-    if (
-      systemRole !== UserRole.CLIENT &&
-      systemRole !== UserRole.STAFF
-    ) {
+    if (!canUseRestaurantMembership(systemRole)) {
       return false
     }
 
@@ -80,7 +82,7 @@ export class RestaurantAccessService {
       return false
     }
 
-    if (systemRole === UserRole.SYSTEM_OWNER) {
+    if (isSystemOwner(systemRole)) {
       return this.restaurantRepository.exists({
         where: {
           id: normalizedRestaurantId
@@ -137,7 +139,7 @@ export class RestaurantAccessService {
       return []
     }
 
-    if (systemRole === UserRole.SYSTEM_OWNER) {
+    if (isSystemOwner(systemRole)) {
       const restaurants = await this.restaurantRepository.find({
         select: {
           id: true
@@ -147,7 +149,7 @@ export class RestaurantAccessService {
       return restaurants.map((restaurant) => restaurant.id)
     }
 
-    if (systemRole !== UserRole.CLIENT && systemRole !== UserRole.STAFF) {
+    if (!canUseRestaurantMembership(systemRole)) {
       return []
     }
 
@@ -171,7 +173,7 @@ export class RestaurantAccessService {
   ): Promise<boolean> {
     const membership = await this.getRestaurantMembership(userId, restaurantId)
 
-    return membership?.role === membershipRole
+    return membership !== null && hasRestaurantRole(membership.role, [membershipRole])
   }
 
   private normalizeId(value: string): string {
