@@ -1,3 +1,5 @@
+import type { Pagination } from '@/shared/lib/types/pagination'
+
 export type Restaurant = {
   id: string
   name: string
@@ -21,4 +23,14 @@ export type Restaurant = {
   isActive: boolean
   createdAt: string
   updatedAt: string
+}
+
+export type RestouranstsResponse = {
+  pagination: Pagination
+  items: Restaurant[]
+}
+
+export type RestaurantsListParams = {
+  search?: string
+  isActive?: boolean
 }

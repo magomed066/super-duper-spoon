@@ -1,9 +1,13 @@
 import { apiService } from '../../base'
-import type { Restaurant } from './types'
+import type {
+  Restaurant,
+  RestaurantsListParams,
+  RestouranstsResponse
+} from './types'
 
 export class RestaurantService {
-  static list(): Promise<Restaurant[]> {
-    return apiService.get('/restaurants')
+  static list(params?: RestaurantsListParams): Promise<RestouranstsResponse> {
+    return apiService.get('/restaurants', { params })
   }
 
   static update(

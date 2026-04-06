@@ -10,8 +10,7 @@ export function RestaurantPage() {
 
       <Stack className="mt-3 px-5 flex flex-col gap">
         <Text maw={640} className="text-moss-700">
-          Здесь отображаются все ваши рестораны на подключение ресторанов с
-          текущими статусами и контактами заявителей.
+          Здесь отображается список всех ваших ресторанов.
         </Text>
 
         <Divider my={3} />
