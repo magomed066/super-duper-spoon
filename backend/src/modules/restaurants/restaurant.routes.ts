@@ -13,6 +13,20 @@ const restaurantController = new RestaurantController(restaurantService)
 /**
  * @openapi
  * /restaurants:
+ *   get:
+ *     tags:
+ *       - Restaurants
+ *     summary: List restaurants available to the current user
+ *     description: Returns all restaurants for system owners, restaurants with active OWNER membership for clients, and restaurants with active MANAGER membership for managers.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Restaurants fetched successfully
+ *       401:
+ *         description: Authentication failed
+ *       403:
+ *         description: Access denied
  *   post:
  *     tags:
  *       - Restaurants
@@ -43,6 +57,42 @@ const restaurantController = new RestaurantController(restaurantService)
  *                 type: string
  *               description:
  *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phones:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               city:
+ *                 type: string
+ *               logo:
+ *                 type: string
+ *               preview:
+ *                 type: string
+ *               deliveryTime:
+ *                 type: integer
+ *               deliveryConditions:
+ *                 type: string
+ *               cuisine:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               workSchedule:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - day
+ *                     - open
+ *                     - close
+ *                   properties:
+ *                     day:
+ *                       type: string
+ *                     open:
+ *                       type: string
+ *                     close:
+ *                       type: string
  *     responses:
  *       201:
  *         description: Restaurant created successfully
@@ -55,6 +105,13 @@ const restaurantController = new RestaurantController(restaurantService)
  *       409:
  *         description: Restaurant slug already exists
  */
+restaurantsRouter.get(
+  '/',
+  authMiddleware,
+  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  restaurantController.list
+)
+
 restaurantsRouter.post(
   '/',
   authMiddleware,

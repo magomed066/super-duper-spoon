@@ -2,9 +2,16 @@ import { z } from 'zod'
 
 import { AppDataSource } from '../../database/data-source.js'
 import { User } from '../users/entities/user.entity.js'
+import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantMembershipRole } from './enums/restaurant-membership-role.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
+
+const workScheduleItemSchema = z.object({
+  day: z.string().trim().min(1, 'Work schedule day is required'),
+  open: z.string().trim().min(1, 'Work schedule open time is required'),
+  close: z.string().trim().min(1, 'Work schedule close time is required')
+})
 
 const createRestaurantSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(255, 'Name is too long'),
@@ -19,6 +26,9 @@ const createRestaurantSchema = z.object({
     .trim()
     .min(1, 'Phone is required')
     .max(255, 'Phone is too long'),
+  phones: z
+    .array(z.string().trim().min(1, 'Phone is required').max(255, 'Phone is too long'))
+    .default([]),
   address: z
     .string()
     .trim()
@@ -28,7 +38,30 @@ const createRestaurantSchema = z.object({
     .string()
     .trim()
     .min(1, 'Description is required')
-    .max(5000, 'Description is too long')
+    .max(5000, 'Description is too long'),
+  email: z
+    .string()
+    .trim()
+    .email('Email format is invalid')
+    .max(255, 'Email is too long')
+    .optional(),
+  city: z.string().trim().min(1, 'City is required').max(255, 'City is too long').optional(),
+  logo: z.string().trim().max(500, 'Logo is too long').optional(),
+  preview: z.string().trim().max(500, 'Preview is too long').optional(),
+  deliveryTime: z
+    .number()
+    .int('Delivery time must be an integer')
+    .min(0, 'Delivery time cannot be negative')
+    .optional(),
+  deliveryConditions: z
+    .string()
+    .trim()
+    .max(5000, 'Delivery conditions are too long')
+    .optional(),
+  cuisine: z
+    .array(z.string().trim().min(1, 'Cuisine item is required').max(255, 'Cuisine item is too long'))
+    .default([]),
+  workSchedule: z.array(workScheduleItemSchema).default([])
 })
 
 type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>
@@ -41,6 +74,44 @@ export class RestaurantsHttpError extends Error {
 }
 
 export class RestaurantService {
+  async getAccessibleRestaurants(currentUser: User | undefined): Promise<Restaurant[]> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const restaurantRepository = AppDataSource.getRepository(Restaurant)
+
+    if (currentUser.role === UserRole.OWNER) {
+      return restaurantRepository.find({
+        order: {
+          createdAt: 'DESC'
+        }
+      })
+    }
+
+    const membershipRole = this.resolveMembershipRole(currentUser.role)
+
+    return restaurantRepository
+      .createQueryBuilder('restaurant')
+      .innerJoin(
+        RestaurantUser,
+        'membership',
+        [
+          'membership.restaurantId = restaurant.id',
+          'membership.userId = :userId',
+          'membership.role = :membershipRole',
+          'membership.isActive = :isActive'
+        ].join(' AND '),
+        {
+          userId: currentUser.id,
+          membershipRole,
+          isActive: true
+        }
+      )
+      .orderBy('restaurant.createdAt', 'DESC')
+      .getMany()
+  }
+
   async createRestaurant(
     payload: unknown,
     currentUser: User | undefined
@@ -59,14 +130,14 @@ export class RestaurantService {
     }
 
     const normalizedPayload = validationResult.data
-    const generatedEmail = this.buildRestaurantEmail(normalizedPayload.slug)
+    const email = normalizedPayload.email ?? this.buildRestaurantEmail(normalizedPayload.slug)
 
     return AppDataSource.transaction(async (manager) => {
       const restaurantRepository = manager.getRepository(Restaurant)
       const restaurantUserRepository = manager.getRepository(RestaurantUser)
 
       const existingRestaurant = await restaurantRepository.findOne({
-        where: [{ slug: normalizedPayload.slug }, { email: generatedEmail }]
+        where: [{ slug: normalizedPayload.slug }, { email }]
       })
 
       if (existingRestaurant) {
@@ -74,7 +145,7 @@ export class RestaurantService {
       }
 
       const restaurant = restaurantRepository.create(
-        this.toRestaurantEntity(normalizedPayload, generatedEmail)
+        this.toRestaurantEntity(normalizedPayload, email)
       )
 
       const savedRestaurant = await restaurantRepository.save(restaurant)
@@ -96,6 +167,18 @@ export class RestaurantService {
     return `${slug}@restaurant.local`
   }
 
+  private resolveMembershipRole(userRole: UserRole): RestaurantMembershipRole {
+    if (userRole === UserRole.CLIENT) {
+      return RestaurantMembershipRole.OWNER
+    }
+
+    if (userRole === UserRole.MANAGER) {
+      return RestaurantMembershipRole.MANAGER
+    }
+
+    throw new RestaurantsHttpError(403, 'Access denied')
+  }
+
   private toRestaurantEntity(
     payload: CreateRestaurantInput,
     email: string
@@ -105,16 +188,16 @@ export class RestaurantService {
       slug: payload.slug,
       email,
       phone: payload.phone,
-      phones: [payload.phone],
+      phones: payload.phones.length > 0 ? payload.phones : [payload.phone],
       address: payload.address,
       description: payload.description,
-      city: 'TBD',
-      logo: '',
-      preview: '',
-      deliveryTime: 0,
-      deliveryConditions: '',
-      cuisine: [],
-      workSchedule: [],
+      city: payload.city ?? 'TBD',
+      logo: payload.logo ?? '',
+      preview: payload.preview ?? '',
+      deliveryTime: payload.deliveryTime ?? 0,
+      deliveryConditions: payload.deliveryConditions ?? '',
+      cuisine: payload.cuisine,
+      workSchedule: payload.workSchedule,
       isActive: true
     }
   }

@@ -8,6 +8,22 @@ import {
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
 
+  list = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurants = await this.restaurantService.getAccessibleRestaurants(
+        req.user
+      )
+
+      res.status(200).json(restaurants)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
   create = async (
     req: Request,
     res: Response,
