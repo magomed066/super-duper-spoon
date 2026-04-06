@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { TbLogout2 } from 'react-icons/tb'
 import { Button, Code, Group } from '@mantine/core'
 import { useLogoutMutation } from '@/entities/auth/model/hooks'
-import { useAuthStore } from '@/entities/auth'
+import { AuthPermission, hasPermission, useAuthStore } from '@/entities/auth'
 import { Link, useLocation } from 'react-router'
 import { ROUTES } from '@/shared/config/routes'
 import { FaListCheck } from 'react-icons/fa6'
@@ -13,12 +13,14 @@ const data = [
   {
     link: ROUTES.APPLICATIONS,
     label: 'Заявки',
-    icon: () => <IoMailOpenOutline size={18} />
+    icon: () => <IoMailOpenOutline size={18} />,
+    permission: AuthPermission.VIEW_APPLICATIONS
   },
   {
     link: ROUTES.RESTAURANTS,
     label: 'Рестораны',
-    icon: () => <FaListCheck size={18} />
+    icon: () => <FaListCheck size={18} />,
+    permission: AuthPermission.VIEW_RESTAURANTS
   }
 ]
 
@@ -26,7 +28,7 @@ export function Sidebar() {
   const location = useLocation()
   const [active, setActive] = useState(location.pathname)
 
-  const { refreshToken } = useAuthStore()
+  const { refreshToken, user } = useAuthStore()
 
   const { mutate } = useLogoutMutation()
 
@@ -36,7 +38,9 @@ export function Sidebar() {
     }
   }
 
-  const links = data.map((item) => (
+  const visibleLinks = data.filter((item) => hasPermission(user, item.permission))
+
+  const links = visibleLinks.map((item) => (
     <Link
       to={item.link}
       className={cn(

@@ -5,12 +5,11 @@ import {
   useApplicationsListQuery,
   useRejectApplicationMutation
 } from '@/entities/application'
-import { useAuthStore } from '@/entities/auth'
+import { AuthPermission, hasPermission, useAuthStore } from '@/entities/auth'
 import {
   ApplicationStatus,
   type RequestClient
 } from '@/shared/api/services/application/types'
-import { UserRole } from '@/shared/api/services/auth/types'
 import MenuActions from '@/shared/ui/menu'
 import {
   ActionIcon,
@@ -69,13 +68,21 @@ function InfoRow({
 
 export function ApplicationsListWidget() {
   const user = useAuthStore((state) => state.user)
-  const isOwner = user?.role === UserRole.OWNER
+  const canViewApplications = hasPermission(user, AuthPermission.VIEW_APPLICATIONS)
+  const canManageApplications = hasPermission(
+    user,
+    AuthPermission.MANAGE_APPLICATIONS
+  )
 
-  const { data, isLoading } = useApplicationsListQuery(isOwner)
+  const { data, isLoading } = useApplicationsListQuery(canViewApplications)
   const approveMutation = useApproveApplicationMutation()
   const rejectMutation = useRejectApplicationMutation()
 
   const handleApprove = (id: string, restaurantName: string) => {
+    if (!canManageApplications) {
+      return
+    }
+
     const isConfirmed = window.confirm(
       `Подтвердить заявку ресторана «${restaurantName}»? Будет создан аккаунт клиента.`
     )
@@ -88,6 +95,10 @@ export function ApplicationsListWidget() {
   }
 
   const handleReject = (id: string, restaurantName: string) => {
+    if (!canManageApplications) {
+      return
+    }
+
     const isConfirmed = window.confirm(
       `Отклонить заявку ресторана «${restaurantName}»?`
     )
@@ -108,14 +119,14 @@ export function ApplicationsListWidget() {
       {
         key: 'approve',
         label: 'Подтвердить',
-        disabled: !isPending || isActionLoading,
+        disabled: !canManageApplications || !isPending || isActionLoading,
         onClick: () => handleApprove(item.id, item.restaurantName)
       },
       {
         key: 'reject',
         label: 'Отказать',
         color: 'red',
-        disabled: !isPending || isActionLoading,
+        disabled: !canManageApplications || !isPending || isActionLoading,
         onClick: () => handleReject(item.id, item.restaurantName)
       }
     ]
@@ -154,9 +165,11 @@ export function ApplicationsListWidget() {
                     {status.label}
                   </Badge>
 
-                  <MenuActions
-                    items={getMenuActions(isPending, isActionLoading, item)}
-                  />
+                  {canManageApplications ? (
+                    <MenuActions
+                      items={getMenuActions(isPending, isActionLoading, item)}
+                    />
+                  ) : null}
                 </Group>
 
                 <Stack gap={6} mt="lg">

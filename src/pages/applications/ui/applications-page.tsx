@@ -1,7 +1,11 @@
 import { Divider, Stack, Text } from '@mantine/core'
 import { Navigate } from 'react-router-dom'
-import { useAuthStore } from '@/entities/auth'
-import { UserRole } from '@/shared/api/services/auth/types'
+import {
+  AuthPermission,
+  getRouteFallback,
+  hasPermission,
+  useAuthStore
+} from '@/entities/auth'
 import { ROUTES } from '@/shared/config/routes'
 import PageHeaderWidget from '@/widgets/page-header'
 import ApplicationsListWidget from '@/widgets/applications-list'
@@ -79,10 +83,10 @@ import ApplicationsListWidget from '@/widgets/applications-list'
 
 export function ApplicationsPage() {
   const user = useAuthStore((state) => state.user)
-  const isOwner = user?.role === UserRole.OWNER
+  const canViewApplications = hasPermission(user, AuthPermission.VIEW_APPLICATIONS)
 
-  if (!isOwner) {
-    return <Navigate to={ROUTES.RESTAURANTS} replace />
+  if (!canViewApplications) {
+    return <Navigate to={getRouteFallback(ROUTES.APPLICATIONS)} replace />
   }
 
   return (
