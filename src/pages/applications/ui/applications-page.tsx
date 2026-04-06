@@ -41,7 +41,7 @@ const ApplicationCard = ({ application }: { application: RequestClient }) => {
       radius="xl"
       padding="xl"
       shadow="sm"
-      className="border border-white/70 bg-white/90"
+      className="border border-moss-200 bg-white/94 shadow-lg shadow-moss-200/18"
     >
       <Stack gap="lg">
         <Group justify="space-between" align="flex-start" gap="md">
@@ -119,7 +119,7 @@ export function ApplicationsPage() {
   }
 
   return (
-    <section className="relative isolate flex min-h-full w-full flex-1 overflow-hidden bg-white rounded-2xl">
+    <section className="relative isolate flex min-h-full w-full flex-1 overflow-hidden rounded-2xl bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(242,243,247,0.92))]">
       <div className="relative flex w-full flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
         <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden sm:px-8 lg:px-10">
           <div className="relative flex flex-col gap-8">
@@ -172,7 +172,7 @@ export function ApplicationsPage() {
               <Card
                 radius="xl"
                 padding="xl"
-                className="border border-dashed border-slate-200 bg-white/80"
+                className="border border-dashed border-moss-300 bg-white/80"
               >
                 <Text fw={600}>Заявок пока нет</Text>
                 <Text c="dimmed" size="sm">

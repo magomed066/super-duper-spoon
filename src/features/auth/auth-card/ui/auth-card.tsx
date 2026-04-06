@@ -11,7 +11,7 @@ export function AuthCard() {
     <Card
       padding="xl"
       radius="xl"
-      className="w-full max-w-md border border-white/70 bg-white/88 shadow-2xl shadow-aurora-200/40 backdrop-blur"
+      className="w-full max-w-md border border-moss-200 bg-white/94 shadow-2xl shadow-aurora-100/20 backdrop-blur"
     >
       <Stack gap="xl">
         <div>
@@ -20,7 +20,7 @@ export function AuthCard() {
           </Badge>
           <Title
             order={2}
-            className="text-3xl font-semibold tracking-tight text-slate-900"
+            className="text-3xl font-semibold tracking-tight text-[#10131f]"
           >
             {content.title}
           </Title>

@@ -15,14 +15,14 @@ export function RequestCard({ onBack }: RequestCardProps) {
     <Card
       padding="xl"
       radius="xl"
-      className="w-full max-w-5xl border border-white/70 bg-white/88 shadow-2xl shadow-aurora-200/40 backdrop-blur"
+      className="w-full max-w-5xl border border-moss-200 bg-white/94 shadow-2xl shadow-aurora-100/20 backdrop-blur"
     >
       <Stack gap="lg">
         <Button
-          variant="subtle"
+          variant="transparent"
           color="gray"
           leftSection={<FiArrowLeft size={16} />}
-          className="self-start px-0 text-slate-500 transition hover:bg-white hover:text-slate-700"
+          className="self-start px-0"
           onClick={onBack}
         >
           Назад
@@ -37,7 +37,7 @@ export function RequestCard({ onBack }: RequestCardProps) {
             <Stack gap="sm">
               <Title
                 order={1}
-                className="max-w-xl text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl"
+                className="max-w-xl text-3xl font-semibold tracking-tight text-[#10131f] sm:text-4xl"
               >
                 Расскажите о вашем бизнесе. Мы свяжемся с вами и поможем
                 запустить работу в системе.
@@ -51,8 +51,8 @@ export function RequestCard({ onBack }: RequestCardProps) {
             </Stack>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl bg-aurora-50 p-4">
-                <Text className="text-sm font-semibold text-slate-900">
+              <div className="rounded-2xl border border-aurora-100 bg-aurora-50 p-4">
+                <Text className="text-sm font-semibold text-[#10131f]">
                   Быстрый контакт
                 </Text>
                 <Text size="sm" c="dimmed" mt={6}>
@@ -60,8 +60,8 @@ export function RequestCard({ onBack }: RequestCardProps) {
                 </Text>
               </div>
 
-              <div className="rounded-2xl bg-coral-50 p-4">
-                <Text className="text-sm font-semibold text-slate-900">
+              <div className="rounded-2xl border border-coral-100 bg-coral-50 p-4">
+                <Text className="text-sm font-semibold text-[#10131f]">
                   Под ваш формат
                 </Text>
                 <Text size="sm" c="dimmed" mt={6}>
@@ -69,8 +69,8 @@ export function RequestCard({ onBack }: RequestCardProps) {
                 </Text>
               </div>
 
-              <div className="rounded-2xl bg-moss-50 p-4">
-                <Text className="text-sm font-semibold text-slate-900">
+              <div className="rounded-2xl border border-moss-200 bg-moss-50 p-4">
+                <Text className="text-sm font-semibold text-[#10131f]">
                   Без сложного старта
                 </Text>
                 <Text size="sm" c="dimmed" mt={6}>
@@ -83,14 +83,14 @@ export function RequestCard({ onBack }: RequestCardProps) {
           <Card
             padding="lg"
             radius="xl"
-            className="border border-slate-200/80 bg-white shadow-lg shadow-slate-200/50"
+            className="border border-moss-200 bg-white shadow-lg shadow-moss-200/20"
           >
             {isSubmitted ? (
               <RequestSuccessCard onReset={() => setIsSubmitted(false)} />
             ) : (
               <Stack gap="lg">
                 <div>
-                  <Title order={3} className="text-2xl text-slate-900">
+                  <Title order={3} className="text-2xl text-[#10131f]">
                     Заявка на подключение
                   </Title>
                   <Text size="sm" c="dimmed" mt={6}>
