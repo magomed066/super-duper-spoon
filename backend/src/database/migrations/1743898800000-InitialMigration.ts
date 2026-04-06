@@ -2,7 +2,8 @@ import {
   MigrationInterface,
   QueryRunner,
   Table,
-  TableForeignKey
+  TableForeignKey,
+  TableUnique
 } from 'typeorm'
 
 export class InitialMigration1743898800000 implements MigrationInterface {
@@ -180,6 +181,156 @@ export class InitialMigration1743898800000 implements MigrationInterface {
       true
     )
 
+    await queryRunner.createTable(
+      new Table({
+        name: 'restaurants',
+        columns: [
+          {
+            name: 'id',
+            type: 'uuid',
+            isPrimary: true,
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()'
+          },
+          {
+            name: 'name',
+            type: 'varchar',
+            length: '255'
+          },
+          {
+            name: 'slug',
+            type: 'varchar',
+            length: '255',
+            isUnique: true
+          },
+          {
+            name: 'cuisine',
+            type: 'text',
+            isArray: true,
+            default: "'{}'"
+          },
+          {
+            name: 'email',
+            type: 'varchar',
+            length: '255',
+            isUnique: true
+          },
+          {
+            name: 'phones',
+            type: 'text',
+            isArray: true,
+            default: "'{}'"
+          },
+          {
+            name: 'city',
+            type: 'varchar',
+            length: '255'
+          },
+          {
+            name: 'logo',
+            type: 'varchar',
+            length: '500'
+          },
+          {
+            name: 'preview',
+            type: 'varchar',
+            length: '500'
+          },
+          {
+            name: 'workSchedule',
+            type: 'jsonb',
+            default: "'[]'"
+          },
+          {
+            name: 'deliveryTime',
+            type: 'integer'
+          },
+          {
+            name: 'deliveryConditions',
+            type: 'text'
+          },
+          {
+            name: 'description',
+            type: 'text',
+            isNullable: true
+          },
+          {
+            name: 'phone',
+            type: 'varchar',
+            length: '255',
+            isNullable: true
+          },
+          {
+            name: 'address',
+            type: 'text',
+            isNullable: true
+          },
+          {
+            name: 'isActive',
+            type: 'boolean',
+            default: true
+          },
+          {
+            name: 'createdAt',
+            type: 'timestamptz',
+            default: 'now()'
+          },
+          {
+            name: 'updatedAt',
+            type: 'timestamptz',
+            default: 'now()'
+          }
+        ]
+      }),
+      true
+    )
+
+    await queryRunner.createTable(
+      new Table({
+        name: 'restaurant_users',
+        columns: [
+          {
+            name: 'id',
+            type: 'uuid',
+            isPrimary: true,
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()'
+          },
+          {
+            name: 'restaurantId',
+            type: 'uuid'
+          },
+          {
+            name: 'userId',
+            type: 'uuid'
+          },
+          {
+            name: 'role',
+            type: 'enum',
+            enum: ['OWNER', 'MANAGER'],
+            enumName: 'restaurant_users_role_enum'
+          },
+          {
+            name: 'isActive',
+            type: 'boolean',
+            default: true
+          },
+          {
+            name: 'createdAt',
+            type: 'timestamptz',
+            default: 'now()'
+          }
+        ],
+        uniques: [
+          new TableUnique({
+            name: 'UQ_restaurant_users_restaurantId_userId',
+            columnNames: ['restaurantId', 'userId']
+          })
+        ]
+      }),
+      true
+    )
+
     await queryRunner.createForeignKey(
       'refresh_tokens',
       new TableForeignKey({
@@ -189,6 +340,19 @@ export class InitialMigration1743898800000 implements MigrationInterface {
         onDelete: 'CASCADE'
       })
     )
+
+    await queryRunner.createForeignKeys('restaurant_users', [
+      new TableForeignKey({
+        columnNames: ['restaurantId'],
+        referencedTableName: 'restaurants',
+        referencedColumnNames: ['id']
+      }),
+      new TableForeignKey({
+        columnNames: ['userId'],
+        referencedTableName: 'users',
+        referencedColumnNames: ['id']
+      })
+    ])
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -198,11 +362,33 @@ export class InitialMigration1743898800000 implements MigrationInterface {
         foreignKey.columnNames.length === 1 &&
         foreignKey.columnNames[0] === 'userId'
     )
+    const restaurantUsersTable = await queryRunner.getTable('restaurant_users')
+    const restaurantForeignKey = restaurantUsersTable?.foreignKeys.find(
+      (foreignKey) =>
+        foreignKey.columnNames.length === 1 &&
+        foreignKey.columnNames[0] === 'restaurantId'
+    )
+    const restaurantUserForeignKey = restaurantUsersTable?.foreignKeys.find(
+      (foreignKey) =>
+        foreignKey.columnNames.length === 1 &&
+        foreignKey.columnNames[0] === 'userId'
+    )
 
     if (userForeignKey) {
       await queryRunner.dropForeignKey('refresh_tokens', userForeignKey)
     }
 
+    if (restaurantForeignKey) {
+      await queryRunner.dropForeignKey('restaurant_users', restaurantForeignKey)
+    }
+
+    if (restaurantUserForeignKey) {
+      await queryRunner.dropForeignKey('restaurant_users', restaurantUserForeignKey)
+    }
+
+    await queryRunner.dropTable('restaurant_users')
+    await queryRunner.dropTable('restaurants')
+    await queryRunner.query('DROP TYPE IF EXISTS "restaurant_users_role_enum"')
     await queryRunner.dropTable('refresh_tokens')
     await queryRunner.dropTable('applications')
     await queryRunner.dropTable('users')

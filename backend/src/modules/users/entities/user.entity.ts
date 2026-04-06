@@ -19,6 +19,7 @@ import {
   hashPhone
 } from '../../../common/utils/encryption.js'
 import { RefreshToken } from '../../auth/entities/refresh-token.entity.js'
+import { RestaurantUser } from '../../restaurants/entities/restaurant-user.entity.js'
 import { UserRole } from '../enums/user-role.enum.js'
 
 @Entity({ name: 'users' })
@@ -64,6 +65,9 @@ export class User {
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens!: Relation<RefreshToken[]>
+
+  @OneToMany(() => RestaurantUser, (restaurantUser) => restaurantUser.user)
+  restaurantUsers!: Relation<RestaurantUser[]>
 
   @BeforeInsert()
   @BeforeUpdate()
