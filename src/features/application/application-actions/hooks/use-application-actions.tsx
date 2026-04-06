@@ -7,6 +7,9 @@ import {
   ApplicationStatus,
   type RequestClient
 } from '@/shared/api/services/application/types'
+import { useState } from 'react'
+
+type ConfirmAction = 'approve' | 'reject'
 
 function useApplicationActions(data: RequestClient) {
   const user = useAuthStore((state) => state.user)
@@ -20,37 +23,48 @@ function useApplicationActions(data: RequestClient) {
 
   const isPending = data.status === ApplicationStatus.PENDING
   const isActionPending = approveMutation.isPending || rejectMutation.isPending
+  const [pendingAction, setPendingAction] = useState<ConfirmAction | null>(null)
 
-  const handleApprove = (id: string, restaurantName: string) => {
+  const handleApprove = () => {
     if (!canManageApplications) {
       return
     }
 
-    const isConfirmed = window.confirm(
-      `Подтвердить заявку ресторана «${restaurantName}»? Будет создан аккаунт клиента.`
-    )
-
-    if (!isConfirmed) {
-      return
-    }
-
-    approveMutation.mutate(id)
+    setPendingAction('approve')
   }
 
-  const handleReject = (id: string, restaurantName: string) => {
+  const handleReject = () => {
     if (!canManageApplications) {
       return
     }
 
-    const isConfirmed = window.confirm(
-      `Отклонить заявку ресторана «${restaurantName}»?`
-    )
+    setPendingAction('reject')
+  }
 
-    if (!isConfirmed) {
+  const closeConfirmModal = () => {
+    if (isActionPending) {
       return
     }
 
-    rejectMutation.mutate(id)
+    setPendingAction(null)
+  }
+
+  const handleConfirm = () => {
+    if (!pendingAction) {
+      return
+    }
+
+    if (pendingAction === 'approve') {
+      approveMutation.mutate(data.id, {
+        onSuccess: () => setPendingAction(null)
+      })
+
+      return
+    }
+
+    rejectMutation.mutate(data.id, {
+      onSuccess: () => setPendingAction(null)
+    })
   }
 
   const menuActions = [
@@ -58,18 +72,50 @@ function useApplicationActions(data: RequestClient) {
       key: 'approve',
       label: 'Подтвердить',
       disabled: !canManageApplications || !isPending || isActionPending,
-      onClick: () => handleApprove(data.id, data.restaurantName)
+      onClick: handleApprove
     },
     {
       key: 'reject',
       label: 'Отказать',
       color: 'red',
       disabled: !canManageApplications || !isPending || isActionPending,
-      onClick: () => handleReject(data.id, data.restaurantName)
+      onClick: handleReject
     }
   ]
 
-  return { menuActions, canManageApplications }
+  const confirmModalProps =
+    pendingAction === 'approve'
+      ? {
+          opened: true,
+          title: 'Подтвердить заявку?',
+          description: `Для ресторана «${data.restaurantName}» будет одобрена заявка и создан аккаунт клиента.`,
+          confirmLabel: 'Подтвердить',
+          confirmColor: 'aurora' as const
+        }
+      : pendingAction === 'reject'
+      ? {
+          opened: true,
+          title: 'Отклонить заявку?',
+          description: `Заявка ресторана «${data.restaurantName}» будет отклонена.`,
+          confirmLabel: 'Отклонить',
+          confirmColor: 'coral' as const
+        }
+      : {
+          opened: false,
+          title: '',
+          description: '',
+          confirmLabel: 'Подтвердить',
+          confirmColor: 'aurora' as const
+        }
+
+  return {
+    menuActions,
+    canManageApplications,
+    confirmModalProps,
+    closeConfirmModal,
+    handleConfirm,
+    isActionPending
+  }
 }
 
 export default useApplicationActions

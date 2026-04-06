@@ -1,4 +1,5 @@
 import { type RequestClient } from '@/shared/api/services/application/types'
+import ConfirmModal from '@/shared/ui/confirm-modal'
 import MenuActions from '@/shared/ui/menu'
 import useApplicationActions from '../hooks/use-application-actions'
 
@@ -9,13 +10,33 @@ type Props = {
 export function ApplicationActions(props: Props) {
   const { data } = props
 
-  const { menuActions, canManageApplications } = useApplicationActions(data)
+  const {
+    menuActions,
+    canManageApplications,
+    confirmModalProps,
+    closeConfirmModal,
+    handleConfirm,
+    isActionPending
+  } = useApplicationActions(data)
 
   if (!canManageApplications) {
     return null
   }
 
-  return <MenuActions items={menuActions} />
+  return (
+    <>
+      <MenuActions items={menuActions} />
+      <ConfirmModal
+        {...confirmModalProps}
+        cancelLabel="Назад"
+        loading={isActionPending}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirm}
+      />
+    </>
+  )
 }
 
 // owner 5 - rIXl2SBqPXXL
+
+// FuFV_SHLyfj6
