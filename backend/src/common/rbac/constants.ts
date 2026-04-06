@@ -12,11 +12,6 @@ export const RESTAURANT_ROLES = [
   RestaurantRole.MANAGER
 ] as const satisfies readonly RestaurantRole[]
 
-export const RESTAURANT_MEMBERSHIP_PLATFORM_ROLES = [
-  UserRole.CLIENT,
-  UserRole.STAFF
-] as const satisfies readonly UserRole[]
-
 export const RESTAURANT_CREATION_PLATFORM_ROLES = [
   UserRole.SYSTEM_OWNER,
   UserRole.CLIENT

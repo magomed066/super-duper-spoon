@@ -3,7 +3,6 @@ import type { Repository } from 'typeorm'
 
 import {
   canCreateRestaurant,
-  canUseRestaurantMembership,
   isSystemOwner
 } from '../../common/rbac/index.js'
 import { AppDataSource } from '../../database/data-source.js'
@@ -243,10 +242,6 @@ export class RestaurantService {
       })
     }
 
-    if (!canUseRestaurantMembership(currentUser.role)) {
-      return []
-    }
-
     return this.restaurantRepository
       .createQueryBuilder('restaurant')
       .innerJoin(
@@ -423,7 +418,7 @@ export class RestaurantService {
         throw new RestaurantsHttpError(409, 'Only active users can be assigned')
       }
 
-      await this.ensureAssignableManagerUser(userRepository, user)
+      this.assertCanAssignRestaurantManager(user)
 
       const existingMembership = await restaurantUserRepository.findOne({
         where: {
@@ -436,6 +431,13 @@ export class RestaurantService {
       })
 
       if (existingMembership) {
+        if (existingMembership.role === RestaurantRole.OWNER) {
+          throw new RestaurantsHttpError(
+            409,
+            'Restaurant owners already have higher restaurant access'
+          )
+        }
+
         existingMembership.role = RestaurantRole.MANAGER
         existingMembership.isActive = true
 
@@ -639,20 +641,13 @@ export class RestaurantService {
     return conditions.join(' AND ')
   }
 
-  private async ensureAssignableManagerUser(
-    userRepository: Repository<User>,
-    user: User
-  ): Promise<void> {
-    if (user.role === UserRole.STAFF) {
-      return
+  private assertCanAssignRestaurantManager(user: User): void {
+    if (user.role === UserRole.SYSTEM_OWNER) {
+      throw new RestaurantsHttpError(
+        409,
+        'System owners cannot be assigned restaurant manager memberships'
+      )
     }
-
-    if (user.role !== UserRole.CLIENT) {
-      throw new RestaurantsHttpError(409, 'User cannot be assigned as a manager')
-    }
-
-    user.role = UserRole.STAFF
-    await userRepository.save(user)
   }
 
   private toRestaurantMembershipDto(

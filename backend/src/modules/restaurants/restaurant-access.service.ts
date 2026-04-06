@@ -1,7 +1,6 @@
 import { Repository } from 'typeorm'
 
 import {
-  canUseRestaurantMembership,
   hasRestaurantRole,
   isSystemOwner
 } from '../../common/rbac/index.js'
@@ -48,10 +47,6 @@ export class RestaurantAccessService {
           id: normalizedRestaurantId
         }
       })
-    }
-
-    if (!canUseRestaurantMembership(systemRole)) {
-      return false
     }
 
     const membership = await this.getRestaurantMembership(
@@ -147,10 +142,6 @@ export class RestaurantAccessService {
       })
 
       return restaurants.map((restaurant) => restaurant.id)
-    }
-
-    if (!canUseRestaurantMembership(systemRole)) {
-      return []
     }
 
     const memberships = await this.restaurantUserRepository.find({
