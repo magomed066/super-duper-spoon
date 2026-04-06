@@ -4,6 +4,7 @@ import { AppDataSource } from '../../database/data-source.js'
 import { User } from '../users/entities/user.entity.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantAccessService } from './restaurant-access.service.js'
+import { RestaurantTenantService } from './restaurant-tenant.service.js'
 import { RestaurantMembershipRole } from './enums/restaurant-membership-role.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
@@ -173,42 +174,19 @@ export class RestaurantService {
     this.restaurantRepository,
     this.restaurantUserRepository
   )
+  private readonly restaurantTenantService = new RestaurantTenantService(
+    this.restaurantRepository,
+    this.restaurantUserRepository
+  )
 
   async getAccessibleRestaurantById(
     restaurantId: string,
     currentUser: User | undefined
   ): Promise<Restaurant> {
-    if (!currentUser) {
-      throw new RestaurantsHttpError(401, 'User is not authenticated')
-    }
-
-    const normalizedRestaurantId = restaurantId.trim()
-
-    if (!normalizedRestaurantId) {
-      throw new RestaurantsHttpError(400, 'Restaurant id is required')
-    }
-
-    const restaurant = await this.restaurantRepository.findOne({
-      where: {
-        id: normalizedRestaurantId
-      }
-    })
-
-    if (!restaurant) {
-      throw new RestaurantsHttpError(404, 'Restaurant not found')
-    }
-
-    const hasAccess = await this.restaurantAccessService.hasRestaurantAccess(
-      currentUser.id,
-      currentUser.role,
-      normalizedRestaurantId
+    return this.restaurantTenantService.getAccessibleRestaurant(
+      restaurantId,
+      currentUser
     )
-
-    if (!hasAccess) {
-      throw new RestaurantsHttpError(403, 'Access denied')
-    }
-
-    return restaurant
   }
 
   async getAccessibleRestaurants(
@@ -430,12 +408,16 @@ export class RestaurantService {
         throw new RestaurantsHttpError(409, 'User is already a restaurant member')
       }
 
-      const membership = restaurantUserRepository.create({
-        restaurantId: normalizedRestaurantId,
-        userId: normalizedPayload.userId,
-        role: RestaurantMembershipRole.MANAGER,
-        isActive: true
-      })
+      const membership = restaurantUserRepository.create(
+        this.restaurantTenantService.createScopedPayload(
+          {
+            userId: normalizedPayload.userId,
+            role: RestaurantMembershipRole.MANAGER,
+            isActive: true
+          },
+          normalizedRestaurantId
+        )
+      )
 
       const savedMembership = await restaurantUserRepository.save(membership)
 
@@ -461,12 +443,16 @@ export class RestaurantService {
     )
     const normalizedUserId = this.normalizeId(userId, 'User id is required')
 
-    const membership = await this.restaurantUserRepository.findOne({
-      where: {
-        restaurantId: normalizedRestaurantId,
+    const membership = await this.restaurantTenantService
+      .buildScopedQuery(
+        this.restaurantUserRepository,
+        'membership',
+        normalizedRestaurantId
+      )
+      .andWhere('membership.userId = :userId', {
         userId: normalizedUserId
-      }
-    })
+      })
+      .getOne()
 
     if (!membership) {
       throw new RestaurantsHttpError(404, 'Restaurant membership not found')
@@ -494,17 +480,15 @@ export class RestaurantService {
 
     await this.getAccessibleRestaurantById(normalizedRestaurantId, currentUser)
 
-    const memberships = await this.restaurantUserRepository.find({
-      where: {
-        restaurantId: normalizedRestaurantId
-      },
-      relations: {
-        user: true
-      },
-      order: {
-        createdAt: 'DESC'
-      }
-    })
+    const memberships = await this.restaurantTenantService
+      .buildScopedQuery(
+        this.restaurantUserRepository,
+        'membership',
+        normalizedRestaurantId
+      )
+      .leftJoinAndSelect('membership.user', 'user')
+      .orderBy('membership.createdAt', 'DESC')
+      .getMany()
 
     return memberships.map((membership) => this.toRestaurantMembershipDto(membership))
   }
@@ -547,74 +531,21 @@ export class RestaurantService {
     currentUser: User,
     action: 'update' | 'delete'
   ): Promise<Restaurant> {
-    const normalizedRestaurantId = this.normalizeId(
+    return this.restaurantTenantService.getRestaurantForMutation(
       restaurantId,
-      'Restaurant id is required'
+      currentUser,
+      action
     )
-
-    const restaurant = await this.restaurantRepository.findOne({
-      where: {
-        id: normalizedRestaurantId
-      }
-    })
-
-    if (!restaurant) {
-      throw new RestaurantsHttpError(404, 'Restaurant not found')
-    }
-
-    const hasAccess =
-      action === 'update'
-        ? await this.restaurantAccessService.canUpdateRestaurant(
-            currentUser.id,
-            currentUser.role,
-            normalizedRestaurantId
-          )
-        : await this.restaurantAccessService.canDeleteRestaurant(
-            currentUser.id,
-            currentUser.role,
-            normalizedRestaurantId
-          )
-
-    if (!hasAccess) {
-      throw new RestaurantsHttpError(403, 'Access denied')
-    }
-
-    return restaurant
   }
 
   private async assertManagerAssignmentAccess(
     restaurantId: string,
     currentUser: User
   ): Promise<string> {
-    const normalizedRestaurantId = this.normalizeId(
+    return this.restaurantTenantService.assertRestaurantOwnerAccess(
       restaurantId,
-      'Restaurant id is required'
+      currentUser
     )
-
-    const restaurant = await this.restaurantRepository.findOne({
-      where: {
-        id: normalizedRestaurantId
-      }
-    })
-
-    if (!restaurant) {
-      throw new RestaurantsHttpError(404, 'Restaurant not found')
-    }
-
-    if (currentUser.role === UserRole.OWNER) {
-      return normalizedRestaurantId
-    }
-
-    const isRestaurantOwner = await this.restaurantAccessService.isRestaurantOwner(
-      currentUser.id,
-      normalizedRestaurantId
-    )
-
-    if (!isRestaurantOwner) {
-      throw new RestaurantsHttpError(403, 'Access denied')
-    }
-
-    return normalizedRestaurantId
   }
 
   private normalizeId(value: string, errorMessage: string): string {
