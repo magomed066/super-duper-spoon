@@ -1,3 +1,1 @@
-import RootLayout from './root-layout.ui'
-
-export default RootLayout
+export { default } from './root-layout.ui'
