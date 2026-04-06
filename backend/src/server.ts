@@ -12,6 +12,9 @@ const startServer = async (): Promise<void> => {
   await AppDataSource.initialize()
   console.log('DB is connected')
 
+  await AppDataSource.runMigrations()
+  console.log('DB migrations are up to date')
+
   await seedInitialOwner()
 
   const app = createApp()

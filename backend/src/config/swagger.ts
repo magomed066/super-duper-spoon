@@ -210,6 +210,318 @@ const swaggerOptions = {
               format: 'date-time'
             }
           }
+        },
+        RestaurantWorkScheduleItem: {
+          type: 'object',
+          required: ['day', 'open', 'close'],
+          properties: {
+            day: {
+              type: 'string',
+              example: 'Monday'
+            },
+            open: {
+              type: 'string',
+              example: '09:00'
+            },
+            close: {
+              type: 'string',
+              example: '22:00'
+            }
+          }
+        },
+        Restaurant: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid'
+            },
+            name: {
+              type: 'string',
+              example: 'Sunrise Cafe'
+            },
+            slug: {
+              type: 'string',
+              example: 'sunrise-cafe'
+            },
+            cuisine: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              example: ['European', 'Breakfast']
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              example: 'sunrise-cafe@restaurant.local'
+            },
+            phones: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              example: ['+79991234567']
+            },
+            city: {
+              type: 'string',
+              example: 'Moscow'
+            },
+            logo: {
+              type: 'string',
+              example: 'https://cdn.example.com/restaurants/sunrise/logo.png'
+            },
+            preview: {
+              type: 'string',
+              example: 'https://cdn.example.com/restaurants/sunrise/preview.png'
+            },
+            workSchedule: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/RestaurantWorkScheduleItem'
+              }
+            },
+            deliveryTime: {
+              type: 'integer',
+              example: 45
+            },
+            deliveryConditions: {
+              type: 'string',
+              example: 'Free delivery for orders over 1500 RUB'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'All-day breakfast and specialty coffee.'
+            },
+            phone: {
+              type: 'string',
+              nullable: true,
+              example: '+79991234567'
+            },
+            address: {
+              type: 'string',
+              nullable: true,
+              example: '1 Tverskaya Street, Moscow'
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time'
+            }
+          }
+        },
+        RestaurantMembershipUser: {
+          allOf: [
+            {
+              $ref: '#/components/schemas/User'
+            }
+          ]
+        },
+        RestaurantMembership: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid'
+            },
+            restaurantId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            userId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            role: {
+              type: 'string',
+              enum: ['OWNER', 'MANAGER'],
+              example: 'MANAGER'
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            user: {
+              $ref: '#/components/schemas/RestaurantMembershipUser'
+            }
+          }
+        },
+        CreateRestaurantRequest: {
+          type: 'object',
+          required: ['name', 'slug', 'phone', 'address', 'description'],
+          properties: {
+            name: {
+              type: 'string',
+              example: 'Sunrise Cafe'
+            },
+            slug: {
+              type: 'string',
+              example: 'sunrise-cafe'
+            },
+            phone: {
+              type: 'string',
+              example: '+79991234567'
+            },
+            address: {
+              type: 'string',
+              example: '1 Tverskaya Street, Moscow'
+            },
+            description: {
+              type: 'string',
+              example: 'All-day breakfast and specialty coffee.'
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              example: 'info@sunrise.example'
+            },
+            phones: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              example: ['+79991234567', '+79997654321']
+            },
+            city: {
+              type: 'string',
+              example: 'Moscow'
+            },
+            logo: {
+              type: 'string',
+              example: 'https://cdn.example.com/restaurants/sunrise/logo.png'
+            },
+            preview: {
+              type: 'string',
+              example: 'https://cdn.example.com/restaurants/sunrise/preview.png'
+            },
+            deliveryTime: {
+              type: 'integer',
+              example: 45
+            },
+            deliveryConditions: {
+              type: 'string',
+              example: 'Free delivery for orders over 1500 RUB'
+            },
+            cuisine: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              example: ['European', 'Breakfast']
+            },
+            workSchedule: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/RestaurantWorkScheduleItem'
+              }
+            }
+          }
+        },
+        UpdateRestaurantRequest: {
+          type: 'object',
+          minProperties: 1,
+          properties: {
+            name: {
+              type: 'string',
+              example: 'Sunrise Cafe'
+            },
+            slug: {
+              type: 'string',
+              example: 'sunrise-cafe'
+            },
+            phone: {
+              type: 'string',
+              example: '+79991234567'
+            },
+            address: {
+              type: 'string',
+              example: '1 Tverskaya Street, Moscow'
+            },
+            description: {
+              type: 'string',
+              example: 'All-day breakfast and specialty coffee.'
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              example: 'info@sunrise.example'
+            },
+            phones: {
+              type: 'array',
+              items: {
+                type: 'string'
+              }
+            },
+            city: {
+              type: 'string',
+              example: 'Moscow'
+            },
+            logo: {
+              type: 'string',
+              example: 'https://cdn.example.com/restaurants/sunrise/logo.png'
+            },
+            preview: {
+              type: 'string',
+              example: 'https://cdn.example.com/restaurants/sunrise/preview.png'
+            },
+            deliveryTime: {
+              type: 'integer',
+              example: 45
+            },
+            deliveryConditions: {
+              type: 'string',
+              example: 'Free delivery for orders over 1500 RUB'
+            },
+            cuisine: {
+              type: 'array',
+              items: {
+                type: 'string'
+              }
+            },
+            workSchedule: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/RestaurantWorkScheduleItem'
+              }
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            }
+          }
+        },
+        CreateRestaurantResponse: {
+          type: 'object',
+          properties: {
+            restaurant: {
+              $ref: '#/components/schemas/Restaurant'
+            },
+            membership: {
+              $ref: '#/components/schemas/RestaurantMembership'
+            }
+          }
+        },
+        AssignRestaurantManagerRequest: {
+          type: 'object',
+          required: ['userId'],
+          properties: {
+            userId: {
+              type: 'string',
+              format: 'uuid'
+            }
+          }
         }
       }
     },

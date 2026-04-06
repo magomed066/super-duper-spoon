@@ -33,12 +33,28 @@ const restaurantController = new RestaurantController(restaurantService)
  *     responses:
  *       200:
  *         description: Restaurant fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Restaurant'
  *       401:
  *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *   patch:
  *     tags:
  *       - Restaurants
@@ -58,20 +74,44 @@ const restaurantController = new RestaurantController(restaurantService)
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             $ref: '#/components/schemas/UpdateRestaurantRequest'
  *     responses:
  *       200:
  *         description: Restaurant updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Restaurant'
  *       400:
  *         description: Invalid request payload
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       409:
  *         description: Restaurant slug already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *   delete:
  *     tags:
  *       - Restaurants
@@ -91,10 +131,22 @@ const restaurantController = new RestaurantController(restaurantService)
  *         description: Restaurant deleted successfully
  *       401:
  *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  * /restaurants/{id}/users:
  *   get:
  *     tags:
@@ -113,12 +165,30 @@ const restaurantController = new RestaurantController(restaurantService)
  *     responses:
  *       200:
  *         description: Restaurant memberships fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/RestaurantMembership'
  *       401:
  *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  * /restaurants/{id}/managers:
  *   post:
  *     tags:
@@ -139,25 +209,50 @@ const restaurantController = new RestaurantController(restaurantService)
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - userId
- *             properties:
- *               userId:
- *                 type: string
+ *             $ref: '#/components/schemas/AssignRestaurantManagerRequest'
  *     responses:
  *       201:
  *         description: Manager assigned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RestaurantMembership'
+ *       200:
+ *         description: Existing membership promoted to manager successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RestaurantMembership'
  *       400:
  *         description: Invalid request payload
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Restaurant or user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       409:
  *         description: User is inactive or already has a membership
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  * /restaurants/{id}/managers/{userId}:
  *   delete:
  *     tags:
@@ -184,12 +279,28 @@ const restaurantController = new RestaurantController(restaurantService)
  *         description: Manager removed successfully
  *       401:
  *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Restaurant or membership not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       409:
  *         description: Membership is not a manager membership
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  * /restaurants:
  *   get:
  *     tags:
@@ -208,10 +319,24 @@ const restaurantController = new RestaurantController(restaurantService)
  *     responses:
  *       200:
  *         description: Restaurants fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Restaurant'
  *       401:
  *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *   post:
  *     tags:
  *       - Restaurants
@@ -224,71 +349,38 @@ const restaurantController = new RestaurantController(restaurantService)
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - name
- *               - slug
- *               - phone
- *               - address
- *               - description
- *             properties:
- *               name:
- *                 type: string
- *               slug:
- *                 type: string
- *               phone:
- *                 type: string
- *               address:
- *                 type: string
- *               description:
- *                 type: string
- *               email:
- *                 type: string
- *                 format: email
- *               phones:
- *                 type: array
- *                 items:
- *                   type: string
- *               city:
- *                 type: string
- *               logo:
- *                 type: string
- *               preview:
- *                 type: string
- *               deliveryTime:
- *                 type: integer
- *               deliveryConditions:
- *                 type: string
- *               cuisine:
- *                 type: array
- *                 items:
- *                   type: string
- *               workSchedule:
- *                 type: array
- *                 items:
- *                   type: object
- *                   required:
- *                     - day
- *                     - open
- *                     - close
- *                   properties:
- *                     day:
- *                       type: string
- *                     open:
- *                       type: string
- *                     close:
- *                       type: string
+ *             $ref: '#/components/schemas/CreateRestaurantRequest'
  *     responses:
  *       201:
  *         description: Restaurant created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CreateRestaurantResponse'
  *       400:
  *         description: Invalid request payload
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       409:
  *         description: Restaurant slug already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 restaurantsRouter.get(
   '/:id',
