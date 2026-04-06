@@ -233,6 +233,12 @@ export class RestaurantService {
       })
     }
 
+    const membershipRole = this.getAccessibleMembershipRole(currentUser.role)
+
+    if (!membershipRole) {
+      return []
+    }
+
     return this.restaurantRepository
       .createQueryBuilder('restaurant')
       .innerJoin(
@@ -240,7 +246,8 @@ export class RestaurantService {
         'membership',
         this.buildMembershipJoinCondition(includeInactiveMemberships),
         {
-          userId: currentUser.id
+          userId: currentUser.id,
+          membershipRole
         }
       )
       .orderBy('restaurant.createdAt', 'DESC')
@@ -600,7 +607,8 @@ export class RestaurantService {
   private buildMembershipJoinCondition(includeInactiveMemberships: boolean): string {
     const conditions = [
       'membership.restaurantId = restaurant.id',
-      'membership.userId = :userId'
+      'membership.userId = :userId',
+      'membership.role = :membershipRole'
     ]
 
     if (!includeInactiveMemberships) {
@@ -608,6 +616,20 @@ export class RestaurantService {
     }
 
     return conditions.join(' AND ')
+  }
+
+  private getAccessibleMembershipRole(
+    systemRole: UserRole
+  ): RestaurantRole | null {
+    if (systemRole === UserRole.CLIENT) {
+      return RestaurantRole.OWNER
+    }
+
+    if (systemRole === UserRole.STAFF) {
+      return RestaurantRole.MANAGER
+    }
+
+    return null
   }
 
   private toRestaurantMembershipDto(
