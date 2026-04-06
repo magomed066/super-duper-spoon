@@ -65,11 +65,72 @@ const createRestaurantSchema = z.object({
   workSchedule: z.array(workScheduleItemSchema).default([])
 })
 
+const updateRestaurantSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Name is required').max(255, 'Name is too long').optional(),
+    slug: z
+      .string()
+      .trim()
+      .min(1, 'Slug is required')
+      .max(255, 'Slug is too long')
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug format is invalid')
+      .optional(),
+    phone: z
+      .string()
+      .trim()
+      .min(1, 'Phone is required')
+      .max(255, 'Phone is too long')
+      .optional(),
+    phones: z
+      .array(z.string().trim().min(1, 'Phone is required').max(255, 'Phone is too long'))
+      .optional(),
+    address: z
+      .string()
+      .trim()
+      .min(1, 'Address is required')
+      .max(1000, 'Address is too long')
+      .optional(),
+    description: z
+      .string()
+      .trim()
+      .min(1, 'Description is required')
+      .max(5000, 'Description is too long')
+      .optional(),
+    email: z
+      .string()
+      .trim()
+      .email('Email format is invalid')
+      .max(255, 'Email is too long')
+      .optional(),
+    city: z.string().trim().min(1, 'City is required').max(255, 'City is too long').optional(),
+    logo: z.string().trim().max(500, 'Logo is too long').optional(),
+    preview: z.string().trim().max(500, 'Preview is too long').optional(),
+    deliveryTime: z
+      .number()
+      .int('Delivery time must be an integer')
+      .min(0, 'Delivery time cannot be negative')
+      .optional(),
+    deliveryConditions: z
+      .string()
+      .trim()
+      .max(5000, 'Delivery conditions are too long')
+      .optional(),
+    cuisine: z
+      .array(z.string().trim().min(1, 'Cuisine item is required').max(255, 'Cuisine item is too long'))
+      .optional(),
+    workSchedule: z.array(workScheduleItemSchema).optional(),
+    isActive: z.boolean().optional()
+  })
+  .refine((payload) => Object.keys(payload).length > 0, {
+    message: 'At least one field is required'
+  })
+
 const assignRestaurantManagerSchema = z.object({
   userId: z.string().trim().min(1, 'User id is required')
 })
 
 type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>
+type UpdateRestaurantInput = z.infer<typeof updateRestaurantSchema>
 type AssignRestaurantManagerInput = z.infer<typeof assignRestaurantManagerSchema>
 
 export interface RestaurantMembershipUserDto {
@@ -255,6 +316,73 @@ export class RestaurantService {
     })
   }
 
+  async updateRestaurant(
+    restaurantId: string,
+    payload: unknown,
+    currentUser: User | undefined
+  ): Promise<Restaurant> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const restaurant = await this.getRestaurantForMutation(
+      restaurantId,
+      currentUser,
+      'update'
+    )
+    const normalizedPayload = this.parseUpdateRestaurantPayload(payload)
+
+    if (normalizedPayload.slug || normalizedPayload.email) {
+      const duplicateRestaurant = await this.restaurantRepository
+        .createQueryBuilder('restaurant')
+        .where('restaurant.id != :restaurantId', {
+          restaurantId: restaurant.id
+        })
+        .andWhere(
+          '(restaurant.slug = :slug OR restaurant.email = :email)',
+          {
+            slug: normalizedPayload.slug ?? restaurant.slug,
+            email: normalizedPayload.email ?? restaurant.email
+          }
+        )
+        .getOne()
+
+      if (duplicateRestaurant) {
+        throw new RestaurantsHttpError(409, 'Restaurant slug is already in use')
+      }
+    }
+
+    Object.assign(restaurant, this.toUpdatedRestaurantEntity(restaurant, normalizedPayload))
+
+    return this.restaurantRepository.save(restaurant)
+  }
+
+  async deleteRestaurant(
+    restaurantId: string,
+    currentUser: User | undefined
+  ): Promise<void> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const restaurant = await this.getRestaurantForMutation(
+      restaurantId,
+      currentUser,
+      'delete'
+    )
+
+    await AppDataSource.transaction(async (manager) => {
+      const restaurantRepository = manager.getRepository(Restaurant)
+      const restaurantUserRepository = manager.getRepository(RestaurantUser)
+
+      await restaurantUserRepository.delete({
+        restaurantId: restaurant.id
+      })
+
+      await restaurantRepository.remove(restaurant)
+    })
+  }
+
   async assignManager(
     restaurantId: string,
     payload: unknown,
@@ -401,6 +529,59 @@ export class RestaurantService {
     return validationResult.data
   }
 
+  private parseUpdateRestaurantPayload(payload: unknown): UpdateRestaurantInput {
+    const validationResult = updateRestaurantSchema.safeParse(payload)
+
+    if (!validationResult.success) {
+      throw new RestaurantsHttpError(
+        400,
+        validationResult.error.issues[0]?.message ?? 'Invalid restaurant payload'
+      )
+    }
+
+    return validationResult.data
+  }
+
+  private async getRestaurantForMutation(
+    restaurantId: string,
+    currentUser: User,
+    action: 'update' | 'delete'
+  ): Promise<Restaurant> {
+    const normalizedRestaurantId = this.normalizeId(
+      restaurantId,
+      'Restaurant id is required'
+    )
+
+    const restaurant = await this.restaurantRepository.findOne({
+      where: {
+        id: normalizedRestaurantId
+      }
+    })
+
+    if (!restaurant) {
+      throw new RestaurantsHttpError(404, 'Restaurant not found')
+    }
+
+    const hasAccess =
+      action === 'update'
+        ? await this.restaurantAccessService.canUpdateRestaurant(
+            currentUser.id,
+            currentUser.role,
+            normalizedRestaurantId
+          )
+        : await this.restaurantAccessService.canDeleteRestaurant(
+            currentUser.id,
+            currentUser.role,
+            normalizedRestaurantId
+          )
+
+    if (!hasAccess) {
+      throw new RestaurantsHttpError(403, 'Access denied')
+    }
+
+    return restaurant
+  }
+
   private async assertManagerAssignmentAccess(
     restaurantId: string,
     currentUser: User
@@ -516,6 +697,30 @@ export class RestaurantService {
       cuisine: payload.cuisine,
       workSchedule: payload.workSchedule,
       isActive: true
+    }
+  }
+
+  private toUpdatedRestaurantEntity(
+    restaurant: Restaurant,
+    payload: UpdateRestaurantInput
+  ): Partial<Restaurant> {
+    return {
+      name: payload.name ?? restaurant.name,
+      slug: payload.slug ?? restaurant.slug,
+      email: payload.email ?? restaurant.email,
+      phone: payload.phone ?? restaurant.phone,
+      phones: payload.phones ?? restaurant.phones,
+      address: payload.address ?? restaurant.address,
+      description: payload.description ?? restaurant.description,
+      city: payload.city ?? restaurant.city,
+      logo: payload.logo ?? restaurant.logo,
+      preview: payload.preview ?? restaurant.preview,
+      deliveryTime: payload.deliveryTime ?? restaurant.deliveryTime,
+      deliveryConditions:
+        payload.deliveryConditions ?? restaurant.deliveryConditions,
+      cuisine: payload.cuisine ?? restaurant.cuisine,
+      workSchedule: payload.workSchedule ?? restaurant.workSchedule,
+      isActive: payload.isActive ?? restaurant.isActive
     }
   }
 }

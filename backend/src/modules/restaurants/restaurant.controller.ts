@@ -64,6 +64,41 @@ export class RestaurantController {
     }
   }
 
+  update = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.updateRestaurant(
+        this.getIdParam(req.params.id),
+        req.body,
+        req.user
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  delete = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      await this.restaurantService.deleteRestaurant(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(204).send()
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
   assignManager = async (
     req: Request,
     res: Response,

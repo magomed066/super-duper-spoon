@@ -36,6 +36,62 @@ const restaurantController = new RestaurantController(restaurantService)
  *         description: Access denied
  *       404:
  *         description: Restaurant not found
+ *   patch:
+ *     tags:
+ *       - Restaurants
+ *     summary: Update a restaurant
+ *     description: System owners can update any restaurant. Clients can update only restaurants they own. Managers can update restaurants they manage.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Restaurant updated successfully
+ *       400:
+ *         description: Invalid request payload
+ *       401:
+ *         description: Authentication failed
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Restaurant not found
+ *       409:
+ *         description: Restaurant slug already exists
+ *   delete:
+ *     tags:
+ *       - Restaurants
+ *     summary: Delete a restaurant
+ *     description: System owners can delete any restaurant. Clients can delete only restaurants they own. Managers cannot delete restaurants.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant id
+ *     responses:
+ *       204:
+ *         description: Restaurant deleted successfully
+ *       401:
+ *         description: Authentication failed
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Restaurant not found
  * /restaurants/{id}/users:
  *   get:
  *     tags:
@@ -236,6 +292,20 @@ restaurantsRouter.get(
   authMiddleware,
   roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
   restaurantController.getById
+)
+
+restaurantsRouter.patch(
+  '/:id',
+  authMiddleware,
+  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  restaurantController.update
+)
+
+restaurantsRouter.delete(
+  '/:id',
+  authMiddleware,
+  roleMiddleware([UserRole.OWNER, UserRole.CLIENT, UserRole.MANAGER]),
+  restaurantController.delete
 )
 
 restaurantsRouter.get(

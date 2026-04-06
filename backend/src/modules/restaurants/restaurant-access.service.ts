@@ -56,6 +56,45 @@ export class RestaurantAccessService {
     })
   }
 
+  async canUpdateRestaurant(
+    userId: string,
+    systemRole: UserRole,
+    restaurantId: string
+  ): Promise<boolean> {
+    return this.hasRestaurantAccess(userId, systemRole, restaurantId)
+  }
+
+  async canDeleteRestaurant(
+    userId: string,
+    systemRole: UserRole,
+    restaurantId: string
+  ): Promise<boolean> {
+    const normalizedRestaurantId = this.normalizeId(restaurantId)
+    const normalizedUserId = this.normalizeId(userId)
+
+    if (!normalizedRestaurantId || !normalizedUserId) {
+      return false
+    }
+
+    if (systemRole === UserRole.MANAGER) {
+      return false
+    }
+
+    if (systemRole === UserRole.OWNER) {
+      return this.restaurantRepository.exists({
+        where: {
+          id: normalizedRestaurantId
+        }
+      })
+    }
+
+    if (systemRole === UserRole.CLIENT) {
+      return this.isRestaurantOwner(normalizedUserId, normalizedRestaurantId)
+    }
+
+    return false
+  }
+
   async isRestaurantOwner(userId: string, restaurantId: string): Promise<boolean> {
     return this.hasMembership(userId, restaurantId, RestaurantMembershipRole.OWNER)
   }
