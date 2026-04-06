@@ -11,7 +11,7 @@ import type { Relation } from 'typeorm'
 
 import { RestaurantScopedEntity } from '../../../common/restaurant-scope/index.js'
 import { User } from '../../users/entities/user.entity.js'
-import { RestaurantMembershipRole } from '../enums/restaurant-membership-role.enum.js'
+import { RestaurantRole } from '../enums/restaurant-role.enum.js'
 import { Restaurant } from './restaurant.entity.js'
 
 @Entity({ name: 'restaurant_users' })
@@ -25,9 +25,9 @@ export class RestaurantUser extends RestaurantScopedEntity {
 
   @Column({
     type: 'enum',
-    enum: RestaurantMembershipRole
+    enum: RestaurantRole
   })
-  role!: RestaurantMembershipRole
+  role!: RestaurantRole
 
   @Column({ type: 'boolean', default: true })
   isActive!: boolean

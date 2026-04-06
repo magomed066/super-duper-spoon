@@ -167,7 +167,7 @@ export class RestaurantTenantService {
       )
     }
 
-    if (systemRole === UserRole.OWNER) {
+    if (systemRole === UserRole.SYSTEM_OWNER) {
       return Promise.resolve(true)
     }
 

@@ -1,7 +1,7 @@
 export enum UserRole {
-  OWNER = 'OWNER',
+  SYSTEM_OWNER = 'SYSTEM_OWNER',
   CLIENT = 'CLIENT',
-  MANAGER = 'MANAGER'
+  STAFF = 'STAFF'
 }
 
 export type User = {

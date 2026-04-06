@@ -5,7 +5,7 @@ import { User } from '../users/entities/user.entity.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantAccessService } from './restaurant-access.service.js'
 import { RestaurantTenantService } from './restaurant-tenant.service.js'
-import { RestaurantMembershipRole } from './enums/restaurant-membership-role.enum.js'
+import { RestaurantRole } from './enums/restaurant-role.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
 
@@ -150,7 +150,7 @@ export interface RestaurantMembershipDto {
   id: string
   restaurantId: string
   userId: string
-  role: RestaurantMembershipRole
+  role: RestaurantRole
   isActive: boolean
   createdAt: Date
   user: RestaurantMembershipUserDto
@@ -199,7 +199,7 @@ export class RestaurantService {
 
     const includeInactiveMemberships = options.includeInactiveMemberships ?? false
 
-    if (currentUser.role === UserRole.OWNER) {
+    if (currentUser.role === UserRole.SYSTEM_OWNER) {
       return this.restaurantRepository.find({
         order: {
           createdAt: 'DESC'
@@ -284,7 +284,7 @@ export class RestaurantService {
       const membership = restaurantUserRepository.create({
         restaurantId: savedRestaurant.id,
         userId: currentUser.id,
-        role: RestaurantMembershipRole.OWNER,
+        role: RestaurantRole.OWNER,
         isActive: true
       })
 
@@ -412,7 +412,7 @@ export class RestaurantService {
         this.restaurantTenantService.createScopedPayload(
           {
             userId: normalizedPayload.userId,
-            role: RestaurantMembershipRole.MANAGER,
+            role: RestaurantRole.MANAGER,
             isActive: true
           },
           normalizedRestaurantId
@@ -458,7 +458,7 @@ export class RestaurantService {
       throw new RestaurantsHttpError(404, 'Restaurant membership not found')
     }
 
-    if (membership.role !== RestaurantMembershipRole.MANAGER) {
+    if (membership.role !== RestaurantRole.MANAGER) {
       throw new RestaurantsHttpError(409, 'Only manager memberships can be removed')
     }
 
@@ -558,13 +558,13 @@ export class RestaurantService {
     return normalizedValue
   }
 
-  private resolveMembershipRole(userRole: UserRole): RestaurantMembershipRole {
+  private resolveMembershipRole(userRole: UserRole): RestaurantRole {
     if (userRole === UserRole.CLIENT) {
-      return RestaurantMembershipRole.OWNER
+      return RestaurantRole.OWNER
     }
 
-    if (userRole === UserRole.MANAGER) {
-      return RestaurantMembershipRole.MANAGER
+    if (userRole === UserRole.STAFF) {
+      return RestaurantRole.MANAGER
     }
 
     throw new RestaurantsHttpError(403, 'Access denied')

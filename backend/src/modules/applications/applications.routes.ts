@@ -53,7 +53,7 @@ applicationsRouter.post('/', applicationsController.create)
  *     tags:
  *       - Applications
  *     summary: List restaurant applications
- *     description: OWNER-only endpoint that returns all submitted applications.
+ *     description: SYSTEM_OWNER-only endpoint that returns all submitted applications.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -81,7 +81,7 @@ applicationsRouter.post('/', applicationsController.create)
 applicationsRouter.get(
   '/',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER]),
   applicationsController.list
 )
 
@@ -92,7 +92,7 @@ applicationsRouter.get(
  *     tags:
  *       - Applications
  *     summary: Approve application
- *     description: OWNER-only endpoint that approves a pending application and returns generated credentials.
+ *     description: SYSTEM_OWNER-only endpoint that approves a pending application and returns generated credentials.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -138,7 +138,7 @@ applicationsRouter.get(
 applicationsRouter.post(
   '/:id/approve',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER]),
   applicationsController.approve
 )
 
@@ -149,7 +149,7 @@ applicationsRouter.post(
  *     tags:
  *       - Applications
  *     summary: Reject application
- *     description: OWNER-only endpoint that rejects a pending application.
+ *     description: SYSTEM_OWNER-only endpoint that rejects a pending application.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -195,7 +195,7 @@ applicationsRouter.post(
 applicationsRouter.post(
   '/:id/reject',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER]),
   applicationsController.reject
 )
 

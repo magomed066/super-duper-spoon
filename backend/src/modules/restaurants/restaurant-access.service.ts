@@ -3,7 +3,7 @@ import { Repository } from 'typeorm'
 import { AppDataSource } from '../../database/data-source.js'
 import { normalizeRestaurantScopeId } from '../../common/restaurant-scope/index.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
-import { RestaurantMembershipRole } from './enums/restaurant-membership-role.enum.js'
+import { RestaurantRole } from './enums/restaurant-role.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
 
@@ -33,7 +33,7 @@ export class RestaurantAccessService {
       return false
     }
 
-    if (systemRole === UserRole.OWNER) {
+    if (systemRole === UserRole.SYSTEM_OWNER) {
       return this.restaurantRepository.exists({
         where: {
           id: normalizedRestaurantId
@@ -77,11 +77,11 @@ export class RestaurantAccessService {
       return false
     }
 
-    if (systemRole === UserRole.MANAGER) {
+    if (systemRole === UserRole.STAFF) {
       return false
     }
 
-    if (systemRole === UserRole.OWNER) {
+    if (systemRole === UserRole.SYSTEM_OWNER) {
       return this.restaurantRepository.exists({
         where: {
           id: normalizedRestaurantId
@@ -97,11 +97,11 @@ export class RestaurantAccessService {
   }
 
   async isRestaurantOwner(userId: string, restaurantId: string): Promise<boolean> {
-    return this.hasMembership(userId, restaurantId, RestaurantMembershipRole.OWNER)
+    return this.hasMembership(userId, restaurantId, RestaurantRole.OWNER)
   }
 
   async isRestaurantManager(userId: string, restaurantId: string): Promise<boolean> {
-    return this.hasMembership(userId, restaurantId, RestaurantMembershipRole.MANAGER)
+    return this.hasMembership(userId, restaurantId, RestaurantRole.MANAGER)
   }
 
   async getAccessibleRestaurantIds(
@@ -114,7 +114,7 @@ export class RestaurantAccessService {
       return []
     }
 
-    if (systemRole === UserRole.OWNER) {
+    if (systemRole === UserRole.SYSTEM_OWNER) {
       const restaurants = await this.restaurantRepository.find({
         select: {
           id: true
@@ -147,7 +147,7 @@ export class RestaurantAccessService {
   private async hasMembership(
     userId: string,
     restaurantId: string,
-    membershipRole: RestaurantMembershipRole
+    membershipRole: RestaurantRole
   ): Promise<boolean> {
     const normalizedUserId = this.normalizeId(userId)
     const normalizedRestaurantId = this.normalizeId(restaurantId)
@@ -172,13 +172,13 @@ export class RestaurantAccessService {
 
   private resolveMembershipRole(
     systemRole: UserRole
-  ): RestaurantMembershipRole | null {
+  ): RestaurantRole | null {
     if (systemRole === UserRole.CLIENT) {
-      return RestaurantMembershipRole.OWNER
+      return RestaurantRole.OWNER
     }
 
-    if (systemRole === UserRole.MANAGER) {
-      return RestaurantMembershipRole.MANAGER
+    if (systemRole === UserRole.STAFF) {
+      return RestaurantRole.MANAGER
     }
 
     return null

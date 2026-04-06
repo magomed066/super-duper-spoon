@@ -14,13 +14,13 @@ type RouteAccess = {
 }
 
 const permissionsByRole: Record<UserRole, AuthPermission[]> = {
-  [UserRole.OWNER]: [
+  [UserRole.SYSTEM_OWNER]: [
     AuthPermission.VIEW_APPLICATIONS,
     AuthPermission.MANAGE_APPLICATIONS,
     AuthPermission.VIEW_RESTAURANTS
   ],
   [UserRole.CLIENT]: [AuthPermission.VIEW_RESTAURANTS],
-  [UserRole.MANAGER]: [AuthPermission.VIEW_RESTAURANTS]
+  [UserRole.STAFF]: [AuthPermission.VIEW_RESTAURANTS]
 }
 
 const routeAccessMap: Partial<Record<string, RouteAccess>> = {

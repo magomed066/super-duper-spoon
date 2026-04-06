@@ -198,7 +198,7 @@ const swaggerOptions = {
             },
             role: {
               type: 'string',
-              enum: ['OWNER', 'CLIENT', 'MANAGER'],
+              enum: ['SYSTEM_OWNER', 'CLIENT', 'STAFF'],
               example: 'CLIENT'
             },
             isActive: {

@@ -35,7 +35,7 @@ export const seedInitialOwner = async (): Promise<void> => {
     phone: (process.env.INITIAL_OWNER_PHONE ?? DEFAULT_OWNER_PHONE).trim(),
     email,
     password: (process.env.INITIAL_OWNER_PASSWORD ?? DEFAULT_OWNER_PASSWORD).trim(),
-    role: UserRole.OWNER,
+    role: UserRole.SYSTEM_OWNER,
     status: 'ACTIVE',
     isActive: true
   })

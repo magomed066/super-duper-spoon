@@ -1,5 +1,7 @@
 import type { JwtPayload } from 'jsonwebtoken'
 
+import { UserRole } from '../../users/enums/user-role.enum.js'
+
 export type AuthTokensDto = {
   accessToken: string
   refreshToken: string
@@ -12,7 +14,7 @@ export type AuthUserDto = {
   phone: string
   email: string
   status: string
-  role: string
+  role: UserRole
   isActive: boolean
   createdAt: Date
 }
@@ -28,7 +30,7 @@ export type AccessTokenDto = {
 export type AccessTokenPayload = JwtPayload & {
   sub: string
   email: string
-  role: string
+  role: UserRole
 }
 
 export type RefreshTokenPayload = JwtPayload & {
