@@ -45,7 +45,17 @@ export class RestaurantAccessService {
       })
     }
 
-    const membership = await this.getRestaurantMembership(userId, normalizedRestaurantId)
+    if (
+      systemRole !== UserRole.CLIENT &&
+      systemRole !== UserRole.STAFF
+    ) {
+      return false
+    }
+
+    const membership = await this.getRestaurantMembership(
+      userId,
+      normalizedRestaurantId
+    )
 
     return membership !== null
   }
