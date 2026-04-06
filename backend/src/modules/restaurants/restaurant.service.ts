@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { AppDataSource } from '../../database/data-source.js'
 import { User } from '../users/entities/user.entity.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
+import { RestaurantAccessService } from './restaurant-access.service.js'
 import { RestaurantMembershipRole } from './enums/restaurant-membership-role.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
@@ -78,6 +79,13 @@ interface GetAccessibleRestaurantsOptions {
 }
 
 export class RestaurantService {
+  private readonly restaurantRepository = AppDataSource.getRepository(Restaurant)
+  private readonly restaurantUserRepository = AppDataSource.getRepository(RestaurantUser)
+  private readonly restaurantAccessService = new RestaurantAccessService(
+    this.restaurantRepository,
+    this.restaurantUserRepository
+  )
+
   async getAccessibleRestaurantById(
     restaurantId: string,
     currentUser: User | undefined
@@ -92,10 +100,7 @@ export class RestaurantService {
       throw new RestaurantsHttpError(400, 'Restaurant id is required')
     }
 
-    const restaurantRepository = AppDataSource.getRepository(Restaurant)
-    const membershipRepository = AppDataSource.getRepository(RestaurantUser)
-
-    const restaurant = await restaurantRepository.findOne({
+    const restaurant = await this.restaurantRepository.findOne({
       where: {
         id: normalizedRestaurantId
       }
@@ -105,21 +110,13 @@ export class RestaurantService {
       throw new RestaurantsHttpError(404, 'Restaurant not found')
     }
 
-    if (currentUser.role === UserRole.OWNER) {
-      return restaurant
-    }
+    const hasAccess = await this.restaurantAccessService.hasRestaurantAccess(
+      currentUser.id,
+      currentUser.role,
+      normalizedRestaurantId
+    )
 
-    const membershipRole = this.resolveMembershipRole(currentUser.role)
-    const membership = await membershipRepository.findOne({
-      where: {
-        restaurantId: normalizedRestaurantId,
-        userId: currentUser.id,
-        role: membershipRole,
-        isActive: true
-      }
-    })
-
-    if (!membership) {
+    if (!hasAccess) {
       throw new RestaurantsHttpError(403, 'Access denied')
     }
 
@@ -134,11 +131,29 @@ export class RestaurantService {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
     }
 
-    const restaurantRepository = AppDataSource.getRepository(Restaurant)
     const includeInactiveMemberships = options.includeInactiveMemberships ?? false
 
     if (currentUser.role === UserRole.OWNER) {
-      return restaurantRepository.find({
+      return this.restaurantRepository.find({
+        order: {
+          createdAt: 'DESC'
+        }
+      })
+    }
+
+    if (!includeInactiveMemberships) {
+      const accessibleRestaurantIds =
+        await this.restaurantAccessService.getAccessibleRestaurantIds(
+          currentUser.id,
+          currentUser.role
+        )
+
+      if (accessibleRestaurantIds.length === 0) {
+        return []
+      }
+
+      return this.restaurantRepository.find({
+        where: accessibleRestaurantIds.map((id) => ({ id })),
         order: {
           createdAt: 'DESC'
         }
@@ -147,7 +162,7 @@ export class RestaurantService {
 
     const membershipRole = this.resolveMembershipRole(currentUser.role)
 
-    return restaurantRepository
+    return this.restaurantRepository
       .createQueryBuilder('restaurant')
       .innerJoin(
         RestaurantUser,
