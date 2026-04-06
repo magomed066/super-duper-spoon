@@ -68,8 +68,16 @@ export class User {
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens!: Relation<RefreshToken[]>
 
-  @OneToMany(() => RestaurantUser, (restaurantUser) => restaurantUser.user)
-  restaurantUsers!: Relation<RestaurantUser[]>
+  @OneToMany(() => RestaurantUser, (membership) => membership.user)
+  memberships!: Relation<RestaurantUser[]>
+
+  get restaurantUsers(): Relation<RestaurantUser[]> {
+    return this.memberships
+  }
+
+  set restaurantUsers(value: Relation<RestaurantUser[]>) {
+    this.memberships = value
+  }
 
   @BeforeInsert()
   @BeforeUpdate()

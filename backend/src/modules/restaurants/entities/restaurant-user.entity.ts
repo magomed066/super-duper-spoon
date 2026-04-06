@@ -37,13 +37,13 @@ export class RestaurantUser {
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date
 
-  @ManyToOne(() => Restaurant, (restaurant) => restaurant.restaurantUsers, {
+  @ManyToOne(() => Restaurant, (restaurant) => restaurant.memberships, {
     nullable: false
   })
   @JoinColumn({ name: 'restaurantId' })
   restaurant!: Relation<Restaurant>
 
-  @ManyToOne(() => User, (user) => user.restaurantUsers, {
+  @ManyToOne(() => User, (user) => user.memberships, {
     nullable: false
   })
   @JoinColumn({ name: 'userId' })

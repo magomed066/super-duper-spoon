@@ -72,6 +72,14 @@ export class Restaurant {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date
 
-  @OneToMany(() => RestaurantUser, (restaurantUser) => restaurantUser.restaurant)
-  restaurantUsers!: Relation<RestaurantUser[]>
+  @OneToMany(() => RestaurantUser, (membership) => membership.restaurant)
+  memberships!: Relation<RestaurantUser[]>
+
+  get restaurantUsers(): Relation<RestaurantUser[]> {
+    return this.memberships
+  }
+
+  set restaurantUsers(value: Relation<RestaurantUser[]>) {
+    this.memberships = value
+  }
 }
