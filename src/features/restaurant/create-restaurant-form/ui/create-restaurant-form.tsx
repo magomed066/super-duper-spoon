@@ -27,7 +27,7 @@ const initialValues: CreateRestaurantFormValues = {
   description: '',
   email: '',
   city: '',
-  deliveryTime: '',
+  deliveryTime: '50',
   deliveryConditions: '',
   cuisine: '',
   workSchedule: WEEK_DAYS.map(({ day }) => ({
@@ -145,6 +145,7 @@ export function CreateRestaurantForm() {
 
             {activeStep < FORM_STEPS.length - 1 ? (
               <Button
+                key="next-step"
                 type="button"
                 radius="md"
                 color="aurora"
@@ -154,10 +155,11 @@ export function CreateRestaurantForm() {
               </Button>
             ) : (
               <Button
+                key="submit-form"
                 type="submit"
                 size="md"
                 radius="md"
-                color="dark"
+                color="aurora"
                 loading={isPending}
                 disabled={!canSubmit}
               >
