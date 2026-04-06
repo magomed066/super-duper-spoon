@@ -213,7 +213,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: Create restaurant
- *     description: Creates a restaurant for the current authenticated client or owner and assigns OWNER membership to that user.
+ *     description: Creates a restaurant for the current authenticated client or owner. Restaurant-specific OWNER membership is assigned only at restaurant creation time.
  *     security:
  *       - bearerAuth: []
  *     requestBody:

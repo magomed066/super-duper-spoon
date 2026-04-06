@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt'
+import type { EntityManager } from 'typeorm'
 import { Repository } from 'typeorm'
 
 import { hashEmail } from '../../common/utils/encryption.js'
@@ -82,17 +83,26 @@ export class UsersService {
   }
 
   async create(payload: CreateUserDto): Promise<User> {
-    const normalizedPayload = await this.validateAndPrepareCreatePayload(payload)
+    return this.createWithManager(payload)
+  }
 
-    const existingUser = await this.findByEmail(normalizedPayload.email)
+  async createWithManager(
+    payload: CreateUserDto,
+    manager?: EntityManager
+  ): Promise<User> {
+    const normalizedPayload = await this.validateAndPrepareCreatePayload(payload)
+    const userRepository = manager?.getRepository(User) ?? this.userRepository
+    const existingUser = await userRepository.findOne({
+      where: {
+        emailHash: hashEmail(normalizedPayload.email)
+      }
+    })
 
     if (existingUser) {
       throw new UsersHttpError(409, 'Email is already in use')
     }
 
-    return this.userRepository.save(
-      this.userRepository.create(normalizedPayload)
-    )
+    return userRepository.save(userRepository.create(normalizedPayload))
   }
 
   blockUser(id: string): Promise<UserDto> {

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { Repository } from 'typeorm'
 
 import { AppDataSource } from '../../database/data-source.js'
 import { User } from '../users/entities/user.entity.js'
@@ -281,14 +282,11 @@ export class RestaurantService {
 
       const savedRestaurant = await restaurantRepository.save(restaurant)
 
-      const membership = restaurantUserRepository.create({
-        restaurantId: savedRestaurant.id,
-        userId: currentUser.id,
-        role: RestaurantRole.OWNER,
-        isActive: true
-      })
-
-      await restaurantUserRepository.save(membership)
+      await this.assignOwnerMembership(
+        restaurantUserRepository,
+        savedRestaurant.id,
+        currentUser.id
+      )
 
       return savedRestaurant
     })
@@ -511,6 +509,21 @@ export class RestaurantService {
     }
 
     return validationResult.data
+  }
+
+  private async assignOwnerMembership(
+    restaurantUserRepository: Repository<RestaurantUser>,
+    restaurantId: string,
+    userId: string
+  ): Promise<void> {
+    const membership = restaurantUserRepository.create({
+      restaurantId,
+      userId,
+      role: RestaurantRole.OWNER,
+      isActive: true
+    })
+
+    await restaurantUserRepository.save(membership)
   }
 
   private parseUpdateRestaurantPayload(payload: unknown): UpdateRestaurantInput {

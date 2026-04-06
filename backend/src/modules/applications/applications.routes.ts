@@ -92,7 +92,7 @@ applicationsRouter.get(
  *     tags:
  *       - Applications
  *     summary: Approve application
- *     description: SYSTEM_OWNER-only endpoint that approves a pending application and returns generated credentials.
+ *     description: SYSTEM_OWNER-only endpoint that approves a pending application, creates a global CLIENT user, and returns generated credentials. No restaurant membership is assigned during approval.
  *     security:
  *       - bearerAuth: []
  *     parameters:
