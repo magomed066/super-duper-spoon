@@ -53,7 +53,9 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: UserRole
+    enum: UserRole,
+    enumName: 'users_role_enum',
+    default: UserRole.CLIENT
   })
   role!: UserRole
 
