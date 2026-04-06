@@ -27,9 +27,13 @@ export type AccessTokenDto = {
   accessToken: string
 }
 
+export type AuthenticatedRequestUser = {
+  id: string
+  role: UserRole
+}
+
 export type AccessTokenPayload = JwtPayload & {
-  sub: string
-  email: string
+  userId: string
   role: UserRole
 }
 

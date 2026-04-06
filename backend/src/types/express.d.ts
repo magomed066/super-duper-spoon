@@ -1,9 +1,9 @@
-import type { User } from '../modules/users/entities/user.entity.js'
+import type { AuthenticatedRequestUser } from '../modules/auth/types/auth.types.js'
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User
+      user?: AuthenticatedRequestUser
     }
   }
 }

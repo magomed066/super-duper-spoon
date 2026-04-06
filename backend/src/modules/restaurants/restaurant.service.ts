@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { Repository } from 'typeorm'
 
 import { AppDataSource } from '../../database/data-source.js'
+import type { AuthenticatedRequestUser } from '../auth/types/auth.types.js'
 import { User } from '../users/entities/user.entity.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantAccessService } from './restaurant-access.service.js'
@@ -187,7 +188,7 @@ export class RestaurantService {
 
   async getAccessibleRestaurantById(
     restaurantId: string,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<Restaurant> {
     return this.restaurantTenantService.getAccessibleRestaurant(
       restaurantId,
@@ -196,7 +197,7 @@ export class RestaurantService {
   }
 
   async getAccessibleRestaurants(
-    currentUser: User | undefined,
+    currentUser: AuthenticatedRequestUser | undefined,
     options: GetAccessibleRestaurantsOptions = {}
   ): Promise<Restaurant[]> {
     if (!currentUser) {
@@ -251,7 +252,7 @@ export class RestaurantService {
 
   async createRestaurant(
     payload: unknown,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<CreateRestaurantResultDto> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
@@ -274,6 +275,7 @@ export class RestaurantService {
     return AppDataSource.transaction(async (manager) => {
       const restaurantRepository = manager.getRepository(Restaurant)
       const restaurantUserRepository = manager.getRepository(RestaurantUser)
+      const userRepository = manager.getRepository(User)
 
       const existingRestaurant = await restaurantRepository.findOne({
         where: [{ slug: normalizedPayload.slug }, { email }]
@@ -294,12 +296,17 @@ export class RestaurantService {
         savedRestaurant.id,
         currentUser.id
       )
+      const user = await userRepository.findOneBy({ id: currentUser.id })
+
+      if (!user) {
+        throw new RestaurantsHttpError(404, 'User not found')
+      }
 
       return {
         restaurant: savedRestaurant,
         membership: this.toRestaurantMembershipDto({
           ...membership,
-          user: currentUser
+          user
         })
       }
     })
@@ -308,7 +315,7 @@ export class RestaurantService {
   async updateRestaurant(
     restaurantId: string,
     payload: unknown,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<Restaurant> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
@@ -348,7 +355,7 @@ export class RestaurantService {
 
   async deleteRestaurant(
     restaurantId: string,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<void> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
@@ -375,7 +382,7 @@ export class RestaurantService {
   async assignManager(
     restaurantId: string,
     payload: unknown,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<RestaurantMembershipDto> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
@@ -442,7 +449,7 @@ export class RestaurantService {
   async removeManager(
     restaurantId: string,
     userId: string,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<void> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
@@ -478,7 +485,7 @@ export class RestaurantService {
 
   async getRestaurantUsers(
     restaurantId: string,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<RestaurantMembershipDto[]> {
     if (!currentUser) {
       throw new RestaurantsHttpError(401, 'User is not authenticated')
@@ -524,7 +531,7 @@ export class RestaurantService {
     return validationResult.data
   }
 
-  private assertCanCreateRestaurant(currentUser: User): void {
+  private assertCanCreateRestaurant(currentUser: AuthenticatedRequestUser): void {
     if (
       currentUser.role !== UserRole.CLIENT &&
       currentUser.role !== UserRole.SYSTEM_OWNER
@@ -563,7 +570,7 @@ export class RestaurantService {
 
   private async getRestaurantForMutation(
     restaurantId: string,
-    currentUser: User,
+    currentUser: AuthenticatedRequestUser,
     action: 'update' | 'delete'
   ): Promise<Restaurant> {
     return this.restaurantTenantService.getRestaurantForMutation(
@@ -575,7 +582,7 @@ export class RestaurantService {
 
   private async assertManagerAssignmentAccess(
     restaurantId: string,
-    currentUser: User
+    currentUser: AuthenticatedRequestUser
   ): Promise<string> {
     return this.restaurantTenantService.assertRestaurantOwnerAccess(
       restaurantId,

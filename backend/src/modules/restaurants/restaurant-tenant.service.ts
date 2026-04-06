@@ -11,7 +11,7 @@ import {
   type RestaurantScoped
 } from '../../common/restaurant-scope/index.js'
 import { AppDataSource } from '../../database/data-source.js'
-import { User } from '../users/entities/user.entity.js'
+import type { AuthenticatedRequestUser } from '../auth/types/auth.types.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantAccessService } from './restaurant-access.service.js'
 import { Restaurant } from './entities/restaurant.entity.js'
@@ -44,7 +44,7 @@ export class RestaurantTenantService {
 
   async getAccessibleRestaurant(
     restaurantId: string,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<Restaurant> {
     const restaurant = await this.assertRestaurantAccess(
       restaurantId,
@@ -57,7 +57,7 @@ export class RestaurantTenantService {
 
   async getRestaurantForMutation(
     restaurantId: string,
-    currentUser: User | undefined,
+    currentUser: AuthenticatedRequestUser | undefined,
     action: Exclude<RestaurantTenantAction, 'read' | 'manage'>
   ): Promise<Restaurant> {
     return this.assertRestaurantAccess(restaurantId, currentUser, action)
@@ -65,7 +65,7 @@ export class RestaurantTenantService {
 
   async assertRestaurantOwnerAccess(
     restaurantId: string,
-    currentUser: User | undefined
+    currentUser: AuthenticatedRequestUser | undefined
   ): Promise<string> {
     const restaurant = await this.assertRestaurantAccess(
       restaurantId,
@@ -97,7 +97,7 @@ export class RestaurantTenantService {
 
   async assertRestaurantAccess(
     restaurantId: string,
-    currentUser: User | undefined,
+    currentUser: AuthenticatedRequestUser | undefined,
     action: RestaurantTenantAction = 'read'
   ): Promise<Restaurant> {
     if (!currentUser) {
