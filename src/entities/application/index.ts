@@ -1,5 +1,7 @@
 export {
   useApplicationsListQuery,
+  useApproveApplicationMutation,
+  useRejectApplicationMutation,
   useRequestClientMutation
 } from './model/hooks'
 export {

@@ -19,3 +19,8 @@ export type RequestClientCreate = Omit<
   RequestClient,
   'id' | 'createdAt' | 'status'
 >
+
+export type ApproveApplicationResult = {
+  application: RequestClient
+  password: string
+}

@@ -1,4 +1,4 @@
-import { Stack, Text } from '@mantine/core'
+import { Divider, Stack, Text } from '@mantine/core'
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/entities/auth'
 import { UserRole } from '@/shared/api/services/auth/types'
@@ -86,14 +86,16 @@ export function ApplicationsPage() {
   }
 
   return (
-    <Stack>
+    <Stack pb={20}>
       <PageHeaderWidget title="Список заявок" />
 
-      <Stack className="mt-3 p-5 flex flex-col gap">
+      <Stack className="mt-3 px-5 flex flex-col gap">
         <Text maw={640} className="text-moss-700">
           Здесь отображаются все заявки на подключение ресторанов с текущими
           статусами и контактами заявителей.
         </Text>
+
+        <Divider my={3} />
 
         <ApplicationsListWidget />
       </Stack>
