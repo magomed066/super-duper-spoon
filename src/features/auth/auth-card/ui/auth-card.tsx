@@ -20,7 +20,7 @@ export function AuthCard() {
           </Badge>
           <Title
             order={2}
-            className="text-3xl font-semibold tracking-tight text-[#10131f]"
+            className="text-3xl font-semibold tracking-tight text-moss-900"
           >
             {content.title}
           </Title>

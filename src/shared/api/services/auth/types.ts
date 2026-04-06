@@ -38,6 +38,10 @@ export type AuthRegisterResponse = {
   message: string
 }
 
+export type RefreshTokenResponse = {
+  accessToken: string
+}
+
 export type LogoutPayload = {
   refreshToken: string
 }

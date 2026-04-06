@@ -4,12 +4,17 @@ import NotFoundPage from '@/pages/not-found'
 import RestaurantPage from '@/pages/restaurants'
 import RequestPage from '@/pages/request'
 import RequestSuccessPage from '@/pages/request-success'
+import UnauthorizedPage from '@/pages/unauthorized'
 import { ROUTES } from '@/shared/config/routes'
 
 export const publicRoutes = [
   {
     Component: AuthPage,
     path: ROUTES.AUTH
+  },
+  {
+    Component: UnauthorizedPage,
+    path: ROUTES.UNAUTHORIZED
   },
   {
     Component: RequestPage,

@@ -1,9 +1,24 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios'
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type InternalAxiosRequestConfig
+} from 'axios'
 import { normalizeApiError } from '@/shared/api/errors'
-import { ACCESS_TOKEN_STORAGE_KEY } from '@/entities/auth/model/storage'
+import { useAuthStore } from '@/entities/auth/model/store'
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  REFRESH_TOKEN_STORAGE_KEY
+} from '@/entities/auth/model/storage'
+import { ROUTES } from '@/shared/config/routes'
+
+type RetryableRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean
+}
 
 export class ApiBase {
   private client: AxiosInstance
+  private refreshRequest: Promise<string> | null = null
 
   constructor() {
     this.client = axios.create({
@@ -16,9 +31,10 @@ export class ApiBase {
 
     // Adding token to each request
     this.client.interceptors.request.use((req) => {
-      const isLogin = req.url?.includes('login')
+      const isAuthRequest =
+        req.url?.includes('/auth/login') || req.url?.includes('/auth/refresh')
 
-      if (isLogin) {
+      if (isAuthRequest) {
         return req
       }
 
@@ -36,17 +52,67 @@ export class ApiBase {
       (response) => {
         return response
       },
-      // Handling 498 error
       async (error) => {
-        // Handling 401 error
-        // if (error instanceof AxiosError && error.response?.status === 401) {
-        //   localStorage.clear()
-        //   window.location.replace('/')
-        // }
+        const originalRequest = error.config as RetryableRequestConfig | undefined
+        const isUnauthorized =
+          error instanceof AxiosError && error.response?.status === 401
+        const isRefreshRequest = originalRequest?.url?.includes('/auth/refresh')
+
+        if (isUnauthorized && originalRequest && !originalRequest._retry && !isRefreshRequest) {
+          originalRequest._retry = true
+
+          try {
+            const accessToken = await this.refreshAccessToken()
+
+            originalRequest.headers.authorization = `Bearer ${accessToken}`
+
+            return this.client(originalRequest)
+          } catch (refreshError) {
+            this.handleUnauthorized()
+            return Promise.reject(normalizeApiError(refreshError))
+          }
+        }
+
+        if (isUnauthorized) {
+          this.handleUnauthorized()
+        }
 
         return Promise.reject(normalizeApiError(error))
       }
     )
+  }
+
+  private async refreshAccessToken(): Promise<string> {
+    if (!this.refreshRequest) {
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)
+
+      if (!refreshToken) {
+        throw new Error('Refresh token is missing')
+      }
+
+      this.refreshRequest = this.client
+        .post<{ accessToken: string }>('/auth/refresh', { refreshToken })
+        .then((response) => {
+          const accessToken = response.data.accessToken
+
+          useAuthStore.getState().setAccessToken(accessToken)
+
+          return accessToken
+        })
+        .finally(() => {
+          this.refreshRequest = null
+        })
+    }
+
+    return this.refreshRequest
+  }
+
+  private handleUnauthorized() {
+    useAuthStore.getState().clearAuth()
+
+    if (window.location.pathname !== ROUTES.AUTH) {
+      window.location.replace(ROUTES.AUTH)
+    }
   }
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {

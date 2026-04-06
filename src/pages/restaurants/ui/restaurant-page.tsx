@@ -1,3 +1,3 @@
 export function RestaurantPage() {
-  return <div>restaurant-page</div>
+  return <section className="flex bg-white"></section>
 }
