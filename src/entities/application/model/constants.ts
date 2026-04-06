@@ -13,7 +13,7 @@ export const applicationStatus: Record<
     label: 'Одобрена'
   },
   [ApplicationStatus.REJECTED]: {
-    color: 'red',
+    color: 'coral',
     label: 'Отклонена'
   }
 }

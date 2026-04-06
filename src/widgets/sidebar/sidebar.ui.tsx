@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { TbLogout2 } from 'react-icons/tb'
-import { Button, Code, Group } from '@mantine/core'
+import { Button, Group } from '@mantine/core'
 import { useLogoutMutation } from '@/entities/auth/model/hooks'
 import { AuthPermission, hasPermission, useAuthStore } from '@/entities/auth'
 import { Link, useLocation } from 'react-router'
@@ -38,14 +38,16 @@ export function Sidebar() {
     }
   }
 
-  const visibleLinks = data.filter((item) => hasPermission(user, item.permission))
+  const visibleLinks = data.filter((item) =>
+    hasPermission(user, item.permission)
+  )
 
   const links = visibleLinks.map((item) => (
     <Link
       to={item.link}
       className={cn(
-        'p-2.5 transition hover:bg-aurora-500 hover:text-white rounded-md flex items-center gap-3',
-        active === item.link && 'bg-aurora-500 text-white'
+        'p-2.5 transition hover:bg-moss-50 rounded-md flex items-center gap-3',
+        active === item.link && 'bg-moss-200 hover:bg-moss-200'
       )}
       key={item.label}
       onClick={() => {
@@ -64,8 +66,7 @@ export function Sidebar() {
           className="flex border-b border-moss-300 p-3"
           justify="space-between"
         >
-          Admin Panel
-          <Code fw={700}>v3.1.2</Code>
+          Delivery App
         </Group>
 
         <div className="p-3 mt-auto flex flex-col">{links}</div>
