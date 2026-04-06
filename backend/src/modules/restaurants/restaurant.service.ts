@@ -26,9 +26,9 @@ const createRestaurantSchema = z.object({
   slug: z
     .string()
     .trim()
-    .min(1, 'Slug is required')
     .max(255, 'Slug is too long')
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug format is invalid'),
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug format is invalid')
+    .optional(),
   phone: z
     .string()
     .trim()
@@ -137,6 +137,9 @@ const assignRestaurantManagerSchema = z.object({
 })
 
 type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>
+type NormalizedCreateRestaurantInput = Omit<CreateRestaurantInput, 'slug'> & {
+  slug: string
+}
 type UpdateRestaurantInput = z.infer<typeof updateRestaurantSchema>
 type AssignRestaurantManagerInput = z.infer<typeof assignRestaurantManagerSchema>
 
@@ -266,16 +269,7 @@ export class RestaurantService {
 
     this.assertCanCreateRestaurant(currentUser)
 
-    const validationResult = createRestaurantSchema.safeParse(payload)
-
-    if (!validationResult.success) {
-      throw new RestaurantsHttpError(
-        400,
-        validationResult.error.issues[0]?.message ?? 'Invalid restaurant payload'
-      )
-    }
-
-    const normalizedPayload = validationResult.data
+    const normalizedPayload = this.parseCreateRestaurantPayload(payload)
     const email = normalizedPayload.email ?? this.buildRestaurantEmail(normalizedPayload.slug)
 
     return AppDataSource.transaction(async (manager) => {
@@ -544,6 +538,34 @@ export class RestaurantService {
     return `${slug}@restaurant.local`
   }
 
+  private parseCreateRestaurantPayload(
+    payload: unknown
+  ): NormalizedCreateRestaurantInput {
+    const validationResult = createRestaurantSchema.safeParse(payload)
+
+    if (!validationResult.success) {
+      throw new RestaurantsHttpError(
+        400,
+        validationResult.error.issues[0]?.message ?? 'Invalid restaurant payload'
+      )
+    }
+
+    const normalizedPayload = validationResult.data
+    const slug = normalizedPayload.slug ?? this.generateSlug(normalizedPayload.name)
+
+    if (!slug) {
+      throw new RestaurantsHttpError(
+        400,
+        'Slug could not be generated from name, provide slug manually'
+      )
+    }
+
+    return {
+      ...normalizedPayload,
+      slug
+    }
+  }
+
   private parseAssignRestaurantManagerPayload(
     payload: unknown
   ): AssignRestaurantManagerInput {
@@ -628,6 +650,17 @@ export class RestaurantService {
     return normalizedValue
   }
 
+  private generateSlug(name: string): string {
+    return name
+      .trim()
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-')
+  }
+
   private buildMembershipJoinCondition(includeInactiveMemberships: boolean): string {
     const conditions = [
       'membership.restaurantId = restaurant.id',
@@ -675,7 +708,7 @@ export class RestaurantService {
   }
 
   private toRestaurantEntity(
-    payload: CreateRestaurantInput,
+    payload: NormalizedCreateRestaurantInput,
     email: string
   ): Partial<Restaurant> {
     return {

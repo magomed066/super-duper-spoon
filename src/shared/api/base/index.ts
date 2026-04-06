@@ -53,12 +53,19 @@ export class ApiBase {
         return response
       },
       async (error) => {
-        const originalRequest = error.config as RetryableRequestConfig | undefined
+        const originalRequest = error.config as
+          | RetryableRequestConfig
+          | undefined
         const isUnauthorized =
           error instanceof AxiosError && error.response?.status === 401
         const isRefreshRequest = originalRequest?.url?.includes('/auth/refresh')
 
-        if (isUnauthorized && originalRequest && !originalRequest._retry && !isRefreshRequest) {
+        if (
+          isUnauthorized &&
+          originalRequest &&
+          !originalRequest._retry &&
+          !isRefreshRequest
+        ) {
           originalRequest._retry = true
 
           try {
@@ -131,6 +138,11 @@ export class ApiBase {
 
   public async put<T>(url: string, data?: unknown): Promise<T> {
     const response = await this.client.put<T>(url, data)
+    return response.data
+  }
+
+  public async patch<T>(url: string, data?: unknown): Promise<T> {
+    const response = await this.client.patch<T>(url, data)
     return response.data
   }
 

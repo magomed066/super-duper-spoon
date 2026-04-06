@@ -360,7 +360,7 @@ const swaggerOptions = {
         },
         CreateRestaurantRequest: {
           type: 'object',
-          required: ['name', 'slug', 'phone', 'address', 'description'],
+          required: ['name', 'phone', 'address', 'description'],
           properties: {
             name: {
               type: 'string',
@@ -368,7 +368,8 @@ const swaggerOptions = {
             },
             slug: {
               type: 'string',
-              example: 'sunrise-cafe'
+              example: 'sunrise-cafe',
+              description: 'Optional. Generated from name when omitted.'
             },
             phone: {
               type: 'string',
