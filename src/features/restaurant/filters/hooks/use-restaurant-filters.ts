@@ -64,9 +64,17 @@ export function useRestaurantFilters() {
     [setParams]
   )
 
+  const resetFilters = useCallback(() => {
+    setParams({
+      [RESTAURANT_FILTER_QUERY_KEYS.search]: '',
+      [RESTAURANT_FILTER_QUERY_KEYS.status]: DEFAULT_RESTAURANT_STATUS_FILTER
+    })
+  }, [setParams])
+
   return {
     ...params,
     hasActiveFilters,
+    resetFilters,
     setSearch,
     setStatus
   }
