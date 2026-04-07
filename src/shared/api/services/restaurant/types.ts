@@ -30,7 +30,7 @@ export type RestouranstsResponse = {
   items: Restaurant[]
 }
 
-export type CreateRestaurantPayload = {
+export type RestaurantUpsertPayload = {
   name: string
   slug?: string
   phone: string
@@ -52,6 +52,11 @@ export type CreateRestaurantPayload = {
     close: string
   }>
 }
+
+export type CreateRestaurantPayload = RestaurantUpsertPayload
+
+export type UpdateRestaurantPayload = Partial<RestaurantUpsertPayload> &
+  Partial<Pick<Restaurant, 'isActive'>>
 
 export type CreateRestaurantResponse = {
   restaurant: Restaurant

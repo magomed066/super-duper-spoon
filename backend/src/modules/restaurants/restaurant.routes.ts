@@ -438,6 +438,10 @@ restaurantsRouter.patch(
   '/:id',
   authMiddleware,
   roleMiddleware(PLATFORM_USER_ROLES),
+  restaurantMediaUpload.fields([
+    { name: 'logoFile', maxCount: 1 },
+    { name: 'previewFile', maxCount: 1 }
+  ]),
   restaurantController.update
 )
 

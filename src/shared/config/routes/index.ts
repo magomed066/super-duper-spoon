@@ -9,5 +9,8 @@ export const ROUTES = {
   MENU: '/menu',
   ORDERS: '/orders',
   RESTAURANTS_CREATE: '/restaurants/create',
+  RESTAURANTS_EDIT: '/restaurants/:id/edit',
   NOT_FOUND: '*'
 }
+
+export const getRestaurantEditRoute = (id: string) => `/restaurants/${id}/edit`

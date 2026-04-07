@@ -8,12 +8,7 @@ import {
   type CreateRestaurantFormValues
 } from '@/entities/restaurant'
 import { BasicInfoStep } from './components/basic-info-step'
-import {
-  BASIC_STEP_FIELDS,
-  DELIVERY_STEP_FIELDS,
-  FORM_STEPS,
-  WEEK_DAYS
-} from './components/constants'
+import { BASIC_STEP_FIELDS, DELIVERY_STEP_FIELDS, FORM_STEPS, WEEK_DAYS } from './components/constants'
 import { DeliveryScheduleStep } from './components/delivery-schedule-step'
 import { FormStepHeader } from './components/form-step-header'
 import { MediaStep } from './components/media-step'
@@ -30,12 +25,14 @@ const initialValues: CreateRestaurantFormValues = {
   deliveryTime: '50',
   deliveryConditions: '',
   cuisine: '',
-  workSchedule: WEEK_DAYS.map(({ day }) => ({
-    day,
-    enabled: false,
-    open: '09:00',
-    close: '22:00'
-  }))
+  workSchedule: WEEK_DAYS.map(({ day }) => {
+    return {
+      day,
+      enabled: false,
+      open: '09:00',
+      close: '22:00'
+    }
+  })
 }
 
 export function CreateRestaurantForm() {
@@ -78,14 +75,15 @@ export function CreateRestaurantForm() {
   }
 
   const handleSubmit = (data: CreateRestaurantFormValues) => {
-    mutate({
-      ...data,
+    const payload = {
+      name: data.name.trim(),
+      phone: data.phone.trim(),
+      address: data.address.trim(),
+      description: data.description.trim(),
       email: data.email.trim() || undefined,
       city: data.city.trim() || undefined,
       logo: data.logo?.trim() || undefined,
       preview: data.preview?.trim() || undefined,
-      logoFile: uploadedFiles.logoFile,
-      previewFile: uploadedFiles.previewFile,
       deliveryTime: data.deliveryTime ? Number(data.deliveryTime) : undefined,
       deliveryConditions: data.deliveryConditions.trim() || undefined,
       cuisine: data.cuisine
@@ -99,6 +97,12 @@ export function CreateRestaurantForm() {
           open,
           close
         }))
+    }
+
+    mutate({
+      ...payload,
+      logoFile: uploadedFiles.logoFile,
+      previewFile: uploadedFiles.previewFile
     })
   }
 

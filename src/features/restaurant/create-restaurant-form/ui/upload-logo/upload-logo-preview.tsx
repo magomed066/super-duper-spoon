@@ -14,6 +14,7 @@ import {
 import Frame from './img/frame.png'
 import { type Props } from './types'
 import { BiImageAdd } from 'react-icons/bi'
+import { resolveMediaUrl } from '@/shared/lib/helpers/media'
 
 export function UploadLogoPreviewFeature(props: Props) {
   const {
@@ -21,19 +22,22 @@ export function UploadLogoPreviewFeature(props: Props) {
     required,
     isLoading,
     defaultLogo = '',
-    defaultPreview = ''
+    defaultPreview = '',
+    disabled = false
   } = props
+  const resolvedDefaultPreview = resolveMediaUrl(defaultPreview)
+  const resolvedDefaultLogo = resolveMediaUrl(defaultLogo)
 
-  const [preview, setPreview] = useState(defaultPreview)
-  const [logo, setLogo] = useState(defaultLogo)
-
-  useEffect(() => {
-    setPreview(defaultPreview)
-  }, [defaultPreview])
+  const [preview, setPreview] = useState(resolvedDefaultPreview)
+  const [logo, setLogo] = useState(resolvedDefaultLogo)
 
   useEffect(() => {
-    setLogo(defaultLogo)
-  }, [defaultLogo])
+    setPreview(resolvedDefaultPreview)
+  }, [resolvedDefaultPreview])
+
+  useEffect(() => {
+    setLogo(resolvedDefaultLogo)
+  }, [resolvedDefaultLogo])
 
   const handleFile = (file: File | null, type: 'logo' | 'preview') => {
     if (!file) {
@@ -78,6 +82,7 @@ export function UploadLogoPreviewFeature(props: Props) {
           <FileButton
             onChange={(file) => handleFile(file, 'logo')}
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            disabled={disabled}
           >
             {({ onClick }) => (
               <Button
@@ -88,9 +93,10 @@ export function UploadLogoPreviewFeature(props: Props) {
                 mt={8}
                 radius={8}
                 color="aurora"
+                disabled={disabled}
               >
                 <BiImageAdd size={18} className="mr-2" />
-                Загрузить логотип
+                {disabled ? 'Редактирование недоступно' : 'Загрузить логотип'}
               </Button>
             )}
           </FileButton>
@@ -108,6 +114,7 @@ export function UploadLogoPreviewFeature(props: Props) {
           <FileButton
             onChange={(file) => handleFile(file, 'preview')}
             accept="image/png,image/jpeg,image/webp"
+            disabled={disabled}
           >
             {({ onClick }) => (
               <Button
@@ -118,9 +125,10 @@ export function UploadLogoPreviewFeature(props: Props) {
                 mt={8}
                 radius={8}
                 color="aurora"
+                disabled={disabled}
               >
                 <BiImageAdd size={18} className="mr-2" />
-                Загрузить обложку
+                {disabled ? 'Редактирование недоступно' : 'Загрузить обложку'}
               </Button>
             )}
           </FileButton>

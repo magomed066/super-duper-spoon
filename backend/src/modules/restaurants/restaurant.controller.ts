@@ -6,7 +6,10 @@ import {
   RestaurantsHttpError,
   RestaurantService
 } from './restaurant.service.js'
-import { toPublicUploadPath } from '../../common/uploads/file-storage.js'
+import {
+  toPublicUploadPath,
+  toStoredUploadPath
+} from '../../common/uploads/file-storage.js'
 
 type UploadedRestaurantFiles = {
   logoFile?: Express.Multer.File[]
@@ -113,15 +116,42 @@ export class RestaurantController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
+    const uploadedFiles = this.getUploadedFiles(req.files)
+
     try {
+      const normalizedBody = this.normalizeRestaurantPayload(req.body)
+      const logoFile = uploadedFiles.logoFile?.[0]
+      const previewFile = uploadedFiles.previewFile?.[0]
+
+      this.assertUploadedFileSize(logoFile, 5, 'Логотип')
+      this.assertUploadedFileSize(previewFile, 10, 'Обложка')
+
+      const currentRestaurant = await this.restaurantService.getAccessibleRestaurantById(
+        this.getIdParam(req.params.id),
+        req.user
+      )
       const restaurant = await this.restaurantService.updateRestaurant(
         this.getIdParam(req.params.id),
-        req.body,
+        {
+          ...normalizedBody,
+          logo: logoFile ? toPublicUploadPath(logoFile.filename) : normalizedBody.logo,
+          preview: previewFile
+            ? toPublicUploadPath(previewFile.filename)
+            : normalizedBody.preview
+        },
         req.user
+      )
+
+      await this.cleanupReplacedFiles(
+        currentRestaurant,
+        restaurant,
+        Boolean(logoFile),
+        Boolean(previewFile)
       )
 
       res.status(200).json(restaurant)
     } catch (error: unknown) {
+      await this.cleanupUploadedFiles(uploadedFiles)
       next(this.normalizeError(error))
     }
   }
@@ -293,7 +323,8 @@ export class RestaurantController {
       phones: this.parseOptionalJsonField(body.phones),
       cuisine: this.parseOptionalJsonField(body.cuisine),
       workSchedule: this.parseOptionalJsonField(body.workSchedule),
-      deliveryTime: this.parseOptionalNumberField(body.deliveryTime)
+      deliveryTime: this.parseOptionalNumberField(body.deliveryTime),
+      isActive: this.parseOptionalBooleanField(body.isActive)
     }
   }
 
@@ -331,6 +362,28 @@ export class RestaurantController {
     return Number.isNaN(parsedValue) ? value : parsedValue
   }
 
+  private parseOptionalBooleanField(value: unknown): unknown {
+    if (typeof value !== 'string') {
+      return value
+    }
+
+    const trimmedValue = value.trim()
+
+    if (!trimmedValue) {
+      return undefined
+    }
+
+    if (trimmedValue === 'true') {
+      return true
+    }
+
+    if (trimmedValue === 'false') {
+      return false
+    }
+
+    return value
+  }
+
   private assertUploadedFileSize(
     file: Express.Multer.File | undefined,
     maxSizeMb: number,
@@ -357,6 +410,32 @@ export class RestaurantController {
           await unlink(file.path)
         } catch {
           // Best-effort cleanup for failed requests.
+        }
+      })
+    )
+  }
+
+  private async cleanupReplacedFiles(
+    previousRestaurant: { logo: string; preview: string },
+    updatedRestaurant: { logo: string; preview: string },
+    logoUpdated: boolean,
+    previewUpdated: boolean
+  ): Promise<void> {
+    const filesToDelete = [
+      logoUpdated && previousRestaurant.logo !== updatedRestaurant.logo
+        ? toStoredUploadPath(previousRestaurant.logo)
+        : null,
+      previewUpdated && previousRestaurant.preview !== updatedRestaurant.preview
+        ? toStoredUploadPath(previousRestaurant.preview)
+        : null
+    ].filter((value): value is string => Boolean(value))
+
+    await Promise.all(
+      filesToDelete.map(async (filePath) => {
+        try {
+          await unlink(filePath)
+        } catch {
+          // Best-effort cleanup for replaced media.
         }
       })
     )

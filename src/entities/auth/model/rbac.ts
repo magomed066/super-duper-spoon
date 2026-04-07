@@ -8,7 +8,8 @@ export enum PlatformPermission {
   VIEW_RESTAURANTS = 'view_restaurants',
   VIEW_MENU = 'view_menu',
   VIEW_ORDERS = 'view_orders',
-  CREATE_RESTAURANT = 'create_restaurant'
+  CREATE_RESTAURANT = 'create_restaurant',
+  EDIT_RESTAURANT = 'edit_restaurant'
 }
 
 type RouteAccess = {
@@ -26,7 +27,8 @@ export const PLATFORM_PERMISSIONS_BY_ROLE: Record<UserRole, PlatformPermission[]
     PlatformPermission.VIEW_RESTAURANTS,
     PlatformPermission.VIEW_MENU,
     PlatformPermission.VIEW_ORDERS,
-    PlatformPermission.CREATE_RESTAURANT
+    PlatformPermission.CREATE_RESTAURANT,
+    PlatformPermission.EDIT_RESTAURANT
   ],
   [UserRole.STAFF]: [
     PlatformPermission.VIEW_RESTAURANTS,
@@ -54,6 +56,10 @@ export const PLATFORM_ROUTE_ACCESS: Partial<Record<string, RouteAccess>> = {
   },
   [ROUTES.RESTAURANTS_CREATE]: {
     permission: PlatformPermission.CREATE_RESTAURANT,
+    fallbackRoute: ROUTES.RESTAURANTS
+  },
+  [ROUTES.RESTAURANTS_EDIT]: {
+    permission: PlatformPermission.EDIT_RESTAURANT,
     fallbackRoute: ROUTES.RESTAURANTS
   }
 }

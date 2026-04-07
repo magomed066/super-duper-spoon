@@ -141,8 +141,12 @@ export class ApiBase {
     return response.data
   }
 
-  public async patch<T>(url: string, data?: unknown): Promise<T> {
-    const response = await this.client.patch<T>(url, data)
+  public async patch<T>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    const response = await this.client.patch<T>(url, data, config)
     return response.data
   }
 

@@ -4,4 +4,5 @@ export type Props = {
   isLoading?: boolean
   defaultLogo?: string
   defaultPreview?: string
+  disabled?: boolean
 }

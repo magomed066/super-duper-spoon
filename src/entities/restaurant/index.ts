@@ -1,8 +1,10 @@
 export {
+  useRestaurantQuery,
   useRestaurantsListQuery,
   useRestaurantStatusMutation,
   useDeleteRestaurantMutation,
-  useCreateRestaurantMutation
+  useCreateRestaurantMutation,
+  useUpdateRestaurantMutation
 } from './model/hooks'
 export * from './ui/card/card.ui'
 export * from './ui/empty-placeholder/empty-placeholder.ui'

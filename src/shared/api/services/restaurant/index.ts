@@ -3,6 +3,7 @@ import type {
   CreateRestaurantPayload,
   CreateRestaurantResponse,
   Restaurant,
+  UpdateRestaurantPayload,
   RestaurantsListParams,
   RestouranstsResponse
 } from './types'
@@ -12,15 +13,43 @@ export class RestaurantService {
     return apiService.get('/restaurants', { params })
   }
 
+  static getById(id: string): Promise<Restaurant> {
+    return apiService.get(`/restaurants/${id}`)
+  }
+
   static create(
     data: CreateRestaurantPayload
   ): Promise<CreateRestaurantResponse> {
+    const formData = RestaurantService.toRestaurantFormData(data)
+
+    return apiService.post('/restaurants', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  }
+
+  private static toRestaurantFormData(
+    data: Partial<CreateRestaurantPayload> &
+      Partial<UpdateRestaurantPayload>
+  ): FormData {
     const formData = new FormData()
 
-    formData.append('name', data.name)
-    formData.append('phone', data.phone)
-    formData.append('address', data.address)
-    formData.append('description', data.description)
+    if (data.name) {
+      formData.append('name', data.name)
+    }
+
+    if (data.phone) {
+      formData.append('phone', data.phone)
+    }
+
+    if (data.address) {
+      formData.append('address', data.address)
+    }
+
+    if (data.description) {
+      formData.append('description', data.description)
+    }
 
     if (data.slug) {
       formData.append('slug', data.slug)
@@ -70,17 +99,25 @@ export class RestaurantService {
       formData.append('workSchedule', JSON.stringify(data.workSchedule))
     }
 
-    return apiService.post('/restaurants', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    if (data.isActive !== undefined) {
+      formData.append('isActive', String(data.isActive))
+    }
+
+    return formData
   }
 
   static update(
     id: string,
-    data: Partial<Pick<Restaurant, 'isActive'>>
+    data: UpdateRestaurantPayload
   ): Promise<Restaurant> {
+    if (data.logoFile || data.previewFile) {
+      return apiService.patch(`/restaurants/${id}`, RestaurantService.toRestaurantFormData(data), {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+    }
+
     return apiService.patch(`/restaurants/${id}`, data)
   }
 

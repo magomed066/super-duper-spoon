@@ -41,7 +41,7 @@ export function RestaurantCard({ data, renderActions }: Props) {
       className=" overflow-hidden cursor-pointer bg-white transition-all duration-200 hover:shadow-md"
     >
       <Stack h="100%" gap={0}>
-        <div className="relative h-36 overflow-hidden bg-moss-100">
+        <div className="relative h-46 overflow-hidden bg-moss-100">
           <Image
             src={resolveMediaUrl(data.preview)}
             alt={`Превью ресторана ${data.name}`}

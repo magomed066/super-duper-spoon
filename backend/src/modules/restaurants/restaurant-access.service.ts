@@ -62,7 +62,18 @@ export class RestaurantAccessService {
     systemRole: UserRole,
     restaurantId: string
   ): Promise<boolean> {
-    return this.hasRestaurantAccess(userId, systemRole, restaurantId)
+    const normalizedRestaurantId = this.normalizeId(restaurantId)
+    const normalizedUserId = this.normalizeId(userId)
+
+    if (!normalizedRestaurantId || !normalizedUserId) {
+      return false
+    }
+
+    if (systemRole !== UserRole.CLIENT) {
+      return false
+    }
+
+    return this.isRestaurantOwner(normalizedUserId, normalizedRestaurantId)
   }
 
   async canDeleteRestaurant(

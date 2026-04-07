@@ -1,17 +1,21 @@
 import { useDeleteRestaurantMutation, useRestaurantStatusMutation } from '@/entities/restaurant'
 import { useAuthStore } from '@/entities/auth'
 import { UserRole } from '@/shared/api/services/auth/types'
+import { getRestaurantEditRoute } from '@/shared/config/routes'
 import type { Restaurant } from '@/shared/api/services/restaurant/types'
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 
 type ConfirmAction = 'activate' | 'deactivate' | 'delete'
 
 function useRestaurantActions(data: Restaurant) {
   const user = useAuthStore((state) => state.user)
+  const navigate = useNavigate()
   const statusMutation = useRestaurantStatusMutation()
   const deleteMutation = useDeleteRestaurantMutation()
   const [pendingAction, setPendingAction] = useState<ConfirmAction | null>(null)
 
+  const canEditRestaurant = user?.role === UserRole.CLIENT
   const canDeleteRestaurant = user?.role === UserRole.CLIENT
   const isActionPending = statusMutation.isPending || deleteMutation.isPending
 
@@ -71,6 +75,13 @@ function useRestaurantActions(data: Restaurant) {
   }
 
   const menuActions = [
+    {
+      key: 'edit',
+      label: 'Редактировать',
+      disabled: isActionPending || !canEditRestaurant,
+      hidden: !canEditRestaurant,
+      onClick: () => navigate(getRestaurantEditRoute(data.id))
+    },
     {
       key: 'activate',
       label: 'Активировать',

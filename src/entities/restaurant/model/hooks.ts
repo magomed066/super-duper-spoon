@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications'
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient
 } from '@tanstack/react-query'
 import type { ApiError } from '@/shared/api/errors'
@@ -10,6 +11,7 @@ import type {
   CreateRestaurantPayload,
   CreateRestaurantResponse,
   Restaurant,
+  UpdateRestaurantPayload,
   RestaurantsListParams,
   RestouranstsResponse
 } from '@/shared/api/services/restaurant/types'
@@ -34,6 +36,14 @@ export const useRestaurantsListQuery = (
       lastPage.pagination.hasNextPage
         ? lastPage.pagination.page + 1
         : undefined
+  })
+}
+
+export const useRestaurantQuery = (id?: string, enabled = true) => {
+  return useQuery<Restaurant, ApiError>({
+    queryKey: ['restaurants', id],
+    queryFn: () => RestaurantService.getById(id ?? ''),
+    enabled: enabled && Boolean(id)
   })
 }
 
@@ -122,6 +132,44 @@ export const useCreateRestaurantMutation = (onSuccess?: () => void) => {
       notifications.show({
         color: 'red',
         title: 'Ошибка создания ресторана',
+        message: error.message
+      })
+    }
+  })
+}
+
+export const useUpdateRestaurantMutation = (
+  restaurantId: string,
+  onSuccess?: () => void
+) => {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  return useMutation<Restaurant, ApiError, UpdateRestaurantPayload>({
+    mutationFn: (payload) => RestaurantService.update(restaurantId, payload),
+    onSuccess: async (restaurant) => {
+      notifications.show({
+        color: 'green',
+        title: 'Ресторан обновлен',
+        message: `${restaurant.name} успешно сохранен`
+      })
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['restaurants']
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['restaurants', restaurantId]
+        })
+      ])
+
+      onSuccess?.()
+      navigate(ROUTES.RESTAURANTS)
+    },
+    onError: (error) => {
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка обновления ресторана',
         message: error.message
       })
     }

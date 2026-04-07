@@ -75,3 +75,11 @@ export const restaurantMediaUpload = multer({
 
 export const toPublicUploadPath = (filename: string): string =>
   `/uploads/restaurants/${filename}`
+
+export const toStoredUploadPath = (publicPath?: string | null): string | null => {
+  if (!publicPath?.startsWith('/uploads/restaurants/')) {
+    return null
+  }
+
+  return path.join(uploadsRootDir, publicPath.replace('/uploads/', ''))
+}
