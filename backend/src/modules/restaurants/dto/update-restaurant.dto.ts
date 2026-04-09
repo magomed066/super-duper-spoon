@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { workScheduleItemSchema } from './create-restaurant.dto.js'
+import { workScheduleItemSchema } from './restaurant-work-schedule.dto.js'
 
 const restaurantUpdateProtectedFieldsSchema = z.object({
   status: z.never(),

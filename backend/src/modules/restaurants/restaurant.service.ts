@@ -1,6 +1,4 @@
-import { z } from 'zod'
-import { Brackets } from 'typeorm'
-import type { Repository, SelectQueryBuilder } from 'typeorm'
+import type { Repository } from 'typeorm'
 
 import {
   canCreateRestaurant,
@@ -14,73 +12,40 @@ import { RestaurantAccessService } from './restaurant-access.service.js'
 import { RestaurantStatusTransitionService } from './restaurant-status-transition.service.js'
 import { RestaurantsHttpError } from './restaurants.errors.js'
 import { RestaurantTenantService } from './restaurant-tenant.service.js'
-import {
-  CREATE_RESTAURANT_DEFAULTS,
-  createRestaurantSchema,
-  type CreateRestaurantDto
-} from './dto/create-restaurant.dto.js'
-import {
-  updateRestaurantSchema,
-  type UpdateRestaurantDto
-} from './dto/update-restaurant.dto.js'
+import { assignRestaurantManagerSchema } from './dto/assign-restaurant-manager.dto.js'
+import { createRestaurantSchema } from './dto/create-restaurant.dto.js'
+import { updateRestaurantSchema } from './dto/update-restaurant.dto.js'
 import { RestaurantRole } from './enums/restaurant-role.enum.js'
 import { RestaurantStatus } from './enums/restaurant-status.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
-
-const assignRestaurantManagerSchema = z.object({
-  userId: z.string().trim().min(1, 'User id is required')
-})
-
-type NormalizedCreateRestaurantInput = CreateRestaurantDto
-type UpdateRestaurantInput = UpdateRestaurantDto
-type AssignRestaurantManagerInput = z.infer<typeof assignRestaurantManagerSchema>
-
-export interface RestaurantMembershipUserDto {
-  id: string
-  firstName: string
-  lastName: string
-  phone: string
-  email: string
-  status: string
-  role: UserRole
-  isActive: boolean
-  createdAt: Date
-}
-
-export interface RestaurantMembershipDto {
-  id: string
-  restaurantId: string
-  userId: string
-  role: RestaurantRole
-  isActive: boolean
-  createdAt: Date
-  user: RestaurantMembershipUserDto
-}
-
-export interface CreateRestaurantResultDto {
-  restaurant: Restaurant
-  membership: RestaurantMembershipDto
-}
-
-export interface AssignManagerResultDto {
-  membership: RestaurantMembershipDto
-  created: boolean
-}
-
-export interface RestaurantPaginationDto {
-  page: number
-  limit: number
-  total: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPreviousPage: boolean
-}
-
-export interface PaginatedRestaurantsDto {
-  items: Restaurant[]
-  pagination: RestaurantPaginationDto
-}
+import {
+  buildRestaurantEmail,
+  toRestaurantEntity,
+  toRestaurantMembershipDto,
+  toUpdatedRestaurantEntity
+} from './helpers/restaurant.mapper.js'
+import {
+  applyPublicVisibilityFilter,
+  applyRestaurantFilters,
+  buildMembershipJoinCondition,
+  isRestaurantPubliclyVisible
+} from './helpers/restaurant-query.helpers.js'
+import {
+  buildSlugPattern,
+  generateSlug
+} from './helpers/restaurant-slug.helpers.js'
+import type {
+  AssignManagerResultDto,
+  AssignRestaurantManagerInput,
+  CreateRestaurantResultDto,
+  GetAccessibleRestaurantsOptions,
+  GetPublicRestaurantsOptions,
+  NormalizedCreateRestaurantInput,
+  PaginatedRestaurantsDto,
+  RestaurantMembershipDto,
+  UpdateRestaurantInput
+} from './types/restaurant.service.types.js'
 
 const OWNER_ARCHIVABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
   RestaurantStatus.DRAFT,
@@ -89,28 +54,6 @@ const OWNER_ARCHIVABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
 ])
 
 const INACTIVE_RESTAURANT_MESSAGE = 'Restaurant is not active'
-
-interface GetAccessibleRestaurantsOptions {
-  includeInactiveMemberships?: boolean
-  page?: number
-  limit?: number
-  search?: string
-  name?: string
-  city?: string
-  slug?: string
-  status?: RestaurantStatus
-  isActive?: boolean
-}
-
-interface GetPublicRestaurantsOptions {
-  page?: number
-  limit?: number
-  search?: string
-  name?: string
-  city?: string
-  slug?: string
-  status?: RestaurantStatus
-}
 
 export class RestaurantService {
   private readonly restaurantRepository = AppDataSource.getRepository(Restaurant)
@@ -149,10 +92,7 @@ export class RestaurantService {
       throw new RestaurantsHttpError(403, 'Access denied')
     }
 
-    if (
-      membership.role === RestaurantRole.OWNER ||
-      this.isRestaurantPubliclyVisible(restaurant)
-    ) {
+    if (membership.role === RestaurantRole.OWNER || isRestaurantPubliclyVisible(restaurant)) {
       return restaurant
     }
 
@@ -162,7 +102,7 @@ export class RestaurantService {
   async getPublicRestaurantById(restaurantId: string): Promise<Restaurant> {
     const restaurant = await this.getRestaurantByIdOrThrow(restaurantId)
 
-    if (!this.isRestaurantPubliclyVisible(restaurant)) {
+    if (!isRestaurantPubliclyVisible(restaurant)) {
       throw new RestaurantsHttpError(409, INACTIVE_RESTAURANT_MESSAGE)
     }
 
@@ -202,14 +142,14 @@ export class RestaurantService {
       query.innerJoin(
         RestaurantUser,
         'membership',
-        this.buildMembershipJoinCondition(includeInactiveMemberships),
+        buildMembershipJoinCondition(includeInactiveMemberships),
         {
           userId: currentUser.id
         }
       )
     }
 
-    this.applyRestaurantFilters(query, options)
+    applyRestaurantFilters(query, options)
 
     const [items, total] = await query.skip(offset).take(limit).getManyAndCount()
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit)
@@ -238,8 +178,8 @@ export class RestaurantService {
       .createQueryBuilder('restaurant')
       .orderBy('restaurant.createdAt', 'DESC')
 
-    this.applyPublicVisibilityFilter(query)
-    this.applyRestaurantFilters(query, options)
+    applyPublicVisibilityFilter(query)
+    applyRestaurantFilters(query, options)
 
     const [items, total] = await query.skip(offset).take(limit).getManyAndCount()
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit)
@@ -277,7 +217,7 @@ export class RestaurantService {
         restaurantRepository,
         normalizedPayload
       )
-      const email = normalizedPayload.email ?? this.buildRestaurantEmail(slug)
+      const email = normalizedPayload.email ?? buildRestaurantEmail(slug)
 
       const existingRestaurantByEmail = await restaurantRepository.findOneBy({
         email
@@ -288,7 +228,7 @@ export class RestaurantService {
       }
 
       const restaurant = restaurantRepository.create(
-        this.toRestaurantEntity(
+        toRestaurantEntity(
           {
             ...normalizedPayload,
             slug
@@ -312,7 +252,7 @@ export class RestaurantService {
 
       return {
         restaurant: savedRestaurant,
-        membership: this.toRestaurantMembershipDto({
+        membership: toRestaurantMembershipDto({
           ...membership,
           user
         })
@@ -362,7 +302,7 @@ export class RestaurantService {
       }
     }
 
-    Object.assign(restaurant, this.toUpdatedRestaurantEntity(restaurant, normalizedPayload))
+    Object.assign(restaurant, toUpdatedRestaurantEntity(restaurant, normalizedPayload))
 
     return this.restaurantRepository.save(restaurant)
   }
@@ -573,7 +513,7 @@ export class RestaurantService {
         const savedMembership = await restaurantUserRepository.save(existingMembership)
 
         return {
-          membership: this.toRestaurantMembershipDto({
+          membership: toRestaurantMembershipDto({
             ...savedMembership,
             user
           }),
@@ -595,7 +535,7 @@ export class RestaurantService {
       const savedMembership = await restaurantUserRepository.save(membership)
 
       return {
-        membership: this.toRestaurantMembershipDto({
+        membership: toRestaurantMembershipDto({
           ...savedMembership,
           user
         }),
@@ -666,89 +606,7 @@ export class RestaurantService {
       .orderBy('membership.createdAt', 'DESC')
       .getMany()
 
-    return memberships.map((membership) => this.toRestaurantMembershipDto(membership))
-  }
-
-  private buildRestaurantEmail(slug: string): string {
-    return `${slug}@restaurant.local`
-  }
-
-  private applyRestaurantFilters(
-    query: SelectQueryBuilder<Restaurant>,
-    options: GetAccessibleRestaurantsOptions | GetPublicRestaurantsOptions
-  ): void {
-    if ('isActive' in options && options.isActive !== undefined) {
-      query.andWhere('restaurant.isActive = :isActive', {
-        isActive: options.isActive
-      })
-    }
-
-    if (options.status) {
-      query.andWhere('restaurant.status = :status', {
-        status: options.status
-      })
-    }
-
-    if (options.slug) {
-      query.andWhere('restaurant.slug ILIKE :slug', {
-        slug: `%${this.escapeLikePattern(options.slug)}%`
-      })
-    }
-
-    if (options.name) {
-      query.andWhere('restaurant.name ILIKE :name', {
-        name: `%${this.escapeLikePattern(options.name)}%`
-      })
-    }
-
-    if (options.city) {
-      query.andWhere('restaurant.city ILIKE :city', {
-        city: `%${this.escapeLikePattern(options.city)}%`
-      })
-    }
-
-    if (options.search) {
-      const searchTerm = `%${this.escapeLikePattern(options.search)}%`
-
-      query.andWhere(
-        new Brackets((searchQuery) => {
-          searchQuery
-            .where('restaurant.name ILIKE :search', {
-              search: searchTerm
-            })
-            .orWhere('restaurant.slug ILIKE :search', {
-              search: searchTerm
-            })
-            .orWhere('restaurant.city ILIKE :search', {
-              search: searchTerm
-            })
-            .orWhere('restaurant.email ILIKE :search', {
-              search: searchTerm
-            })
-            .orWhere('restaurant.phone ILIKE :search', {
-              search: searchTerm
-            })
-            .orWhere('restaurant.address ILIKE :search', {
-              search: searchTerm
-            })
-            .orWhere('restaurant.description ILIKE :search', {
-              search: searchTerm
-            })
-        })
-      )
-    }
-  }
-
-  private applyPublicVisibilityFilter(
-    query: SelectQueryBuilder<Restaurant>
-  ): void {
-    query
-      .andWhere('restaurant.status = :publicStatus', {
-        publicStatus: RestaurantStatus.ACTIVE
-      })
-      .andWhere('restaurant.isActive = :isPubliclyActive', {
-        isPubliclyActive: true
-      })
+    return memberships.map((membership) => toRestaurantMembershipDto(membership))
   }
 
   private async getRestaurantByIdOrThrow(restaurantId: string): Promise<Restaurant> {
@@ -767,13 +625,6 @@ export class RestaurantService {
     }
 
     return restaurant
-  }
-
-  private isRestaurantPubliclyVisible(restaurant: Restaurant): boolean {
-    return (
-      restaurant.status === RestaurantStatus.ACTIVE &&
-      restaurant.isActive
-    )
   }
 
   private applyStatusTransition(
@@ -833,7 +684,7 @@ export class RestaurantService {
       return payload.slug
     }
 
-    const baseSlug = this.generateSlug(payload.name)
+    const baseSlug = generateSlug(payload.name)
 
     if (!baseSlug) {
       throw new RestaurantsHttpError(
@@ -847,7 +698,7 @@ export class RestaurantService {
       .select('restaurant.slug', 'slug')
       .where('restaurant.slug = :baseSlug', { baseSlug })
       .orWhere('restaurant.slug LIKE :slugPattern', {
-        slugPattern: this.buildSlugPattern(baseSlug)
+        slugPattern: buildSlugPattern(baseSlug)
       })
       .getRawMany<{ slug: string }>()
 
@@ -994,115 +845,12 @@ export class RestaurantService {
     }
   }
 
-  private generateSlug(name: string): string {
-    return name
-      .trim()
-      .toLowerCase()
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .replace(/-{2,}/g, '-')
-  }
-
-  private buildSlugPattern(slug: string): string {
-    return `${slug}-%`
-  }
-
-  private escapeLikePattern(value: string): string {
-    return value.replace(/[\\%_]/g, '\\$&')
-  }
-
-  private buildMembershipJoinCondition(includeInactiveMemberships: boolean): string {
-    const conditions = [
-      'membership.restaurantId = restaurant.id',
-      'membership.userId = :userId'
-    ]
-
-    if (!includeInactiveMemberships) {
-      conditions.push('membership.isActive = true')
-    }
-
-    return conditions.join(' AND ')
-  }
-
   private assertCanAssignRestaurantManager(user: User): void {
     if (user.role === UserRole.SYSTEM_OWNER) {
       throw new RestaurantsHttpError(
         409,
         'System owners cannot be assigned restaurant manager memberships'
       )
-    }
-  }
-
-  private toRestaurantMembershipDto(
-    membership: RestaurantUser & { user: User }
-  ): RestaurantMembershipDto {
-    return {
-      id: membership.id,
-      restaurantId: membership.restaurantId,
-      userId: membership.userId,
-      role: membership.role,
-      isActive: membership.isActive,
-      createdAt: membership.createdAt,
-      user: {
-        id: membership.user.id,
-        firstName: membership.user.firstName,
-        lastName: membership.user.lastName,
-        phone: membership.user.phone,
-        email: membership.user.email,
-        status: membership.user.status,
-        role: membership.user.role,
-        isActive: membership.user.isActive,
-        createdAt: membership.user.createdAt
-      }
-    }
-  }
-
-  private toRestaurantEntity(
-    payload: NormalizedCreateRestaurantInput,
-    email: string
-  ): Partial<Restaurant> {
-    return {
-      name: payload.name,
-      slug: payload.slug,
-      email,
-      phone: payload.phone,
-      phones: payload.phones.length > 0 ? payload.phones : [payload.phone],
-      address: payload.address,
-      description: payload.description,
-      city: payload.city ?? 'TBD',
-      logo: payload.logo ?? '',
-      preview: payload.preview ?? '',
-      deliveryTime: payload.deliveryTime ?? 0,
-      deliveryConditions: payload.deliveryConditions ?? '',
-      cuisine: payload.cuisine,
-      workSchedule: payload.workSchedule,
-      status: CREATE_RESTAURANT_DEFAULTS.status,
-      isActive: CREATE_RESTAURANT_DEFAULTS.isActive
-    }
-  }
-
-  private toUpdatedRestaurantEntity(
-    restaurant: Restaurant,
-    payload: UpdateRestaurantInput
-  ): Partial<Restaurant> {
-    return {
-      name: payload.name ?? restaurant.name,
-      slug: payload.slug ?? restaurant.slug,
-      email: payload.email ?? restaurant.email,
-      phone: payload.phone ?? restaurant.phone,
-      phones: payload.phones ?? restaurant.phones,
-      address: payload.address ?? restaurant.address,
-      description: payload.description ?? restaurant.description,
-      city: payload.city ?? restaurant.city,
-      logo: payload.logo ?? restaurant.logo,
-      preview: payload.preview ?? restaurant.preview,
-      deliveryTime: payload.deliveryTime ?? restaurant.deliveryTime,
-      deliveryConditions:
-        payload.deliveryConditions ?? restaurant.deliveryConditions,
-      cuisine: payload.cuisine ?? restaurant.cuisine,
-      workSchedule: payload.workSchedule ?? restaurant.workSchedule
     }
   }
 }

@@ -1,12 +1,7 @@
 import { z } from 'zod'
 
 import { RestaurantStatus } from '../enums/restaurant-status.enum.js'
-
-export const workScheduleItemSchema = z.object({
-  day: z.string().trim().min(1, 'Work schedule day is required'),
-  open: z.string().trim().min(1, 'Work schedule open time is required'),
-  close: z.string().trim().min(1, 'Work schedule close time is required')
-})
+import { workScheduleItemSchema } from './restaurant-work-schedule.dto.js'
 
 const restaurantSystemFieldsSchema = z.object({
   status: z.never(),
