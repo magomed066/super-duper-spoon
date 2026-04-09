@@ -447,6 +447,23 @@ export class RestaurantService {
     )
   }
 
+  async unblock(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined
+  ): Promise<Restaurant> {
+    const restaurant = await this.getRestaurantForSystemModeration(
+      restaurantId,
+      currentUser,
+      'unblock restaurants'
+    )
+
+    return this.performModerationTransition(
+      restaurant,
+      RestaurantStatus.ACTIVE,
+      'unblock'
+    )
+  }
+
   async archive(
     restaurantId: string,
     currentUser: AuthenticatedRequestUser | undefined

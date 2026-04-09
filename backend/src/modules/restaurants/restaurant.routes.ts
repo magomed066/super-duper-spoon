@@ -487,6 +487,52 @@ const restaurantController = new RestaurantController(restaurantService)
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ * /restaurants/{id}/unblock:
+ *   post:
+ *     tags:
+ *       - Restaurants
+ *     summary: Unblock restaurant
+ *     description: Moves a restaurant from BLOCKED to ACTIVE and activates it. Only system owners can perform this action.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant id
+ *     responses:
+ *       200:
+ *         description: Restaurant unblocked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Restaurant'
+ *       401:
+ *         description: Authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: Invalid status transition
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  * /restaurants/{id}/reject:
  *   post:
  *     tags:
@@ -901,6 +947,13 @@ restaurantsRouter.post(
   authMiddleware,
   roleMiddleware([UserRole.SYSTEM_OWNER]),
   restaurantController.block
+)
+
+restaurantsRouter.post(
+  '/:id/unblock',
+  authMiddleware,
+  roleMiddleware([UserRole.SYSTEM_OWNER]),
+  restaurantController.unblock
 )
 
 restaurantsRouter.post(

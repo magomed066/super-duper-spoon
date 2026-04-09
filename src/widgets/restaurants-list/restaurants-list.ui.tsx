@@ -62,15 +62,13 @@ export function RestaurantsListWidget() {
     )
   }
 
-  if (isLoading) {
-    return <Loader className="mx-auto" />
-  }
-
   return (
     <Stack className="w-full">
       <FiltersRestaurants />
 
-      {!restaurants.length ? (
+      {isLoading && !isError && <Loader className="mx-auto" />}
+
+      {!isLoading && !restaurants.length ? (
         hasActiveFilters ? (
           <Stack
             align="center"

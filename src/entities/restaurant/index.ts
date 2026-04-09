@@ -11,6 +11,7 @@ export {
   useRequestRestaurantChangesMutation,
   useRejectRestaurantMutation,
   useBlockRestaurantMutation,
+  useUnblockRestaurantMutation,
   useArchiveRestaurantMutation,
   useRestaurantUsersQuery,
   useAssignRestaurantManagerMutation,

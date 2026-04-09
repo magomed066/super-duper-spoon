@@ -85,7 +85,7 @@ export function RestaurantCard({ data, renderActions }: Props) {
             </Text>
           </Stack>
 
-          <Text size="sm" c="dimmed" className="line-clamp-3">
+          <Text size="sm" c="dimmed" className="line-clamp-3 truncate">
             {description}
           </Text>
 

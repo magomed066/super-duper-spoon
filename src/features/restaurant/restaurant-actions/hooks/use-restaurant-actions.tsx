@@ -12,6 +12,7 @@ import {
   useDeleteRestaurantMutation,
   useRejectRestaurantMutation,
   useRequestRestaurantChangesMutation,
+  useUnblockRestaurantMutation,
   useSubmitRestaurantForApprovalMutation
 } from '@/entities/restaurant'
 import { useAuthStore } from '@/entities/auth'
@@ -30,6 +31,7 @@ type ConfirmAction =
   | 'requestChanges'
   | 'reject'
   | 'block'
+  | 'unblock'
   | 'archive'
   | 'delete'
 
@@ -41,6 +43,7 @@ function useRestaurantActions(data: Restaurant) {
   const requestChangesMutation = useRequestRestaurantChangesMutation()
   const rejectMutation = useRejectRestaurantMutation()
   const blockMutation = useBlockRestaurantMutation()
+  const unblockMutation = useUnblockRestaurantMutation()
   const archiveMutation = useArchiveRestaurantMutation()
   const deleteMutation = useDeleteRestaurantMutation()
   const [pendingAction, setPendingAction] = useState<ConfirmAction | null>(null)
@@ -58,6 +61,7 @@ function useRestaurantActions(data: Restaurant) {
     requestChangesMutation.isPending ||
     rejectMutation.isPending ||
     blockMutation.isPending ||
+    unblockMutation.isPending ||
     archiveMutation.isPending ||
     deleteMutation.isPending
 
@@ -98,6 +102,7 @@ function useRestaurantActions(data: Restaurant) {
       requestChanges: requestChangesMutation,
       reject: rejectMutation,
       block: blockMutation,
+      unblock: unblockMutation,
       archive: archiveMutation
     } as const
 
@@ -148,10 +153,17 @@ function useRestaurantActions(data: Restaurant) {
     },
     {
       key: 'approve',
-      label: canRestoreFromBlocked ? 'Разблокировать' : 'Одобрить',
-      hidden: !(canApprove || canRestoreFromBlocked),
+      label: 'Одобрить',
+      hidden: !canApprove,
       disabled: isActionPending,
       onClick: () => openConfirm('approve')
+    },
+    {
+      key: 'unblock',
+      label: 'Разблокировать',
+      hidden: !canRestoreFromBlocked,
+      disabled: isActionPending,
+      onClick: () => openConfirm('unblock')
     },
     {
       key: 'request-changes',
@@ -209,18 +221,17 @@ function useRestaurantActions(data: Restaurant) {
       : pendingAction === 'approve'
       ? {
           opened: true,
-          title:
-            data.status === RestaurantModerationStatus.BLOCKED
-              ? 'Разблокировать ресторан?'
-              : 'Одобрить ресторан?',
-          description:
-            data.status === RestaurantModerationStatus.BLOCKED
-              ? `Ресторан «${data.name}» снова станет активным.`
-              : `Ресторан «${data.name}» будет опубликован.`,
-          confirmLabel:
-            data.status === RestaurantModerationStatus.BLOCKED
-              ? 'Разблокировать'
-              : 'Одобрить',
+          title: 'Одобрить ресторан?',
+          description: `Ресторан «${data.name}» будет опубликован.`,
+          confirmLabel: 'Одобрить',
+          confirmColor: 'aurora' as const
+        }
+      : pendingAction === 'unblock'
+      ? {
+          opened: true,
+          title: 'Разблокировать ресторан?',
+          description: `Ресторан «${data.name}» снова станет активным.`,
+          confirmLabel: 'Разблокировать',
           confirmColor: 'aurora' as const
         }
       : pendingAction === 'requestChanges'

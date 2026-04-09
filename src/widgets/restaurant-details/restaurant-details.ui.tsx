@@ -46,7 +46,10 @@ const formatDate = (value: string) =>
   }).format(new Date(value))
 
 export function RestaurantDetailsWidget({ id }: Props) {
-  const { data, error, isError, isLoading } = useRestaurantQuery(id, Boolean(id))
+  const { data, error, isError, isLoading } = useRestaurantQuery(
+    id,
+    Boolean(id)
+  )
 
   if (isLoading) {
     return <Loader className="mx-auto mt-10" />
@@ -79,7 +82,12 @@ export function RestaurantDetailsWidget({ id }: Props) {
 
   return (
     <Stack gap="lg">
-      <Card withBorder radius={24} padding={0} className="overflow-hidden bg-white">
+      <Card
+        withBorder
+        radius={24}
+        padding={0}
+        className="overflow-hidden bg-white"
+      >
         <div className="relative h-72 overflow-hidden bg-moss-100">
           <Image
             src={resolveMediaUrl(data.preview)}
@@ -137,8 +145,12 @@ export function RestaurantDetailsWidget({ id }: Props) {
             </div>
           </Group>
 
-          <Text size="sm" className="max-w-4xl leading-7 text-moss-700">
-            {data.description?.trim() || 'Описание ресторана пока не заполнено.'}
+          <Text
+            size="sm"
+            className="w-full max-w-6xl whitespace-pre-line wrap-break-word leading-7 text-moss-700"
+          >
+            {data.description?.trim() ||
+              'Описание ресторана пока не заполнено.'}
           </Text>
         </Stack>
       </Card>
@@ -185,7 +197,12 @@ export function RestaurantDetailsWidget({ id }: Props) {
               <Divider my="lg" />
 
               <Stack gap="sm">
-                <Text size="md" fw={600} className="text-moss-900" tt="uppercase">
+                <Text
+                  size="md"
+                  fw={600}
+                  className="text-moss-900"
+                  tt="uppercase"
+                >
                   Условия доставки
                 </Text>
                 <Text size="sm" className="leading-7 text-moss-700">
@@ -218,7 +235,9 @@ export function RestaurantDetailsWidget({ id }: Props) {
                         className="bg-moss-50"
                       >
                         <Group justify="space-between" gap="sm">
-                          <Text fw={600}>{getRestaurantWeekdayLabel(item.day)}</Text>
+                          <Text fw={600}>
+                            {getRestaurantWeekdayLabel(item.day)}
+                          </Text>
                           <Text size="sm" c="dimmed">
                             {item.open} - {item.close}
                           </Text>

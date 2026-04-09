@@ -172,6 +172,13 @@ export const useBlockRestaurantMutation = () =>
     errorTitle: 'Ошибка блокировки ресторана'
   })
 
+export const useUnblockRestaurantMutation = () =>
+  useRestaurantActionMutation(RestaurantService.unblock, {
+    successTitle: 'Ресторан разблокирован',
+    successMessage: (restaurant) => `${restaurant.name} снова опубликован`,
+    errorTitle: 'Ошибка разблокировки ресторана'
+  })
+
 export const useArchiveRestaurantMutation = () =>
   useRestaurantActionMutation(RestaurantService.archive, {
     successTitle: 'Ресторан архивирован',

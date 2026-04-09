@@ -155,6 +155,10 @@ export class RestaurantService {
     return apiService.post(`/restaurants/${id}/block`)
   }
 
+  static unblock(id: string): Promise<Restaurant> {
+    return apiService.post(`/restaurants/${id}/unblock`)
+  }
+
   static archive(id: string): Promise<Restaurant> {
     return apiService.post(`/restaurants/${id}/archive`)
   }

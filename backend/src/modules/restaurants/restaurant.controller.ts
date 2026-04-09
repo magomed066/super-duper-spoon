@@ -305,6 +305,23 @@ export class RestaurantController {
     }
   }
 
+  unblock = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.unblock(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
   archive = async (
     req: Request,
     res: Response,
