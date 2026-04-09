@@ -1,33 +1,57 @@
-import { useState } from 'react'
 import { TbLogout2 } from 'react-icons/tb'
-import { Button, Group } from '@mantine/core'
+import { Button, Text } from '@mantine/core'
 import { useLogoutMutation } from '@/entities/auth/model/hooks'
-import { AuthPermission, hasPermission, useAuthStore } from '@/entities/auth'
-import { Link, useLocation } from 'react-router'
+import {
+  AuthPermission,
+  PlatformPermission,
+  hasPermission,
+  USER_ROLE_LABELS,
+  useAuthStore
+} from '@/entities/auth'
+import { NavLink } from 'react-router'
 import { ROUTES } from '@/shared/config/routes'
 import { FaListCheck } from 'react-icons/fa6'
 import { IoMailOpenOutline } from 'react-icons/io5'
 import cn from 'classnames'
+import type { ReactNode } from 'react'
+import { BiFoodMenu } from 'react-icons/bi'
+import { FaTasks } from 'react-icons/fa'
 
-const data = [
+type SidebarItem = {
+  link: string
+  label: string
+  icon: () => ReactNode
+  permission: PlatformPermission
+}
+
+const data: SidebarItem[] = [
   {
     link: ROUTES.APPLICATIONS,
     label: 'Заявки',
-    icon: () => <IoMailOpenOutline size={18} />,
+    icon: () => <IoMailOpenOutline size={20} />,
     permission: AuthPermission.VIEW_APPLICATIONS
   },
   {
     link: ROUTES.RESTAURANTS,
     label: 'Рестораны',
-    icon: () => <FaListCheck size={18} />,
+    icon: () => <FaListCheck size={20} />,
     permission: AuthPermission.VIEW_RESTAURANTS
+  },
+  {
+    link: ROUTES.MENU,
+    label: 'Меню',
+    icon: () => <BiFoodMenu size={20} />,
+    permission: AuthPermission.VIEW_MENU
+  },
+  {
+    link: ROUTES.ORDERS,
+    label: 'Заказы',
+    icon: () => <FaTasks size={20} />,
+    permission: AuthPermission.VIEW_ORDERS
   }
 ]
 
 export function Sidebar() {
-  const location = useLocation()
-  const [active, setActive] = useState(location.pathname)
-
   const { refreshToken, user } = useAuthStore()
 
   const { mutate } = useLogoutMutation()
@@ -42,41 +66,118 @@ export function Sidebar() {
     hasPermission(user, item.permission)
   )
 
+  const roleLabel = user ? USER_ROLE_LABELS[user.role] : null
+
+  const initials = user
+    ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()
+    : 'DA'
+
   const links = visibleLinks.map((item) => (
-    <Link
+    <NavLink
       to={item.link}
-      className={cn(
-        'p-2.5 transition hover:bg-moss-50 rounded-md flex items-center gap-3',
-        active === item.link && 'bg-moss-200 hover:bg-moss-200'
-      )}
+      className={({ isActive }) =>
+        cn(
+          'group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors',
+          isActive
+            ? 'bg-moss-50 text-moss-900 ring-1 ring-moss-200'
+            : 'text-moss-700 hover:bg-moss-100 hover:text-moss-900'
+        )
+      }
       key={item.label}
-      onClick={() => {
-        setActive(item.link)
-      }}
     >
-      {item.icon()}
-      <span>{item.label}</span>
-    </Link>
+      {({ isActive }) => (
+        <>
+          <div
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-xl transition-colors',
+              isActive
+                ? 'bg-white text-aurora-700 shadow-sm'
+                : 'bg-white text-moss-600 group-hover:bg-white group-hover:text-moss-900'
+            )}
+          >
+            {item.icon()}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <Text
+              fw={600}
+              className={cn('truncate text-[15px]', 'text-moss-900')}
+            >
+              {item.label}
+            </Text>
+          </div>
+
+          <div
+            className={cn(
+              'h-1.5 w-1.5 rounded-full transition-colors',
+              isActive
+                ? 'bg-aurora-500'
+                : 'bg-transparent group-hover:bg-moss-400'
+            )}
+          />
+        </>
+      )}
+    </NavLink>
   ))
 
   return (
-    <nav className="w-full flex-1 flex flex-col">
-      <div className="flex-1">
-        <Group
-          className="flex border-b border-moss-300 p-3"
-          justify="space-between"
-        >
-          Delivery App
-        </Group>
-
-        <div className="p-3 mt-auto flex flex-col">{links}</div>
+    <nav className="flex h-full w-full flex-col border-r border-black/6 bg-white px-4 py-5">
+      <div className="border-b border-black/6 pb-5">
+        <div className="flex items-center gap-3 px-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-moss-50 text-sm font-semibold text-moss-900 ring-1 ring-moss-200">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <Text size="xs" fw={700} tt="uppercase" className="text-moss-500">
+              Delivery app
+            </Text>
+            <Text fw={700} className="truncate text-lg text-moss-900">
+              Панель управления
+            </Text>
+          </div>
+        </div>
       </div>
 
-      <div className="py-2 border-t border-moss-300">
-        <Button variant="transparent" onClick={handleLogout}>
-          <TbLogout2 className="mr-2" size={18} />
-          <span className="text-moss-900">Выйти из системы</span>
-        </Button>
+      <div className="pt-5">
+        <Text size="xs" fw={700} tt="uppercase" className="px-2 text-moss-500">
+          Навигация
+        </Text>
+        <div className="mt-3 flex flex-col gap-1.5">{links}</div>
+      </div>
+
+      <div className="mt-auto border-t border-black/6 pt-4">
+        <div className="rounded-2xl bg-white p-3">
+          <div className="flex items-center gap-3 px-1">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-moss-100 text-sm font-semibold text-moss-900">
+              {initials}
+            </div>
+            <div className="min-w-0 flex-1">
+              <Text fw={600} className="truncate text-moss-900">
+                {user ? `${user.firstName} ${user.lastName}` : 'Delivery App'}
+              </Text>
+              <Text size="xs" className="mt-1 truncate text-moss-600">
+                {roleLabel ?? 'Авторизованный пользователь'}
+              </Text>
+              {user?.email ? (
+                <Text size="xs" className="mt-1 truncate text-moss-500">
+                  {user.email}
+                </Text>
+              ) : null}
+            </div>
+          </div>
+
+          <Button
+            variant="default"
+            // color=""
+            fullWidth
+            mt="md"
+            radius="md"
+            onClick={handleLogout}
+            leftSection={<TbLogout2 size={18} />}
+          >
+            Выйти из системы
+          </Button>
+        </div>
       </div>
     </nav>
   )

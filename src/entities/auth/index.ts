@@ -1,4 +1,5 @@
 export { authHighlights, authStats } from './config/content'
+export { USER_ROLE_LABELS } from './model/constants'
 
 export {
   getFieldErrors,
@@ -13,7 +14,11 @@ export {
   AuthPermission,
   canAccessRoute,
   getRouteFallback,
-  hasPermission
+  hasPermission,
+  hasPlatformPermission,
+  PLATFORM_PERMISSIONS_BY_ROLE,
+  PLATFORM_ROUTE_ACCESS,
+  PlatformPermission
 } from './model/rbac'
 export {
   ACCESS_TOKEN_STORAGE_KEY,

@@ -127,8 +127,7 @@ export class AuthService {
 
   private generateAccessToken(user: User): string {
     const payload: AccessTokenPayload = {
-      sub: user.id,
-      email: user.email,
+      userId: user.id,
       role: user.role
     }
 

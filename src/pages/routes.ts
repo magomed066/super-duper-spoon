@@ -1,6 +1,9 @@
 import AuthPage from '@/pages/auth'
 import ApplicationsPage from '@/pages/applications'
 import NotFoundPage from '@/pages/not-found'
+import RestaurantCreatePage from '@/pages/restaurant-create'
+import RestaurantDetailsPage from '@/pages/restaurant-details'
+import RestaurantEditPage from '@/pages/restaurant-edit'
 import RestaurantPage from '@/pages/restaurants'
 import RequestPage from '@/pages/request'
 import RequestSuccessPage from '@/pages/request-success'
@@ -38,5 +41,17 @@ export const privateRoutes = [
   {
     Component: RestaurantPage,
     path: ROUTES.RESTAURANTS
+  },
+  {
+    Component: RestaurantDetailsPage,
+    path: ROUTES.RESTAURANTS_DETAILS
+  },
+  {
+    Component: RestaurantCreatePage,
+    path: ROUTES.RESTAURANTS_CREATE
+  },
+  {
+    Component: RestaurantEditPage,
+    path: ROUTES.RESTAURANTS_EDIT
   }
 ]

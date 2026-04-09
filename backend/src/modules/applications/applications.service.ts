@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt'
 import { randomBytes } from 'node:crypto'
 import { Repository } from 'typeorm'
 
@@ -12,6 +11,7 @@ import { AppDataSource } from '../../database/data-source.js'
 import { isValidEmail } from '../../helpers/utils.js'
 import { User } from '../users/entities/user.entity.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
+import { UsersService } from '../users/users.service.js'
 import { Application } from './entities/application.entity.js'
 import { ApplicationStatus } from './enums/application-status.enum.js'
 import {
@@ -32,9 +32,12 @@ export class ApplicationsService {
 
   private readonly userRepository: Repository<User>
 
+  private readonly usersService: UsersService
+
   constructor() {
     this.applicationRepository = AppDataSource.getRepository(Application)
     this.userRepository = AppDataSource.getRepository(User)
+    this.usersService = new UsersService()
   }
 
   async createApplication(
@@ -93,47 +96,51 @@ export class ApplicationsService {
   }
 
   async approveApplication(id: string): Promise<ApprovalResult> {
-    const application = await this.getApplicationOrThrow(id)
+    return AppDataSource.transaction(async (manager) => {
+      const applicationRepository = manager.getRepository(Application)
+      const userRepository = manager.getRepository(User)
+      const application = await this.getApplicationOrThrow(id, applicationRepository)
 
-    if (application.status !== ApplicationStatus.PENDING) {
-      throw new ApplicationsHttpError(
-        409,
-        'Only pending applications can be approved'
-      )
-    }
+      if (application.status !== ApplicationStatus.PENDING) {
+        throw new ApplicationsHttpError(
+          409,
+          'Only pending applications can be approved'
+        )
+      }
 
-    const existingUser = await this.userRepository.findOne({
-      where: { emailHash: application.emailHash }
-    })
-
-    if (existingUser) {
-      throw new ApplicationsHttpError(409, 'Email is already in use')
-    }
-
-    const password = randomBytes(9).toString('base64url')
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const { firstName, lastName } = this.splitName(application.name)
-
-    await this.userRepository.save(
-      this.userRepository.create({
-        firstName,
-        lastName,
-        phone: application.phone,
-        email: application.email,
-        password: hashedPassword,
-        status: 'ACTIVE',
-        role: UserRole.CLIENT,
-        isActive: true
+      const existingUser = await userRepository.findOne({
+        where: { emailHash: application.emailHash }
       })
-    )
 
-    application.status = ApplicationStatus.APPROVED
-    const savedApplication = await this.applicationRepository.save(application)
+      if (existingUser) {
+        throw new ApplicationsHttpError(409, 'Email is already in use')
+      }
 
-    return {
-      application: this.toApplicationDto(savedApplication),
-      password
-    }
+      const password = randomBytes(9).toString('base64url')
+      const { firstName, lastName } = this.splitName(application.name)
+
+      await this.usersService.createWithManager(
+        {
+          firstName,
+          lastName,
+          phone: application.phone,
+          email: application.email,
+          password,
+          status: 'ACTIVE',
+          role: UserRole.CLIENT,
+          isActive: true
+        },
+        manager
+      )
+
+      application.status = ApplicationStatus.APPROVED
+      const savedApplication = await applicationRepository.save(application)
+
+      return {
+        application: this.toApplicationDto(savedApplication),
+        password
+      }
+    })
   }
 
   async rejectApplication(id: string): Promise<ApplicationDto> {
@@ -179,12 +186,15 @@ export class ApplicationsService {
     }
   }
 
-  private async getApplicationOrThrow(id: string): Promise<Application> {
+  private async getApplicationOrThrow(
+    id: string,
+    repository: Repository<Application> = this.applicationRepository
+  ): Promise<Application> {
     if (!id.trim()) {
       throw new ApplicationsHttpError(400, 'Application id is required')
     }
 
-    const application = await this.applicationRepository.findOne({
+    const application = await repository.findOne({
       where: { id }
     })
 

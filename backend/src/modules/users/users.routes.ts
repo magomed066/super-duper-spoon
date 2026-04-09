@@ -17,7 +17,7 @@ const usersController = new UsersController(usersService)
  *     tags:
  *       - Users
  *     summary: Block user
- *     description: OWNER-only endpoint that sets `isActive` to `false` for the target user.
+ *     description: SYSTEM_OWNER-only endpoint that sets `isActive` to `false` for the target user.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -57,7 +57,7 @@ const usersController = new UsersController(usersService)
 usersRouter.patch(
   '/:id/block',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER]),
   usersController.block
 )
 
@@ -68,7 +68,7 @@ usersRouter.patch(
  *     tags:
  *       - Users
  *     summary: Unblock user
- *     description: OWNER-only endpoint that sets `isActive` to `true` for the target user.
+ *     description: SYSTEM_OWNER-only endpoint that sets `isActive` to `true` for the target user.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -108,7 +108,7 @@ usersRouter.patch(
 usersRouter.patch(
   '/:id/unblock',
   authMiddleware,
-  roleMiddleware([UserRole.OWNER]),
+  roleMiddleware([UserRole.SYSTEM_OWNER]),
   usersController.unblock
 )
 

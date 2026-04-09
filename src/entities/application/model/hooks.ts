@@ -1,9 +1,5 @@
 import { notifications } from '@mantine/notifications'
-import {
-  useMutation,
-  useQuery,
-  useQueryClient
-} from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ApiError } from '@/shared/api/errors'
 import { ApplocationService } from '@/shared/api/services/application'
 import type {

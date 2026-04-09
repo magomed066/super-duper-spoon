@@ -13,7 +13,9 @@ export const seedInitialOwner = async (): Promise<void> => {
     const hasUsersTable = await queryRunner.hasTable('users')
 
     if (!hasUsersTable) {
-      console.warn('Skipping initial owner seed: users table does not exist yet')
+      console.warn(
+        'Skipping initial owner seed: users table does not exist yet'
+      )
       return
     }
   } finally {
@@ -31,11 +33,13 @@ export const seedInitialOwner = async (): Promise<void> => {
 
   await usersService.create({
     firstName: (process.env.INITIAL_OWNER_FIRST_NAME ?? 'Admin').trim(),
-    lastName: (process.env.INITIAL_OWNER_LAST_NAME ?? 'Owner').trim(),
+    lastName: (process.env.INITIAL_OWNER_LAST_NAME ?? 'SystemOwner').trim(),
     phone: (process.env.INITIAL_OWNER_PHONE ?? DEFAULT_OWNER_PHONE).trim(),
     email,
-    password: (process.env.INITIAL_OWNER_PASSWORD ?? DEFAULT_OWNER_PASSWORD).trim(),
-    role: UserRole.OWNER,
+    password: (
+      process.env.INITIAL_OWNER_PASSWORD ?? DEFAULT_OWNER_PASSWORD
+    ).trim(),
+    role: UserRole.SYSTEM_OWNER,
     status: 'ACTIVE',
     isActive: true
   })

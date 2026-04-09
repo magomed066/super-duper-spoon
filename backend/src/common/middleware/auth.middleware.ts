@@ -1,13 +1,8 @@
 import type { NextFunction, Request, Response } from 'express'
-import jwt, { type JwtPayload } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 
 import { env } from '../../config/index.js'
-import { AppDataSource } from '../../database/data-source.js'
-import { User } from '../../modules/users/entities/user.entity.js'
-
-type AccessTokenPayload = JwtPayload & {
-  sub: string
-}
+import type { AccessTokenPayload } from '../../modules/auth/types/auth.types.js'
 
 const extractBearerToken = (authorizationHeader?: string): string | null => {
   if (!authorizationHeader) {
@@ -23,8 +18,14 @@ const extractBearerToken = (authorizationHeader?: string): string | null => {
   return token
 }
 
-const isAccessTokenPayload = (payload: string | JwtPayload): payload is AccessTokenPayload =>
-  typeof payload !== 'string' && typeof payload.sub === 'string' && payload.sub.length > 0
+const isAccessTokenPayload = (payload: unknown): payload is AccessTokenPayload =>
+  typeof payload === 'object' &&
+  payload !== null &&
+  'userId' in payload &&
+  typeof payload.userId === 'string' &&
+  payload.userId.length > 0 &&
+  'role' in payload &&
+  typeof payload.role === 'string'
 
 export const authMiddleware = async (
   req: Request,
@@ -52,18 +53,10 @@ export const authMiddleware = async (
       return
     }
 
-    const userRepository = AppDataSource.getRepository(User)
-    const user = await userRepository.findOneBy({ id: payload.sub })
-
-    if (!user || !user.isActive) {
-      res.status(401).json({
-        status: 'error',
-        message: 'User is not authorized'
-      })
-      return
+    req.user = {
+      id: payload.userId,
+      role: payload.role
     }
-
-    req.user = user
     next()
   } catch {
     res.status(401).json({

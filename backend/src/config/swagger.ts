@@ -11,6 +11,10 @@ const swaggerOptions = {
       description:
         'Backend API documentation for the restaurant management system.'
     },
+    externalDocs: {
+      description: 'Raw OpenAPI specification',
+      url: `http://localhost:${PORT}/api/docs.json`
+    },
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -198,7 +202,7 @@ const swaggerOptions = {
             },
             role: {
               type: 'string',
-              enum: ['OWNER', 'CLIENT', 'MANAGER'],
+              enum: ['SYSTEM_OWNER', 'CLIENT', 'STAFF'],
               example: 'CLIENT'
             },
             isActive: {
@@ -208,6 +212,398 @@ const swaggerOptions = {
             createdAt: {
               type: 'string',
               format: 'date-time'
+            }
+          }
+        },
+        RestaurantWorkScheduleItem: {
+          type: 'object',
+          required: ['day', 'open', 'close'],
+          properties: {
+            day: {
+              type: 'string',
+              example: 'Monday'
+            },
+            open: {
+              type: 'string',
+              example: '09:00'
+            },
+            close: {
+              type: 'string',
+              example: '22:00'
+            }
+          }
+        },
+        RestaurantStatus: {
+          type: 'string',
+          enum: [
+            'DRAFT',
+            'PENDING_APPROVAL',
+            'ACTIVE',
+            'CHANGES_REQUIRED',
+            'REJECTED',
+            'BLOCKED',
+            'ARCHIVED'
+          ],
+          example: 'DRAFT'
+        },
+        Restaurant: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid'
+            },
+            name: {
+              type: 'string',
+              example: 'Sunrise Cafe'
+            },
+            slug: {
+              type: 'string',
+              example: 'sunrise-cafe'
+            },
+            cuisine: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              example: ['European', 'Breakfast']
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              example: 'sunrise-cafe@restaurant.local'
+            },
+            phones: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              example: ['+79991234567']
+            },
+            city: {
+              type: 'string',
+              example: 'Moscow'
+            },
+            logo: {
+              type: 'string',
+              example: '/uploads/restaurants/logo-1712497612345-123456789.png'
+            },
+            preview: {
+              type: 'string',
+              example: '/uploads/restaurants/preview-1712497612345-987654321.png'
+            },
+            workSchedule: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/RestaurantWorkScheduleItem'
+              }
+            },
+            deliveryTime: {
+              type: 'integer',
+              example: 45
+            },
+            deliveryConditions: {
+              type: 'string',
+              example: 'Free delivery for orders over 1500 RUB'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'All-day breakfast and specialty coffee.'
+            },
+            phone: {
+              type: 'string',
+              nullable: true,
+              example: '+79991234567'
+            },
+            address: {
+              type: 'string',
+              nullable: true,
+              example: '1 Tverskaya Street, Moscow'
+            },
+            status: {
+              $ref: '#/components/schemas/RestaurantStatus'
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time'
+            }
+          }
+        },
+        RestaurantMembershipUser: {
+          allOf: [
+            {
+              $ref: '#/components/schemas/User'
+            }
+          ]
+        },
+        RestaurantMembership: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid'
+            },
+            restaurantId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            userId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            role: {
+              type: 'string',
+              enum: ['OWNER', 'MANAGER'],
+              example: 'MANAGER'
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            user: {
+              $ref: '#/components/schemas/RestaurantMembershipUser'
+            }
+          }
+        },
+        PaginationMeta: {
+          type: 'object',
+          properties: {
+            page: {
+              type: 'integer',
+              example: 1
+            },
+            limit: {
+              type: 'integer',
+              example: 10
+            },
+            total: {
+              type: 'integer',
+              example: 42
+            },
+            totalPages: {
+              type: 'integer',
+              example: 5
+            },
+            hasNextPage: {
+              type: 'boolean',
+              example: true
+            },
+            hasPreviousPage: {
+              type: 'boolean',
+              example: false
+            }
+          }
+        },
+        PaginatedRestaurantsResponse: {
+          type: 'object',
+          properties: {
+            items: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/Restaurant'
+              }
+            },
+            pagination: {
+              $ref: '#/components/schemas/PaginationMeta'
+            }
+          }
+        },
+        CreateRestaurantRequest: {
+          type: 'object',
+          required: ['name', 'phone', 'address', 'description'],
+          properties: {
+            name: {
+              type: 'string',
+              example: 'Sunrise Cafe'
+            },
+            slug: {
+              type: 'string',
+              example: 'sunrise-cafe',
+              description: 'Optional. Generated from name when omitted.'
+            },
+            phone: {
+              type: 'string',
+              example: '+79991234567'
+            },
+            address: {
+              type: 'string',
+              example: '1 Tverskaya Street, Moscow'
+            },
+            description: {
+              type: 'string',
+              example: 'All-day breakfast and specialty coffee.'
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              example: 'info@sunrise.example'
+            },
+            phones: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description:
+                'Additional contact phones. In multipart/form-data requests this field can be sent as a JSON string.',
+              example: ['+79991234567', '+79997654321']
+            },
+            city: {
+              type: 'string',
+              example: 'Moscow'
+            },
+            logo: {
+              type: 'string',
+              description:
+                'Optional existing image URL. Ignored when logoFile is uploaded.',
+              example: '/uploads/restaurants/logo-1712497612345-123456789.png'
+            },
+            preview: {
+              type: 'string',
+              description:
+                'Optional existing image URL. Ignored when previewFile is uploaded.',
+              example: '/uploads/restaurants/preview-1712497612345-987654321.png'
+            },
+            logoFile: {
+              type: 'string',
+              format: 'binary'
+            },
+            previewFile: {
+              type: 'string',
+              format: 'binary'
+            },
+            deliveryTime: {
+              type: 'integer',
+              example: 45
+            },
+            deliveryConditions: {
+              type: 'string',
+              example: 'Free delivery for orders over 1500 RUB'
+            },
+            cuisine: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description:
+                'Cuisine labels. In multipart/form-data requests this field can be sent as a JSON string.',
+              example: ['European', 'Breakfast']
+            },
+            workSchedule: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/RestaurantWorkScheduleItem'
+              },
+              description:
+                'Restaurant working hours. In multipart/form-data requests this field can be sent as a JSON string.'
+            }
+          }
+        },
+        UpdateRestaurantRequest: {
+          type: 'object',
+          minProperties: 1,
+          properties: {
+            name: {
+              type: 'string',
+              example: 'Sunrise Cafe'
+            },
+            slug: {
+              type: 'string',
+              example: 'sunrise-cafe'
+            },
+            phone: {
+              type: 'string',
+              example: '+79991234567'
+            },
+            address: {
+              type: 'string',
+              example: '1 Tverskaya Street, Moscow'
+            },
+            description: {
+              type: 'string',
+              example: 'All-day breakfast and specialty coffee.'
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              example: 'info@sunrise.example'
+            },
+            phones: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description:
+                'Additional contact phones. In multipart/form-data requests this field can be sent as a JSON string.'
+            },
+            city: {
+              type: 'string',
+              example: 'Moscow'
+            },
+            logo: {
+              type: 'string',
+              example: 'https://cdn.example.com/restaurants/sunrise/logo.png'
+            },
+            preview: {
+              type: 'string',
+              example: 'https://cdn.example.com/restaurants/sunrise/preview.png'
+            },
+            deliveryTime: {
+              type: 'integer',
+              example: 45
+            },
+            deliveryConditions: {
+              type: 'string',
+              example: 'Free delivery for orders over 1500 RUB'
+            },
+            cuisine: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description:
+                'Cuisine labels. In multipart/form-data requests this field can be sent as a JSON string.'
+            },
+            workSchedule: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/RestaurantWorkScheduleItem'
+              },
+              description:
+                'Restaurant working hours. In multipart/form-data requests this field can be sent as a JSON string.'
+            }
+          }
+        },
+        CreateRestaurantResponse: {
+          type: 'object',
+          properties: {
+            restaurant: {
+              $ref: '#/components/schemas/Restaurant'
+            },
+            membership: {
+              $ref: '#/components/schemas/RestaurantMembership'
+            }
+          }
+        },
+        AssignRestaurantManagerRequest: {
+          type: 'object',
+          required: ['userId'],
+          properties: {
+            userId: {
+              type: 'string',
+              format: 'uuid'
             }
           }
         }
@@ -235,6 +631,10 @@ const swaggerOptions = {
       {
         name: 'Applications',
         description: 'Restaurant application endpoints'
+      },
+      {
+        name: 'Restaurants',
+        description: 'Restaurant CRUD, moderation, and membership endpoints'
       }
     ]
   },
