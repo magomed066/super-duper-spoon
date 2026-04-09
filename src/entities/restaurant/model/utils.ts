@@ -24,7 +24,7 @@ export const getRestaurantModerationStatusMeta = (
 
 export const getRestaurantActivityMeta = (isActive: boolean) =>
   isActive
-    ? { label: 'Публикуется', color: 'teal' }
+    ? { label: 'Опубликован', color: 'teal' }
     : { label: 'Скрыт', color: 'gray' }
 
 export const getRestaurantPrimaryPhone = (restaurant: Restaurant) =>

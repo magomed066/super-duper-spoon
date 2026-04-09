@@ -162,7 +162,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: Update a restaurant
- *     description: Updates restaurant business data only. Moderation fields such as `status` and `isActive` are managed through dedicated status actions. Restaurant owners can update their restaurants only while they are in DRAFT or CHANGES_REQUIRED.
+ *     description: Updates restaurant business data only. System owners can update restaurants without changing moderation state. Restaurant owners can update their restaurants in DRAFT, CHANGES_REQUIRED, REJECTED, or ACTIVE. Owner edits move the restaurant to DRAFT, except ACTIVE restaurants which move to PENDING_APPROVAL and require re-moderation.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -308,7 +308,7 @@ const restaurantController = new RestaurantController(restaurantService)
  *     tags:
  *       - Restaurants
  *     summary: Archive restaurant
- *     description: Moves a restaurant to ARCHIVED and deactivates it. System owners can archive any restaurant. Restaurant owners can archive only their own restaurants when the current status allows owner-driven archiving.
+ *     description: Moves a restaurant to ARCHIVED and deactivates it. System owners can archive any restaurant. Restaurant owners can archive only their own ACTIVE restaurants.
  *     security:
  *       - bearerAuth: []
  *     parameters:

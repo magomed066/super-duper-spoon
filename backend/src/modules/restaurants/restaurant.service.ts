@@ -48,6 +48,15 @@ import type {
 } from './types/restaurant.service.types.js'
 
 const OWNER_ARCHIVABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
+  RestaurantStatus.ACTIVE
+])
+
+const SYSTEM_OWNER_ARCHIVABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
+  RestaurantStatus.ACTIVE,
+  RestaurantStatus.BLOCKED
+])
+
+const OWNER_DELETABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
   RestaurantStatus.DRAFT,
   RestaurantStatus.CHANGES_REQUIRED,
   RestaurantStatus.REJECTED
@@ -147,6 +156,10 @@ export class RestaurantService {
           userId: currentUser.id
         }
       )
+    } else {
+      query.andWhere('restaurant.status != :excludedDraftStatus', {
+        excludedDraftStatus: RestaurantStatus.DRAFT
+      })
     }
 
     applyRestaurantFilters(query, options)
@@ -274,6 +287,7 @@ export class RestaurantService {
       currentUser,
       'update'
     )
+    const previousStatus = restaurant.status
     const normalizedPayload = this.parseUpdateRestaurantPayload(payload)
 
     if (normalizedPayload.slug || normalizedPayload.email) {
@@ -303,6 +317,7 @@ export class RestaurantService {
     }
 
     Object.assign(restaurant, toUpdatedRestaurantEntity(restaurant, normalizedPayload))
+    this.applyPostUpdateStatus(restaurant, previousStatus, currentUser)
 
     return this.restaurantRepository.save(restaurant)
   }
@@ -320,6 +335,20 @@ export class RestaurantService {
       currentUser,
       'delete'
     )
+
+    if (isSystemOwner(currentUser.role)) {
+      throw new RestaurantsHttpError(
+        403,
+        'System owners cannot delete restaurants'
+      )
+    }
+
+    if (!OWNER_DELETABLE_RESTAURANT_STATUSES.has(restaurant.status)) {
+      throw new RestaurantsHttpError(
+        409,
+        `Restaurant owners cannot delete restaurants from status ${restaurant.status}`
+      )
+    }
 
     await AppDataSource.transaction(async (manager) => {
       const restaurantRepository = manager.getRepository(Restaurant)
@@ -439,10 +468,14 @@ export class RestaurantService {
       throw new RestaurantsHttpError(409, 'Restaurant is already archived')
     }
 
-    if (
-      !isSystemOwner(currentUser.role) &&
-      !OWNER_ARCHIVABLE_RESTAURANT_STATUSES.has(restaurant.status)
-    ) {
+    if (isSystemOwner(currentUser.role)) {
+      if (!SYSTEM_OWNER_ARCHIVABLE_RESTAURANT_STATUSES.has(restaurant.status)) {
+        throw new RestaurantsHttpError(
+          409,
+          `System owners cannot archive restaurants from status ${restaurant.status}`
+        )
+      }
+    } else if (!OWNER_ARCHIVABLE_RESTAURANT_STATUSES.has(restaurant.status)) {
       throw new RestaurantsHttpError(
         409,
         `Restaurant owners cannot archive restaurants from status ${restaurant.status}`
@@ -641,6 +674,34 @@ export class RestaurantService {
     restaurant.status = nextStatus
     restaurant.isActive =
       this.restaurantStatusTransitionService.getDefaultIsActive(nextStatus)
+  }
+
+  private applyPostUpdateStatus(
+    restaurant: Restaurant,
+    previousStatus: RestaurantStatus,
+    currentUser: AuthenticatedRequestUser
+  ): void {
+    if (isSystemOwner(currentUser.role)) {
+      return
+    }
+
+    if (previousStatus === RestaurantStatus.ACTIVE) {
+      restaurant.status = RestaurantStatus.PENDING_APPROVAL
+      restaurant.isActive = false
+      return
+    }
+
+    if (
+      previousStatus === RestaurantStatus.DRAFT ||
+      previousStatus === RestaurantStatus.CHANGES_REQUIRED
+    ) {
+      restaurant.status = previousStatus
+      restaurant.isActive = false
+      return
+    }
+
+    restaurant.status = RestaurantStatus.DRAFT
+    restaurant.isActive = false
   }
 
   private async performModerationTransition(

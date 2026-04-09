@@ -45,7 +45,7 @@ const RESTAURANT_STATUS_TRANSITIONS: ReadonlyMap<
   [
     RestaurantStatus.BLOCKED,
     {
-      to: new Set([RestaurantStatus.ACTIVE]),
+      to: new Set([RestaurantStatus.ACTIVE, RestaurantStatus.ARCHIVED]),
       defaultIsActive: false
     }
   ],

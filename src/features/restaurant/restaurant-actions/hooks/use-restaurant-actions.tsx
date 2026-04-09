@@ -37,8 +37,16 @@ function useRestaurantActions(data: Restaurant) {
 
   const isSystemOwner = user?.role === UserRole.SYSTEM_OWNER
   const isClient = user?.role === UserRole.CLIENT
-  const canEditRestaurant = isClient
-  const canDeleteRestaurant = isClient || isSystemOwner
+  const canEditRestaurant =
+    isClient &&
+    (data.status === 'DRAFT' ||
+      data.status === 'CHANGES_REQUIRED' ||
+      data.status === 'ACTIVE')
+  const canDeleteRestaurant =
+    isClient &&
+    (data.status === 'DRAFT' ||
+      data.status === 'CHANGES_REQUIRED' ||
+      data.status === 'REJECTED')
   const isActionPending =
     submitForApprovalMutation.isPending ||
     approveMutation.isPending ||
@@ -98,12 +106,9 @@ function useRestaurantActions(data: Restaurant) {
   const canBlock = isSystemOwner && data.status === 'ACTIVE'
   const canRestoreFromBlocked = isSystemOwner && data.status === 'BLOCKED'
   const canArchive =
-    data.status !== 'ARCHIVED' &&
-    (isSystemOwner ||
-      (isClient &&
-        (data.status === 'DRAFT' ||
-          data.status === 'CHANGES_REQUIRED' ||
-          data.status === 'REJECTED')))
+    (isSystemOwner &&
+      (data.status === 'ACTIVE' || data.status === 'BLOCKED')) ||
+    (isClient && data.status === 'ACTIVE')
 
   const menuActions = [
     {

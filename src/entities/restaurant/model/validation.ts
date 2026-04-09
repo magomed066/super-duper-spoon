@@ -22,13 +22,7 @@ export const createRestaurantSchema = z.object({
   description: z.string().min(5, 'Добавьте описание ресторана'),
   email: z.email('Введите корректный email'),
   city: z.string().optional().default(''),
-  deliveryTime: z
-    .string()
-    .trim()
-    .min(1, 'Укажите время доставки')
-    .refine((value) => /^\d+$/.test(value), 'Введите время доставки в минутах')
-    .optional()
-    .default(''),
+  deliveryTime: z.string().optional().default(''),
   cuisine: z.string().optional().default(''),
   deliveryConditions: z.string().optional().default(''),
   workSchedule: z.array(createRestaurantWorkDaySchema).default([])

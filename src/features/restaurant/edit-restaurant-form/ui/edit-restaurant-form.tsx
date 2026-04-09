@@ -77,6 +77,14 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
       form.resetDirty()
     }
   )
+  const canEditRestaurant =
+    restaurant.status === 'DRAFT' ||
+    restaurant.status === 'CHANGES_REQUIRED' ||
+    restaurant.status === 'ACTIVE'
+  const canDeleteRestaurant =
+    restaurant.status === 'DRAFT' ||
+    restaurant.status === 'CHANGES_REQUIRED' ||
+    restaurant.status === 'REJECTED'
 
   const canSubmit = updateRestaurantSchema.safeParse(form.values).success
 
@@ -107,6 +115,10 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
   }
 
   const handleSubmit = (data: UpdateRestaurantFormValues) => {
+    if (!canEditRestaurant) {
+      return
+    }
+
     mutate({
       name: data.name.trim(),
       phone: data.phone.trim(),
@@ -163,6 +175,10 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
   }
 
   const handleDelete = () => {
+    if (!canDeleteRestaurant) {
+      return
+    }
+
     deleteMutation.mutate(restaurant.id, {
       onSuccess: () => {
         setIsDeleteModalOpen(false)
@@ -189,7 +205,11 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
                   variant="light"
                   color="coral"
                   onClick={() => setIsDeleteModalOpen(true)}
-                  disabled={isPending || deleteMutation.isPending}
+                  disabled={
+                    isPending ||
+                    deleteMutation.isPending ||
+                    !canDeleteRestaurant
+                  }
                 >
                   Удалить ресторан
                 </Button>
@@ -200,7 +220,10 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
                   color="aurora"
                   loading={isPending}
                   disabled={
-                    !canSubmit || !form.isDirty() || deleteMutation.isPending
+                    !canEditRestaurant ||
+                    !canSubmit ||
+                    !form.isDirty() ||
+                    deleteMutation.isPending
                   }
                 >
                   Сохранить изменения
@@ -250,7 +273,7 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
                   radius="md"
                   color="aurora"
                   loading={isPending}
-                  disabled={!canSubmit}
+                  disabled={!canEditRestaurant || !canSubmit}
                 >
                   Сохранить изменения
                 </Button>

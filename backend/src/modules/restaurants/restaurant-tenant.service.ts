@@ -29,7 +29,8 @@ export type RestaurantTenantAction =
 
 const OWNER_EDITABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
   RestaurantStatus.DRAFT,
-  RestaurantStatus.CHANGES_REQUIRED
+  RestaurantStatus.CHANGES_REQUIRED,
+  RestaurantStatus.ACTIVE
 ])
 
 /**
