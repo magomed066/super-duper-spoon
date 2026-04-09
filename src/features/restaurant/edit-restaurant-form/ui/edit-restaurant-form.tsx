@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from '@mantine/form'
 import { Button, Group, Paper, Stack } from '@mantine/core'
 import {
-  createRestaurantSchema,
+  updateRestaurantSchema,
   useDeleteRestaurantMutation,
   useUpdateRestaurantMutation,
-  validateCreateRestaurantForm,
-  type CreateRestaurantFormValues
+  validateUpdateRestaurantForm,
+  type CreateRestaurantFormValues,
+  type UpdateRestaurantFormValues
 } from '@/entities/restaurant'
 import type { Restaurant } from '@/shared/api/services/restaurant/types'
 import { BasicInfoStep } from '@/features/restaurant/create-restaurant-form/ui/components/basic-info-step'
@@ -64,9 +65,9 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
     () => getInitialValues(restaurant),
     [restaurant]
   )
-  const form = useForm<CreateRestaurantFormValues>({
+  const form = useForm<UpdateRestaurantFormValues>({
     initialValues,
-    validate: validateCreateRestaurantForm,
+    validate: validateUpdateRestaurantForm,
     validateInputOnBlur: true
   })
   const deleteMutation = useDeleteRestaurantMutation()
@@ -77,7 +78,7 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
     }
   )
 
-  const canSubmit = createRestaurantSchema.safeParse(form.values).success
+  const canSubmit = updateRestaurantSchema.safeParse(form.values).success
 
   useEffect(() => {
     form.setValues(initialValues)
@@ -105,7 +106,7 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
     }))
   }
 
-  const handleSubmit = (data: CreateRestaurantFormValues) => {
+  const handleSubmit = (data: UpdateRestaurantFormValues) => {
     mutate({
       name: data.name.trim(),
       phone: data.phone.trim(),
@@ -207,10 +208,11 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
               </Group>
             </Stack>
 
-            {activeStep === 0 && <BasicInfoStep form={form} />}
-            {activeStep === 1 && <DeliveryScheduleStep form={form} />}
+            {activeStep === 0 && <BasicInfoStep required form={form} />}
+            {activeStep === 1 && <DeliveryScheduleStep required form={form} />}
             {activeStep === 2 && (
               <MediaStep
+                required
                 defaultLogo={form.values.logo ?? ''}
                 defaultPreview={form.values.preview ?? ''}
                 isPending={isPending}
@@ -248,9 +250,7 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
                   radius="md"
                   color="aurora"
                   loading={isPending}
-                  disabled={
-                    !canSubmit || !form.isDirty() || deleteMutation.isPending
-                  }
+                  disabled={!canSubmit}
                 >
                   Сохранить изменения
                 </Button>

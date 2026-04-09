@@ -12,7 +12,15 @@ import {
   Title
 } from '@mantine/core'
 import type { ReactNode } from 'react'
-import { TbClockHour4 } from 'react-icons/tb'
+import { TbClockHour4, TbMapPin, TbTruckDelivery } from 'react-icons/tb'
+import {
+  declineMinuteTitle,
+  formatRestaurantSchedule,
+  getRestaurantActivityMeta,
+  getRestaurantAddress,
+  getRestaurantModerationStatusMeta,
+  getRestaurantPrimaryPhone
+} from '../../model/utils'
 
 type Props = {
   data: Restaurant
@@ -20,12 +28,17 @@ type Props = {
 }
 
 export function RestaurantCard({ data, renderActions }: Props) {
-  const address = [data.city, data.address].filter(Boolean).join(', ')
-  const phone = data.phone || data.phones[0]
+  const address = getRestaurantAddress(data)
+  const phone = getRestaurantPrimaryPhone(data)
   const secondaryInfo = [phone, data.email].filter(Boolean).join(' • ')
   const cuisine = data.cuisine.length
     ? data.cuisine.join(' • ')
     : 'Кухня не указана'
+  const moderationStatus = getRestaurantModerationStatusMeta(data.status)
+  const activityStatus = getRestaurantActivityMeta(data.isActive)
+  const schedule = formatRestaurantSchedule(data)
+  const deliveryTime = declineMinuteTitle(data.deliveryTime)
+  const description = data.description?.trim() || 'Описание пока не заполнено'
 
   const createdAt = new Intl.DateTimeFormat('ru-RU', {
     day: '2-digit',
@@ -78,16 +91,21 @@ export function RestaurantCard({ data, renderActions }: Props) {
             ) : null}
           </Flex>
 
-          <Badge
-            color={data.isActive ? 'green' : 'coral'}
-            variant="light"
-            size="md"
-          >
-            {data.isActive ? 'Активен' : 'Неактивен'}
-          </Badge>
+          <Group gap="xs">
+            <Badge color={moderationStatus.color} variant="light" size="md">
+              {moderationStatus.label}
+            </Badge>
+            <Badge color={activityStatus.color} variant="dot" size="md">
+              {activityStatus.label}
+            </Badge>
+          </Group>
 
           <Text size="sm" c="dimmed" className="line-clamp-1">
             {cuisine}
+          </Text>
+
+          <Text size="sm" className="line-clamp-2 text-moss-800">
+            {description}
           </Text>
 
           {secondaryInfo ? (
@@ -95,6 +113,32 @@ export function RestaurantCard({ data, renderActions }: Props) {
               {secondaryInfo}
             </Text>
           ) : null}
+
+          <Stack gap={8}>
+            <Group gap={8} wrap="nowrap" c="dimmed">
+              <TbMapPin size={16} className="shrink-0" />
+              <Text size="sm" className="line-clamp-1">
+                {address || 'Адрес не указан'}
+              </Text>
+            </Group>
+
+            <Group gap={8} wrap="nowrap" c="dimmed">
+              <TbTruckDelivery size={16} className="shrink-0" />
+              <Text size="sm" className="line-clamp-1">
+                {deliveryTime}
+                {data.deliveryConditions
+                  ? ` • ${data.deliveryConditions}`
+                  : ''}
+              </Text>
+            </Group>
+
+            <Group gap={8} wrap="nowrap" c="dimmed">
+              <TbClockHour4 size={16} className="shrink-0" />
+              <Text size="sm" className="line-clamp-1">
+                {schedule}
+              </Text>
+            </Group>
+          </Stack>
 
           <Flex
             align="center"
@@ -105,7 +149,7 @@ export function RestaurantCard({ data, renderActions }: Props) {
             <Group gap="sm" wrap="nowrap" className="min-w-0">
               <Group gap={6} wrap="nowrap" c="dimmed">
                 <TbClockHour4 size={15} />
-                <Text size="sm">{createdAt}</Text>
+                <Text size="sm">Создан {createdAt}</Text>
               </Group>
             </Group>
           </Flex>

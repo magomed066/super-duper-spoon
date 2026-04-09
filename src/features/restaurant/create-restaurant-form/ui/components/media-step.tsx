@@ -5,6 +5,7 @@ type MediaStepProps = {
   defaultLogo: string
   defaultPreview: string
   isPending: boolean
+  required?: boolean
   allowUpload?: boolean
   onUpload: (file: File, uploadType?: 'logo' | 'preview') => void
 }
@@ -13,6 +14,7 @@ export function MediaStep({
   defaultLogo,
   defaultPreview,
   isPending,
+  required,
   allowUpload = true,
   onUpload
 }: MediaStepProps) {
@@ -20,7 +22,7 @@ export function MediaStep({
     <Stack gap="lg">
       <Box>
         <UploadLogoPreviewFeature
-          required={allowUpload}
+          required={required}
           isLoading={isPending}
           onUpload={onUpload}
           defaultLogo={defaultLogo}

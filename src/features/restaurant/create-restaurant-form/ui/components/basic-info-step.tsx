@@ -8,10 +8,11 @@ import {
 } from './form-field-styles'
 
 type BasicInfoStepProps = {
+  required?: boolean
   form: UseFormReturnType<CreateRestaurantFormValues>
 }
 
-export function BasicInfoStep({ form }: BasicInfoStepProps) {
+export function BasicInfoStep({ form, required }: BasicInfoStepProps) {
   return (
     <Stack gap="lg">
       <TextInput
@@ -45,7 +46,7 @@ export function BasicInfoStep({ form }: BasicInfoStepProps) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <TextInput
-          required
+          required={required}
           label="Город"
           placeholder="Москва"
           radius="md"
@@ -54,7 +55,7 @@ export function BasicInfoStep({ form }: BasicInfoStepProps) {
         />
 
         <TextInput
-          required
+          required={required}
           label="Кухня"
           placeholder="Итальянская, Пицца, Завтраки"
           radius="md"

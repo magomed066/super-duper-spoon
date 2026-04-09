@@ -21,6 +21,32 @@ export const createRestaurantSchema = z.object({
   address: z.string().min(5, 'Введите адрес'),
   description: z.string().min(5, 'Добавьте описание ресторана'),
   email: z.email('Введите корректный email'),
+  city: z.string().optional().default(''),
+  deliveryTime: z
+    .string()
+    .trim()
+    .min(1, 'Укажите время доставки')
+    .refine((value) => /^\d+$/.test(value), 'Введите время доставки в минутах')
+    .optional()
+    .default(''),
+  cuisine: z.string().optional().default(''),
+  deliveryConditions: z.string().optional().default(''),
+  workSchedule: z.array(createRestaurantWorkDaySchema).default([])
+})
+
+export const updateRestaurantSchema = z.object({
+  name: z.string().min(2, 'Введите название ресторана'),
+  logo: z.string().optional(),
+  preview: z.string().optional(),
+  phone: z
+    .string()
+    .regex(
+      /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/,
+      'Введите номер в формате +7 (999) 123-45-67'
+    ),
+  address: z.string().min(5, 'Введите адрес'),
+  description: z.string().min(5, 'Добавьте описание ресторана'),
+  email: z.email('Введите корректный email'),
   city: z.string().min(5, 'Укажите ваш город'),
   deliveryTime: z
     .string()
@@ -69,7 +95,12 @@ export const createRestaurantSchema = z.object({
 })
 
 export type CreateRestaurantFormValues = z.infer<typeof createRestaurantSchema>
+export type UpdateRestaurantFormValues = z.infer<typeof updateRestaurantSchema>
 
 export const validateCreateRestaurantForm = validateWithZod(
   createRestaurantSchema
+)
+
+export const validateUpdateRestaurantForm = validateWithZod(
+  updateRestaurantSchema
 )

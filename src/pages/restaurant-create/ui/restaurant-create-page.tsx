@@ -59,7 +59,7 @@ export function RestaurantCreatePage() {
             order={3}
             className="text-[28px] tracking-[-0.03em] text-moss-900"
           >
-            Регистрация ресторана
+            Создание ресторана
           </Title>
           <Text size="sm" className="mt-2 leading-6 text-moss-700">
             Заполните карточку по шагам: сначала контакты, затем доставку и

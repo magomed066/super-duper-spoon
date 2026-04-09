@@ -37,6 +37,28 @@ export type Restaurant = {
   updatedAt: string
 }
 
+export type RestaurantMembershipUser = {
+  id: string
+  firstName: string
+  lastName: string
+  phone: string
+  email: string
+  status: string
+  role: string
+  isActive: boolean
+  createdAt: string
+}
+
+export type RestaurantMembership = {
+  id: string
+  restaurantId: string
+  userId: string
+  role: string
+  isActive: boolean
+  createdAt: string
+  user: RestaurantMembershipUser
+}
+
 export type RestouranstsResponse = {
   pagination: Pagination
   items: Restaurant[]
@@ -78,14 +100,7 @@ export type UpdateRestaurantPayload = Partial<
 
 export type CreateRestaurantResponse = {
   restaurant: Restaurant
-  membership: {
-    id: string
-    restaurantId: string
-    userId: string
-    role: string
-    isActive: boolean
-    createdAt: string
-  }
+  membership: RestaurantMembership
 }
 
 export type RestaurantsListParams = {
@@ -94,4 +109,8 @@ export type RestaurantsListParams = {
   isActive?: boolean
   page?: number
   limit?: number
+}
+
+export type AssignRestaurantManagerPayload = {
+  userId: string
 }

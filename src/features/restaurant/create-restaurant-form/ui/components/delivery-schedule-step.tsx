@@ -14,16 +14,20 @@ import { FORM_FIELD_CLASSNAMES } from './form-field-styles'
 import { DeliveryTime } from './delivery-time'
 
 type DeliveryScheduleStepProps = {
+  required?: boolean
   form: UseFormReturnType<CreateRestaurantFormValues>
 }
 
-export function DeliveryScheduleStep({ form }: DeliveryScheduleStepProps) {
+export function DeliveryScheduleStep({
+  form,
+  required
+}: DeliveryScheduleStepProps) {
   return (
     <Stack gap="lg">
-      <DeliveryTime form={form} />
+      <DeliveryTime form={form} required={required} />
 
       <Textarea
-        required
+        required={required}
         label="Условия доставки"
         placeholder="Бесплатная доставка от 1500 ₽, зона доставки до 5 км."
         minRows={3}
@@ -56,7 +60,7 @@ export function DeliveryScheduleStep({ form }: DeliveryScheduleStepProps) {
                 <Checkbox
                   label={item.label}
                   color="aurora"
-                  checked={form.values.workSchedule[index]?.enabled}
+                  checked={form.values.workSchedule?.[index]?.enabled}
                   onChange={(event) =>
                     form.setFieldValue(
                       `workSchedule.${index}.enabled`,
@@ -69,7 +73,7 @@ export function DeliveryScheduleStep({ form }: DeliveryScheduleStepProps) {
                   type="time"
                   label="Открытие"
                   radius="md"
-                  disabled={!form.values.workSchedule[index]?.enabled}
+                  disabled={!form.values.workSchedule?.[index]?.enabled}
                   classNames={{
                     input:
                       'border-black/10 bg-white text-moss-900 disabled:bg-moss-100',
@@ -82,7 +86,7 @@ export function DeliveryScheduleStep({ form }: DeliveryScheduleStepProps) {
                   type="time"
                   label="Закрытие"
                   radius="md"
-                  disabled={!form.values.workSchedule[index]?.enabled}
+                  disabled={!form.values.workSchedule?.[index]?.enabled}
                   classNames={{
                     input:
                       'border-black/10 bg-white text-moss-900 disabled:bg-moss-100',

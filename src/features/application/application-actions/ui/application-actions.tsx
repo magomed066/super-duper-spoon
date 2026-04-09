@@ -36,7 +36,3 @@ export function ApplicationActions(props: Props) {
     </>
   )
 }
-
-// owner 5 - rIXl2SBqPXXL
-
-// FuFV_SHLyfj6

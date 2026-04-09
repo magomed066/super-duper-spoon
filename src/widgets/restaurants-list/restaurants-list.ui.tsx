@@ -18,7 +18,7 @@ export function RestaurantsListWidget() {
   const { search, status, hasActiveFilters } = useRestaurantFilters()
   const restaurantListParams = {
     search: search || undefined,
-    isActive: status === 'all' ? undefined : status === 'active'
+    status: status === 'all' ? undefined : status
   }
 
   const canViewRestaurants = hasPermission(

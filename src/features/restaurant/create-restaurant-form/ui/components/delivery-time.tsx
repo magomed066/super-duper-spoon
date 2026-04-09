@@ -5,11 +5,12 @@ import type { UseFormReturnType } from '@mantine/form'
 import { FORM_FIELD_CLASSNAMES } from './form-field-styles'
 
 type Props = {
+  required?: boolean
   form: UseFormReturnType<CreateRestaurantFormValues>
 }
 
 export function DeliveryTime(props: Props) {
-  const { form } = props
+  const { form, required } = props
 
   const rawTime = Number(form.values.deliveryTime)
   const time = Number.isFinite(rawTime) && rawTime > 0 ? rawTime : 50
@@ -18,7 +19,7 @@ export function DeliveryTime(props: Props) {
     <Box className="w-full flex flex-col">
       <Flex direction="column" gap={8}>
         <InputLabel
-          required
+          required={required}
           size="md"
           className="leading-8 text-3xl font-bold text-moss-900"
         >
@@ -31,7 +32,7 @@ export function DeliveryTime(props: Props) {
       </Flex>
 
       <TextInput
-        required
+        required={required}
         mt="xl"
         type="number"
         min={0}
