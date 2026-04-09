@@ -24,6 +24,22 @@ export const createApp = (): express.Express => {
   app.use(express.urlencoded({ extended: true, limit: '50mb' }))
   app.use('/uploads', express.static(path.resolve(uploadsRootDir)))
 
+  /**
+   * @openapi
+   * /:
+   *   get:
+   *     tags:
+   *       - Health
+   *     summary: Check API availability
+   *     description: Lightweight endpoint for checking that the API process is running.
+   *     responses:
+   *       200:
+   *         description: API is available
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/HealthResponse'
+   */
   app.get(apiPrefix, (_req: Request, res: Response) => {
     res.status(200).json({
       status: 'ok'

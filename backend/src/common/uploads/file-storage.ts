@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import multer from 'multer'
 
-import { RestaurantsHttpError } from '../../modules/restaurants/restaurant.service.js'
+import { RestaurantsHttpError } from '../../modules/restaurants/restaurants.errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

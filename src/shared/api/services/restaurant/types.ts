@@ -1,5 +1,16 @@
 import type { Pagination } from '@/shared/lib/types/pagination'
 
+export type RestaurantModerationStatus =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'ACTIVE'
+  | 'CHANGES_REQUIRED'
+  | 'REJECTED'
+  | 'BLOCKED'
+  | 'ARCHIVED'
+
+export type RestaurantListStatusFilter = RestaurantModerationStatus
+
 export type Restaurant = {
   id: string
   name: string
@@ -20,6 +31,7 @@ export type Restaurant = {
   description: string | null
   phone: string | null
   address: string | null
+  status: RestaurantModerationStatus
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -30,32 +42,38 @@ export type RestouranstsResponse = {
   items: Restaurant[]
 }
 
-export type RestaurantUpsertPayload = {
+export type RestaurantMutableFields = {
   name: string
   slug?: string
-  phone: string
-  address: string
-  description: string
+  cuisine?: string[]
   email?: string
+  phones?: string[]
   city?: string
   logo?: string
   preview?: string
-  logoFile?: File
-  previewFile?: File
-  deliveryTime?: number
-  deliveryConditions?: string
-  cuisine?: string[]
-  phones?: string[]
   workSchedule?: Array<{
     day: string
     open: string
     close: string
   }>
+  deliveryTime?: number
+  deliveryConditions?: string
+  description: string
+  phone: string
+  address: string
 }
 
-export type CreateRestaurantPayload = RestaurantUpsertPayload
+export type CreateRestaurantPayload = RestaurantMutableFields & {
+  logoFile?: File
+  previewFile?: File
+}
 
-export type UpdateRestaurantPayload = Partial<RestaurantUpsertPayload> &
+export type UpdateRestaurantPayload = Partial<
+  RestaurantMutableFields & {
+    logoFile?: File
+    previewFile?: File
+  }
+> &
   Partial<Pick<Restaurant, 'isActive'>>
 
 export type CreateRestaurantResponse = {
@@ -72,6 +90,7 @@ export type CreateRestaurantResponse = {
 
 export type RestaurantsListParams = {
   search?: string
+  status?: RestaurantListStatusFilter
   isActive?: boolean
   page?: number
   limit?: number

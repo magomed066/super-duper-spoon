@@ -11,6 +11,10 @@ const swaggerOptions = {
       description:
         'Backend API documentation for the restaurant management system.'
     },
+    externalDocs: {
+      description: 'Raw OpenAPI specification',
+      url: `http://localhost:${PORT}/api/docs.json`
+    },
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -229,6 +233,19 @@ const swaggerOptions = {
             }
           }
         },
+        RestaurantStatus: {
+          type: 'string',
+          enum: [
+            'DRAFT',
+            'PENDING_APPROVAL',
+            'ACTIVE',
+            'CHANGES_REQUIRED',
+            'REJECTED',
+            'BLOCKED',
+            'ARCHIVED'
+          ],
+          example: 'DRAFT'
+        },
         Restaurant: {
           type: 'object',
           properties: {
@@ -303,6 +320,9 @@ const swaggerOptions = {
               type: 'string',
               nullable: true,
               example: '1 Tverskaya Street, Moscow'
+            },
+            status: {
+              $ref: '#/components/schemas/RestaurantStatus'
             },
             isActive: {
               type: 'boolean',
@@ -436,6 +456,8 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
+              description:
+                'Additional contact phones. In multipart/form-data requests this field can be sent as a JSON string.',
               example: ['+79991234567', '+79997654321']
             },
             city: {
@@ -475,13 +497,17 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
+              description:
+                'Cuisine labels. In multipart/form-data requests this field can be sent as a JSON string.',
               example: ['European', 'Breakfast']
             },
             workSchedule: {
               type: 'array',
               items: {
                 $ref: '#/components/schemas/RestaurantWorkScheduleItem'
-              }
+              },
+              description:
+                'Restaurant working hours. In multipart/form-data requests this field can be sent as a JSON string.'
             }
           }
         },
@@ -518,7 +544,9 @@ const swaggerOptions = {
               type: 'array',
               items: {
                 type: 'string'
-              }
+              },
+              description:
+                'Additional contact phones. In multipart/form-data requests this field can be sent as a JSON string.'
             },
             city: {
               type: 'string',
@@ -544,17 +572,17 @@ const swaggerOptions = {
               type: 'array',
               items: {
                 type: 'string'
-              }
+              },
+              description:
+                'Cuisine labels. In multipart/form-data requests this field can be sent as a JSON string.'
             },
             workSchedule: {
               type: 'array',
               items: {
                 $ref: '#/components/schemas/RestaurantWorkScheduleItem'
-              }
-            },
-            isActive: {
-              type: 'boolean',
-              example: true
+              },
+              description:
+                'Restaurant working hours. In multipart/form-data requests this field can be sent as a JSON string.'
             }
           }
         },
@@ -603,6 +631,10 @@ const swaggerOptions = {
       {
         name: 'Applications',
         description: 'Restaurant application endpoints'
+      },
+      {
+        name: 'Restaurants',
+        description: 'Restaurant CRUD, moderation, and membership endpoints'
       }
     ]
   },

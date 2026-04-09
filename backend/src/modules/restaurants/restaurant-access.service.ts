@@ -99,6 +99,33 @@ export class RestaurantAccessService {
     return this.isRestaurantOwner(normalizedUserId, normalizedRestaurantId)
   }
 
+  async canArchiveRestaurant(
+    userId: string,
+    systemRole: UserRole,
+    restaurantId: string
+  ): Promise<boolean> {
+    const normalizedRestaurantId = this.normalizeId(restaurantId)
+    const normalizedUserId = this.normalizeId(userId)
+
+    if (!normalizedRestaurantId || !normalizedUserId) {
+      return false
+    }
+
+    if (isSystemOwner(systemRole)) {
+      return this.restaurantRepository.exists({
+        where: {
+          id: normalizedRestaurantId
+        }
+      })
+    }
+
+    if (systemRole !== UserRole.CLIENT) {
+      return false
+    }
+
+    return this.isRestaurantOwner(normalizedUserId, normalizedRestaurantId)
+  }
+
   async isRestaurantOwner(userId: string, restaurantId: string): Promise<boolean> {
     return this.hasMembership(userId, restaurantId, RestaurantRole.OWNER)
   }

@@ -3,9 +3,10 @@ import type { NextFunction, Request, Response } from 'express'
 import type { MulterError } from 'multer'
 
 import {
-  RestaurantsHttpError,
   RestaurantService
 } from './restaurant.service.js'
+import { RestaurantStatus } from './enums/restaurant-status.enum.js'
+import { RestaurantsHttpError } from './restaurants.errors.js'
 import {
   toPublicUploadPath,
   toStoredUploadPath
@@ -39,6 +40,22 @@ export class RestaurantController {
     }
   }
 
+  getPublicById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.getPublicRestaurantById(
+        this.getIdParam(req.params.id)
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
   list = async (
     req: Request,
     res: Response,
@@ -49,6 +66,7 @@ export class RestaurantController {
         req.query.includeInactiveMemberships
       )
       const isActive = this.getOptionalBooleanQueryParam(req.query.isActive)
+      const status = this.getOptionalStatusQueryParam(req.query.status)
 
       const restaurants = await this.restaurantService.getAccessibleRestaurants(
         req.user,
@@ -68,9 +86,39 @@ export class RestaurantController {
           name: this.getOptionalStringQueryParam(req.query.name),
           city: this.getOptionalStringQueryParam(req.query.city),
           slug: this.getOptionalStringQueryParam(req.query.slug),
+          status,
           isActive
         }
       )
+
+      res.status(200).json(restaurants)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  listPublic = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurants = await this.restaurantService.getPublicRestaurants({
+        page: this.getPositiveNumberQueryParam(
+          req.query.page,
+          RestaurantController.DEFAULT_PAGE,
+          'Page must be a positive integer'
+        ),
+        limit: this.getPositiveNumberQueryParam(
+          req.query.limit,
+          RestaurantController.DEFAULT_LIMIT,
+          'Limit must be a positive integer'
+        ),
+        search: this.getOptionalStringQueryParam(req.query.search),
+        name: this.getOptionalStringQueryParam(req.query.name),
+        city: this.getOptionalStringQueryParam(req.query.city),
+        slug: this.getOptionalStringQueryParam(req.query.slug)
+      })
 
       res.status(200).json(restaurants)
     } catch (error: unknown) {
@@ -126,7 +174,7 @@ export class RestaurantController {
       this.assertUploadedFileSize(logoFile, 5, 'Логотип')
       this.assertUploadedFileSize(previewFile, 10, 'Обложка')
 
-      const currentRestaurant = await this.restaurantService.getAccessibleRestaurantById(
+      const currentRestaurant = await this.restaurantService.getRestaurantForUpdateById(
         this.getIdParam(req.params.id),
         req.user
       )
@@ -168,6 +216,108 @@ export class RestaurantController {
       )
 
       res.status(204).send()
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  submitForApproval = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.submitForApproval(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  requestChanges = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.requestChanges(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  approve = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.approve(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  reject = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.reject(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  block = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.block(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(restaurant)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
+  archive = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const restaurant = await this.restaurantService.archive(
+        this.getIdParam(req.params.id),
+        req.user
+      )
+
+      res.status(200).json(restaurant)
     } catch (error: unknown) {
       next(this.normalizeError(error))
     }
@@ -289,6 +439,22 @@ export class RestaurantController {
     )
   }
 
+  private getOptionalStatusQueryParam(
+    value: Request['query'][string]
+  ): RestaurantStatus | undefined {
+    const normalizedValue = this.getOptionalStringQueryParam(value)
+
+    if (normalizedValue === undefined) {
+      return undefined
+    }
+
+    if (Object.values(RestaurantStatus).includes(normalizedValue as RestaurantStatus)) {
+      return normalizedValue as RestaurantStatus
+    }
+
+    throw new RestaurantsHttpError(400, 'status must be a valid restaurant status')
+  }
+
   private getPositiveNumberQueryParam(
     value: Request['query'][string],
     fallbackValue: number,
@@ -323,8 +489,7 @@ export class RestaurantController {
       phones: this.parseOptionalJsonField(body.phones),
       cuisine: this.parseOptionalJsonField(body.cuisine),
       workSchedule: this.parseOptionalJsonField(body.workSchedule),
-      deliveryTime: this.parseOptionalNumberField(body.deliveryTime),
-      isActive: this.parseOptionalBooleanField(body.isActive)
+      deliveryTime: this.parseOptionalNumberField(body.deliveryTime)
     }
   }
 
@@ -362,28 +527,6 @@ export class RestaurantController {
     return Number.isNaN(parsedValue) ? value : parsedValue
   }
 
-  private parseOptionalBooleanField(value: unknown): unknown {
-    if (typeof value !== 'string') {
-      return value
-    }
-
-    const trimmedValue = value.trim()
-
-    if (!trimmedValue) {
-      return undefined
-    }
-
-    if (trimmedValue === 'true') {
-      return true
-    }
-
-    if (trimmedValue === 'false') {
-      return false
-    }
-
-    return value
-  }
-
   private assertUploadedFileSize(
     file: Express.Multer.File | undefined,
     maxSizeMb: number,
@@ -416,16 +559,20 @@ export class RestaurantController {
   }
 
   private async cleanupReplacedFiles(
-    previousRestaurant: { logo: string; preview: string },
-    updatedRestaurant: { logo: string; preview: string },
+    previousRestaurant: { logo: string | null; preview: string | null },
+    updatedRestaurant: { logo: string | null; preview: string | null },
     logoUpdated: boolean,
     previewUpdated: boolean
   ): Promise<void> {
     const filesToDelete = [
-      logoUpdated && previousRestaurant.logo !== updatedRestaurant.logo
+      logoUpdated &&
+      previousRestaurant.logo &&
+      previousRestaurant.logo !== updatedRestaurant.logo
         ? toStoredUploadPath(previousRestaurant.logo)
         : null,
-      previewUpdated && previousRestaurant.preview !== updatedRestaurant.preview
+      previewUpdated &&
+      previousRestaurant.preview &&
+      previousRestaurant.preview !== updatedRestaurant.preview
         ? toStoredUploadPath(previousRestaurant.preview)
         : null
     ].filter((value): value is string => Boolean(value))

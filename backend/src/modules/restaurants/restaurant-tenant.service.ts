@@ -15,11 +15,22 @@ import { AppDataSource } from '../../database/data-source.js'
 import type { AuthenticatedRequestUser } from '../auth/types/auth.types.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantAccessService } from './restaurant-access.service.js'
+import { RestaurantStatus } from './enums/restaurant-status.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
-import { RestaurantsHttpError } from './restaurant.service.js'
+import { RestaurantsHttpError } from './restaurants.errors.js'
 
-export type RestaurantTenantAction = 'read' | 'update' | 'delete' | 'manage'
+export type RestaurantTenantAction =
+  | 'read'
+  | 'update'
+  | 'delete'
+  | 'archive'
+  | 'manage'
+
+const OWNER_EDITABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
+  RestaurantStatus.DRAFT,
+  RestaurantStatus.CHANGES_REQUIRED
+])
 
 /**
  * Tenant boundary for restaurant-scoped modules.
@@ -129,6 +140,17 @@ export class RestaurantTenantService {
       throw new RestaurantsHttpError(403, 'Access denied')
     }
 
+    if (
+      action === 'update' &&
+      !isSystemOwner(currentUser.role) &&
+      !OWNER_EDITABLE_RESTAURANT_STATUSES.has(restaurant.status)
+    ) {
+      throw new RestaurantsHttpError(
+        409,
+        `Restaurant cannot be updated from status ${restaurant.status}`
+      )
+    }
+
     return restaurant
   }
 
@@ -164,6 +186,14 @@ export class RestaurantTenantService {
 
     if (action === 'delete') {
       return this.restaurantAccessService.canDeleteRestaurant(
+        userId,
+        systemRole,
+        restaurantId
+      )
+    }
+
+    if (action === 'archive') {
+      return this.restaurantAccessService.canArchiveRestaurant(
         userId,
         systemRole,
         restaurantId

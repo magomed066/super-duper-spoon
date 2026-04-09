@@ -8,6 +8,7 @@ import {
 } from 'typeorm'
 import type { Relation } from 'typeorm'
 
+import { RestaurantStatus } from '../enums/restaurant-status.enum.js'
 import { RestaurantUser } from './restaurant-user.entity.js'
 
 export interface RestaurantWorkScheduleItem {
@@ -63,7 +64,15 @@ export class Restaurant {
   @Column({ type: 'text', nullable: true })
   address!: string | null
 
-  @Column({ type: 'boolean', default: true })
+  @Column({
+    type: 'enum',
+    enum: RestaurantStatus,
+    enumName: 'restaurants_status_enum',
+    default: RestaurantStatus.DRAFT
+  })
+  status!: RestaurantStatus
+
+  @Column({ type: 'boolean', default: false })
   isActive!: boolean
 
   @CreateDateColumn({ type: 'timestamptz' })

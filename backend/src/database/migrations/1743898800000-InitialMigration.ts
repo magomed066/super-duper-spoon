@@ -267,9 +267,24 @@ export class InitialMigration1743898800000 implements MigrationInterface {
             isNullable: true
           },
           {
+            name: 'status',
+            type: 'enum',
+            enum: [
+              'DRAFT',
+              'PENDING_APPROVAL',
+              'ACTIVE',
+              'CHANGES_REQUIRED',
+              'REJECTED',
+              'BLOCKED',
+              'ARCHIVED'
+            ],
+            enumName: 'restaurants_status_enum',
+            default: "'DRAFT'"
+          },
+          {
             name: 'isActive',
             type: 'boolean',
-            default: true
+            default: false
           },
           {
             name: 'createdAt',
@@ -389,9 +404,12 @@ export class InitialMigration1743898800000 implements MigrationInterface {
 
     await queryRunner.dropTable('restaurant_users')
     await queryRunner.dropTable('restaurants')
+    await queryRunner.query('DROP TYPE IF EXISTS "restaurants_status_enum"')
     await queryRunner.query('DROP TYPE IF EXISTS "restaurant_users_role_enum"')
     await queryRunner.dropTable('refresh_tokens')
     await queryRunner.dropTable('applications')
     await queryRunner.dropTable('users')
+    await queryRunner.query('DROP TYPE IF EXISTS "applications_status_enum"')
+    await queryRunner.query('DROP TYPE IF EXISTS "users_role_enum"')
   }
 }

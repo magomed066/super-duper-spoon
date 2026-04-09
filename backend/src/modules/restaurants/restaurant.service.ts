@@ -11,135 +11,29 @@ import type { AuthenticatedRequestUser } from '../auth/types/auth.types.js'
 import { User } from '../users/entities/user.entity.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantAccessService } from './restaurant-access.service.js'
+import { RestaurantStatusTransitionService } from './restaurant-status-transition.service.js'
+import { RestaurantsHttpError } from './restaurants.errors.js'
 import { RestaurantTenantService } from './restaurant-tenant.service.js'
+import {
+  CREATE_RESTAURANT_DEFAULTS,
+  createRestaurantSchema,
+  type CreateRestaurantDto
+} from './dto/create-restaurant.dto.js'
+import {
+  updateRestaurantSchema,
+  type UpdateRestaurantDto
+} from './dto/update-restaurant.dto.js'
 import { RestaurantRole } from './enums/restaurant-role.enum.js'
+import { RestaurantStatus } from './enums/restaurant-status.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
-
-const workScheduleItemSchema = z.object({
-  day: z.string().trim().min(1, 'Work schedule day is required'),
-  open: z.string().trim().min(1, 'Work schedule open time is required'),
-  close: z.string().trim().min(1, 'Work schedule close time is required')
-})
-
-const createRestaurantSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(255, 'Name is too long'),
-  slug: z
-    .string()
-    .trim()
-    .max(255, 'Slug is too long')
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug format is invalid')
-    .optional(),
-  phone: z
-    .string()
-    .trim()
-    .min(1, 'Phone is required')
-    .max(255, 'Phone is too long'),
-  phones: z
-    .array(z.string().trim().min(1, 'Phone is required').max(255, 'Phone is too long'))
-    .default([]),
-  address: z
-    .string()
-    .trim()
-    .min(1, 'Address is required')
-    .max(1000, 'Address is too long'),
-  description: z
-    .string()
-    .trim()
-    .min(1, 'Description is required')
-    .max(5000, 'Description is too long'),
-  email: z
-    .string()
-    .trim()
-    .email('Email format is invalid')
-    .max(255, 'Email is too long')
-    .optional(),
-  city: z.string().trim().min(1, 'City is required').max(255, 'City is too long').optional(),
-  logo: z.string().trim().max(500, 'Logo is too long').optional(),
-  preview: z.string().trim().max(500, 'Preview is too long').optional(),
-  deliveryTime: z
-    .number()
-    .int('Delivery time must be an integer')
-    .min(0, 'Delivery time cannot be negative')
-    .optional(),
-  deliveryConditions: z
-    .string()
-    .trim()
-    .max(5000, 'Delivery conditions are too long')
-    .optional(),
-  cuisine: z
-    .array(z.string().trim().min(1, 'Cuisine item is required').max(255, 'Cuisine item is too long'))
-    .default([]),
-  workSchedule: z.array(workScheduleItemSchema).default([])
-})
-
-const updateRestaurantSchema = z
-  .object({
-    name: z.string().trim().min(1, 'Name is required').max(255, 'Name is too long').optional(),
-    slug: z
-      .string()
-      .trim()
-      .min(1, 'Slug is required')
-      .max(255, 'Slug is too long')
-      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug format is invalid')
-      .optional(),
-    phone: z
-      .string()
-      .trim()
-      .min(1, 'Phone is required')
-      .max(255, 'Phone is too long')
-      .optional(),
-    phones: z
-      .array(z.string().trim().min(1, 'Phone is required').max(255, 'Phone is too long'))
-      .optional(),
-    address: z
-      .string()
-      .trim()
-      .min(1, 'Address is required')
-      .max(1000, 'Address is too long')
-      .optional(),
-    description: z
-      .string()
-      .trim()
-      .min(1, 'Description is required')
-      .max(5000, 'Description is too long')
-      .optional(),
-    email: z
-      .string()
-      .trim()
-      .email('Email format is invalid')
-      .max(255, 'Email is too long')
-      .optional(),
-    city: z.string().trim().min(1, 'City is required').max(255, 'City is too long').optional(),
-    logo: z.string().trim().max(500, 'Logo is too long').optional(),
-    preview: z.string().trim().max(500, 'Preview is too long').optional(),
-    deliveryTime: z
-      .number()
-      .int('Delivery time must be an integer')
-      .min(0, 'Delivery time cannot be negative')
-      .optional(),
-    deliveryConditions: z
-      .string()
-      .trim()
-      .max(5000, 'Delivery conditions are too long')
-      .optional(),
-    cuisine: z
-      .array(z.string().trim().min(1, 'Cuisine item is required').max(255, 'Cuisine item is too long'))
-      .optional(),
-    workSchedule: z.array(workScheduleItemSchema).optional(),
-    isActive: z.boolean().optional()
-  })
-  .refine((payload) => Object.keys(payload).length > 0, {
-    message: 'At least one field is required'
-  })
 
 const assignRestaurantManagerSchema = z.object({
   userId: z.string().trim().min(1, 'User id is required')
 })
 
-type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>
-type NormalizedCreateRestaurantInput = CreateRestaurantInput
-type UpdateRestaurantInput = z.infer<typeof updateRestaurantSchema>
+type NormalizedCreateRestaurantInput = CreateRestaurantDto
+type UpdateRestaurantInput = UpdateRestaurantDto
 type AssignRestaurantManagerInput = z.infer<typeof assignRestaurantManagerSchema>
 
 export interface RestaurantMembershipUserDto {
@@ -188,12 +82,13 @@ export interface PaginatedRestaurantsDto {
   pagination: RestaurantPaginationDto
 }
 
-export class RestaurantsHttpError extends Error {
-  constructor(public readonly statusCode: number, message: string) {
-    super(message)
-    this.name = 'RestaurantsHttpError'
-  }
-}
+const OWNER_ARCHIVABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
+  RestaurantStatus.DRAFT,
+  RestaurantStatus.CHANGES_REQUIRED,
+  RestaurantStatus.REJECTED
+])
+
+const INACTIVE_RESTAURANT_MESSAGE = 'Restaurant is not active'
 
 interface GetAccessibleRestaurantsOptions {
   includeInactiveMemberships?: boolean
@@ -203,7 +98,18 @@ interface GetAccessibleRestaurantsOptions {
   name?: string
   city?: string
   slug?: string
+  status?: RestaurantStatus
   isActive?: boolean
+}
+
+interface GetPublicRestaurantsOptions {
+  page?: number
+  limit?: number
+  search?: string
+  name?: string
+  city?: string
+  slug?: string
+  status?: RestaurantStatus
 }
 
 export class RestaurantService {
@@ -213,6 +119,8 @@ export class RestaurantService {
     this.restaurantRepository,
     this.restaurantUserRepository
   )
+  private readonly restaurantStatusTransitionService =
+    new RestaurantStatusTransitionService()
   private readonly restaurantTenantService = new RestaurantTenantService(
     this.restaurantRepository,
     this.restaurantUserRepository
@@ -222,10 +130,54 @@ export class RestaurantService {
     restaurantId: string,
     currentUser: AuthenticatedRequestUser | undefined
   ): Promise<Restaurant> {
-    return this.restaurantTenantService.getAccessibleRestaurant(
-      restaurantId,
-      currentUser
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const restaurant = await this.getRestaurantByIdOrThrow(restaurantId)
+
+    if (isSystemOwner(currentUser.role)) {
+      return restaurant
+    }
+
+    const membership = await this.restaurantAccessService.getRestaurantMembership(
+      currentUser.id,
+      restaurant.id
     )
+
+    if (!membership) {
+      throw new RestaurantsHttpError(403, 'Access denied')
+    }
+
+    if (
+      membership.role === RestaurantRole.OWNER ||
+      this.isRestaurantPubliclyVisible(restaurant)
+    ) {
+      return restaurant
+    }
+
+    throw new RestaurantsHttpError(409, INACTIVE_RESTAURANT_MESSAGE)
+  }
+
+  async getPublicRestaurantById(restaurantId: string): Promise<Restaurant> {
+    const restaurant = await this.getRestaurantByIdOrThrow(restaurantId)
+
+    if (!this.isRestaurantPubliclyVisible(restaurant)) {
+      throw new RestaurantsHttpError(409, INACTIVE_RESTAURANT_MESSAGE)
+    }
+
+    return restaurant
+  }
+
+  async getRestaurantForUpdateById(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined
+  ): Promise<Restaurant> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    return this.getRestaurantForMutation(restaurantId, currentUser, 'update')
   }
 
   async getAccessibleRestaurants(
@@ -257,6 +209,36 @@ export class RestaurantService {
       )
     }
 
+    this.applyRestaurantFilters(query, options)
+
+    const [items, total] = await query.skip(offset).take(limit).getManyAndCount()
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit)
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1
+      }
+    }
+  }
+
+  async getPublicRestaurants(
+    options: GetPublicRestaurantsOptions = {}
+  ): Promise<PaginatedRestaurantsDto> {
+    const page = options.page ?? 1
+    const limit = options.limit ?? 10
+    const offset = (page - 1) * limit
+
+    const query = this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .orderBy('restaurant.createdAt', 'DESC')
+
+    this.applyPublicVisibilityFilter(query)
     this.applyRestaurantFilters(query, options)
 
     const [items, total] = await query.skip(offset).take(limit).getManyAndCount()
@@ -355,22 +337,28 @@ export class RestaurantService {
     const normalizedPayload = this.parseUpdateRestaurantPayload(payload)
 
     if (normalizedPayload.slug || normalizedPayload.email) {
-      const duplicateRestaurant = await this.restaurantRepository
-        .createQueryBuilder('restaurant')
-        .where('restaurant.id != :restaurantId', {
-          restaurantId: restaurant.id
-        })
-        .andWhere(
-          '(restaurant.slug = :slug OR restaurant.email = :email)',
-          {
-            slug: normalizedPayload.slug ?? restaurant.slug,
-            email: normalizedPayload.email ?? restaurant.email
+      if (normalizedPayload.slug) {
+        const duplicateRestaurantBySlug = await this.restaurantRepository.findOne({
+          where: {
+            slug: normalizedPayload.slug
           }
-        )
-        .getOne()
+        })
 
-      if (duplicateRestaurant) {
-        throw new RestaurantsHttpError(409, 'Restaurant slug is already in use')
+        if (duplicateRestaurantBySlug && duplicateRestaurantBySlug.id !== restaurant.id) {
+          throw new RestaurantsHttpError(409, 'Restaurant slug is already in use')
+        }
+      }
+
+      if (normalizedPayload.email) {
+        const duplicateRestaurantByEmail = await this.restaurantRepository.findOne({
+          where: {
+            email: normalizedPayload.email
+          }
+        })
+
+        if (duplicateRestaurantByEmail && duplicateRestaurantByEmail.id !== restaurant.id) {
+          throw new RestaurantsHttpError(409, 'Restaurant email is already in use')
+        }
       }
     }
 
@@ -403,6 +391,127 @@ export class RestaurantService {
 
       await restaurantRepository.remove(restaurant)
     })
+  }
+
+  async submitForApproval(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined
+  ): Promise<Restaurant> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const restaurant = await this.getRestaurantForSubmitForApproval(
+      restaurantId,
+      currentUser
+    )
+
+    return this.performModerationTransition(
+      restaurant,
+      RestaurantStatus.PENDING_APPROVAL,
+      'submit for approval'
+    )
+  }
+
+  async approve(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined
+  ): Promise<Restaurant> {
+    const restaurant = await this.getRestaurantForSystemModeration(
+      restaurantId,
+      currentUser,
+      'approve restaurants'
+    )
+
+    return this.performModerationTransition(
+      restaurant,
+      RestaurantStatus.ACTIVE,
+      'approve'
+    )
+  }
+
+  async requestChanges(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined
+  ): Promise<Restaurant> {
+    const restaurant = await this.getRestaurantForSystemModeration(
+      restaurantId,
+      currentUser,
+      'request changes'
+    )
+
+    return this.performModerationTransition(
+      restaurant,
+      RestaurantStatus.CHANGES_REQUIRED,
+      'request changes'
+    )
+  }
+
+  async reject(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined
+  ): Promise<Restaurant> {
+    const restaurant = await this.getRestaurantForSystemModeration(
+      restaurantId,
+      currentUser,
+      'reject restaurants'
+    )
+
+    return this.performModerationTransition(
+      restaurant,
+      RestaurantStatus.REJECTED,
+      'reject'
+    )
+  }
+
+  async block(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined
+  ): Promise<Restaurant> {
+    const restaurant = await this.getRestaurantForSystemModeration(
+      restaurantId,
+      currentUser,
+      'block restaurants'
+    )
+
+    return this.performModerationTransition(
+      restaurant,
+      RestaurantStatus.BLOCKED,
+      'block'
+    )
+  }
+
+  async archive(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined
+  ): Promise<Restaurant> {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    const restaurant = await this.getRestaurantForMutation(
+      restaurantId,
+      currentUser,
+      'archive'
+    )
+
+    if (restaurant.status === RestaurantStatus.ARCHIVED) {
+      throw new RestaurantsHttpError(409, 'Restaurant is already archived')
+    }
+
+    if (
+      !isSystemOwner(currentUser.role) &&
+      !OWNER_ARCHIVABLE_RESTAURANT_STATUSES.has(restaurant.status)
+    ) {
+      throw new RestaurantsHttpError(
+        409,
+        `Restaurant owners cannot archive restaurants from status ${restaurant.status}`
+      )
+    }
+
+    this.applyStatusTransition(restaurant, RestaurantStatus.ARCHIVED, 'archive')
+
+    return this.restaurantRepository.save(restaurant)
   }
 
   async assignManager(
@@ -566,11 +675,17 @@ export class RestaurantService {
 
   private applyRestaurantFilters(
     query: SelectQueryBuilder<Restaurant>,
-    options: GetAccessibleRestaurantsOptions
+    options: GetAccessibleRestaurantsOptions | GetPublicRestaurantsOptions
   ): void {
-    if (options.isActive !== undefined) {
+    if ('isActive' in options && options.isActive !== undefined) {
       query.andWhere('restaurant.isActive = :isActive', {
         isActive: options.isActive
+      })
+    }
+
+    if (options.status) {
+      query.andWhere('restaurant.status = :status', {
+        status: options.status
       })
     }
 
@@ -622,6 +737,69 @@ export class RestaurantService {
         })
       )
     }
+  }
+
+  private applyPublicVisibilityFilter(
+    query: SelectQueryBuilder<Restaurant>
+  ): void {
+    query
+      .andWhere('restaurant.status = :publicStatus', {
+        publicStatus: RestaurantStatus.ACTIVE
+      })
+      .andWhere('restaurant.isActive = :isPubliclyActive', {
+        isPubliclyActive: true
+      })
+  }
+
+  private async getRestaurantByIdOrThrow(restaurantId: string): Promise<Restaurant> {
+    const normalizedRestaurantId = this.normalizeId(
+      restaurantId,
+      'Restaurant id is required'
+    )
+    const restaurant = await this.restaurantRepository.findOne({
+      where: {
+        id: normalizedRestaurantId
+      }
+    })
+
+    if (!restaurant) {
+      throw new RestaurantsHttpError(404, 'Restaurant not found')
+    }
+
+    return restaurant
+  }
+
+  private isRestaurantPubliclyVisible(restaurant: Restaurant): boolean {
+    return (
+      restaurant.status === RestaurantStatus.ACTIVE &&
+      restaurant.isActive
+    )
+  }
+
+  private applyStatusTransition(
+    restaurant: Restaurant,
+    nextStatus: RestaurantStatus,
+    actionLabel: string
+  ): void {
+    this.restaurantStatusTransitionService.assertCanTransition(
+      restaurant.status,
+      nextStatus,
+      actionLabel
+    )
+
+    restaurant.status = nextStatus
+    restaurant.isActive =
+      this.restaurantStatusTransitionService.getDefaultIsActive(nextStatus)
+  }
+
+  private async performModerationTransition(
+    restaurant: Restaurant,
+    nextStatus: RestaurantStatus,
+    actionLabel: string
+  ): Promise<Restaurant> {
+    this.applyStatusTransition(restaurant, nextStatus, actionLabel)
+
+    return this.restaurantRepository.save(restaurant)
   }
 
   private parseCreateRestaurantPayload(
@@ -747,7 +925,7 @@ export class RestaurantService {
   private async getRestaurantForMutation(
     restaurantId: string,
     currentUser: AuthenticatedRequestUser,
-    action: 'update' | 'delete'
+    action: 'update' | 'delete' | 'archive'
   ): Promise<Restaurant> {
     return this.restaurantTenantService.getRestaurantForMutation(
       restaurantId,
@@ -774,6 +952,46 @@ export class RestaurantService {
     }
 
     return normalizedValue
+  }
+
+  private async getRestaurantForSubmitForApproval(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser
+  ): Promise<Restaurant> {
+    if (isSystemOwner(currentUser.role)) {
+      return this.getRestaurantByIdOrThrow(restaurantId)
+    }
+
+    const normalizedRestaurantId =
+      await this.restaurantTenantService.assertRestaurantOwnerAccess(
+        restaurantId,
+        currentUser
+      )
+
+    return this.getRestaurantByIdOrThrow(normalizedRestaurantId)
+  }
+
+  private async getRestaurantForSystemModeration(
+    restaurantId: string,
+    currentUser: AuthenticatedRequestUser | undefined,
+    actionLabel: string
+  ): Promise<Restaurant> {
+    this.assertSystemOwner(currentUser, actionLabel)
+
+    return this.getRestaurantByIdOrThrow(restaurantId)
+  }
+
+  private assertSystemOwner(
+    currentUser: AuthenticatedRequestUser | undefined,
+    actionLabel: string
+  ): asserts currentUser is AuthenticatedRequestUser {
+    if (!currentUser) {
+      throw new RestaurantsHttpError(401, 'User is not authenticated')
+    }
+
+    if (currentUser.role !== UserRole.SYSTEM_OWNER) {
+      throw new RestaurantsHttpError(403, `Only system owners can ${actionLabel}`)
+    }
   }
 
   private generateSlug(name: string): string {
@@ -860,7 +1078,8 @@ export class RestaurantService {
       deliveryConditions: payload.deliveryConditions ?? '',
       cuisine: payload.cuisine,
       workSchedule: payload.workSchedule,
-      isActive: true
+      status: CREATE_RESTAURANT_DEFAULTS.status,
+      isActive: CREATE_RESTAURANT_DEFAULTS.isActive
     }
   }
 
@@ -883,8 +1102,7 @@ export class RestaurantService {
       deliveryConditions:
         payload.deliveryConditions ?? restaurant.deliveryConditions,
       cuisine: payload.cuisine ?? restaurant.cuisine,
-      workSchedule: payload.workSchedule ?? restaurant.workSchedule,
-      isActive: payload.isActive ?? restaurant.isActive
+      workSchedule: payload.workSchedule ?? restaurant.workSchedule
     }
   }
 }
