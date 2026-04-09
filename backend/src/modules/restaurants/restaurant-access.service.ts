@@ -89,7 +89,11 @@ export class RestaurantAccessService {
     }
 
     if (isSystemOwner(systemRole)) {
-      return false
+      return this.restaurantRepository.exists({
+        where: {
+          id: normalizedRestaurantId
+        }
+      })
     }
 
     return this.isRestaurantOwner(normalizedUserId, normalizedRestaurantId)

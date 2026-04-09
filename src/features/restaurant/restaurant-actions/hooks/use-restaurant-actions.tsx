@@ -50,7 +50,8 @@ function useRestaurantActions(data: Restaurant) {
   const canEditRestaurant =
     isClient && hasRestaurantStatus(data.status, RESTAURANT_EDITABLE_STATUSES)
   const canDeleteRestaurant =
-    isClient && hasRestaurantStatus(data.status, RESTAURANT_DELETABLE_STATUSES)
+    isSystemOwner ||
+    (isClient && hasRestaurantStatus(data.status, RESTAURANT_DELETABLE_STATUSES))
   const isActionPending =
     submitForApprovalMutation.isPending ||
     approveMutation.isPending ||

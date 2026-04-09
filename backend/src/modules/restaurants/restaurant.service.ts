@@ -59,7 +59,8 @@ const SYSTEM_OWNER_ARCHIVABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
 const OWNER_DELETABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
   RestaurantStatus.DRAFT,
   RestaurantStatus.CHANGES_REQUIRED,
-  RestaurantStatus.REJECTED
+  RestaurantStatus.REJECTED,
+  RestaurantStatus.ARCHIVED
 ])
 
 const INACTIVE_RESTAURANT_MESSAGE = 'Restaurant is not active'
@@ -336,14 +337,10 @@ export class RestaurantService {
       'delete'
     )
 
-    if (isSystemOwner(currentUser.role)) {
-      throw new RestaurantsHttpError(
-        403,
-        'System owners cannot delete restaurants'
-      )
-    }
-
-    if (!OWNER_DELETABLE_RESTAURANT_STATUSES.has(restaurant.status)) {
+    if (
+      currentUser.role === UserRole.CLIENT &&
+      !OWNER_DELETABLE_RESTAURANT_STATUSES.has(restaurant.status)
+    ) {
       throw new RestaurantsHttpError(
         409,
         `Restaurant owners cannot delete restaurants from status ${restaurant.status}`

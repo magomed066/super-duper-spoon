@@ -40,7 +40,8 @@ export const RESTAURANT_DELETABLE_STATUSES: readonly RestaurantModerationStatus[
   [
     RestaurantModerationStatus.DRAFT,
     RestaurantModerationStatus.CHANGES_REQUIRED,
-    RestaurantModerationStatus.REJECTED
+    RestaurantModerationStatus.REJECTED,
+    RestaurantModerationStatus.ARCHIVED
   ]
 
 export const RESTAURANT_SUBMITTABLE_STATUSES: readonly RestaurantModerationStatus[] =

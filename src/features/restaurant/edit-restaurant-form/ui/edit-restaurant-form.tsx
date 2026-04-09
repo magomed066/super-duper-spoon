@@ -4,6 +4,7 @@ import { Button, Group, Paper, Stack } from '@mantine/core'
 import {
   RESTAURANT_DELETABLE_STATUSES,
   RESTAURANT_EDITABLE_STATUSES,
+  hasRestaurantStatus,
   updateRestaurantSchema,
   useDeleteRestaurantMutation,
   useUpdateRestaurantMutation,
@@ -11,6 +12,8 @@ import {
   type CreateRestaurantFormValues,
   type UpdateRestaurantFormValues
 } from '@/entities/restaurant'
+import { useAuthStore } from '@/entities/auth'
+import { UserRole } from '@/shared/api/services/auth/types'
 import type { Restaurant } from '@/shared/api/services/restaurant/types'
 import { BasicInfoStep } from '@/features/restaurant/create-restaurant-form/ui/components/basic-info-step'
 import {
@@ -56,6 +59,7 @@ const getInitialValues = (
 })
 
 export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
+  const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
   const [activeStep, setActiveStep] = useState(0)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -82,9 +86,10 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
   const canEditRestaurant = RESTAURANT_EDITABLE_STATUSES.includes(
     restaurant.status
   )
-  const canDeleteRestaurant = RESTAURANT_DELETABLE_STATUSES.includes(
-    restaurant.status
-  )
+  const canDeleteRestaurant =
+    user?.role === UserRole.SYSTEM_OWNER ||
+    (user?.role === UserRole.CLIENT &&
+      hasRestaurantStatus(restaurant.status, RESTAURANT_DELETABLE_STATUSES))
 
   const canSubmit = updateRestaurantSchema.safeParse(form.values).success
 
