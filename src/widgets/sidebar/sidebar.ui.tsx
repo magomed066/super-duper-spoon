@@ -167,14 +167,13 @@ export function Sidebar() {
           </div>
 
           <Button
-            variant="light"
-            color="coral"
+            variant="default"
+            // color=""
             fullWidth
             mt="md"
             radius="md"
             onClick={handleLogout}
             leftSection={<TbLogout2 size={18} />}
-            className="bg-moss-100 text-moss-900 hover:bg-moss-200"
           >
             Выйти из системы
           </Button>
