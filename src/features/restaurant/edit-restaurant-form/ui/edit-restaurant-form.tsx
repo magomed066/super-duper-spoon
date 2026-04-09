@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from '@mantine/form'
 import { Button, Group, Paper, Stack } from '@mantine/core'
 import {
+  RESTAURANT_DELETABLE_STATUSES,
+  RESTAURANT_EDITABLE_STATUSES,
   updateRestaurantSchema,
   useDeleteRestaurantMutation,
   useUpdateRestaurantMutation,
@@ -77,14 +79,12 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
       form.resetDirty()
     }
   )
-  const canEditRestaurant =
-    restaurant.status === 'DRAFT' ||
-    restaurant.status === 'CHANGES_REQUIRED' ||
-    restaurant.status === 'ACTIVE'
-  const canDeleteRestaurant =
-    restaurant.status === 'DRAFT' ||
-    restaurant.status === 'CHANGES_REQUIRED' ||
-    restaurant.status === 'REJECTED'
+  const canEditRestaurant = RESTAURANT_EDITABLE_STATUSES.includes(
+    restaurant.status
+  )
+  const canDeleteRestaurant = RESTAURANT_DELETABLE_STATUSES.includes(
+    restaurant.status
+  )
 
   const canSubmit = updateRestaurantSchema.safeParse(form.values).success
 

@@ -4,6 +4,11 @@ import type {
 } from '@/shared/api/services/restaurant/types'
 import { RESTAURANT_MODERATION_STATUS_META } from './constants'
 
+export const hasRestaurantStatus = (
+  status: RestaurantModerationStatus,
+  allowedStatuses: readonly RestaurantModerationStatus[]
+) => allowedStatuses.some((allowedStatus) => allowedStatus === status)
+
 export const declineMinuteTitle = (number: number | string) => {
   const cases = [2, 0, 1, 1, 1, 2]
   const titles = ['минута', 'минуты', 'минут']

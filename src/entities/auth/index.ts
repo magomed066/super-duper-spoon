@@ -1,4 +1,5 @@
 export { authHighlights, authStats } from './config/content'
+export { USER_ROLE_LABELS } from './model/constants'
 
 export {
   getFieldErrors,

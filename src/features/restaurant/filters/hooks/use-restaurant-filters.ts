@@ -2,19 +2,19 @@ import { useCallback } from 'react'
 import { useLocation } from 'react-router'
 import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
 import type { QueryParamConfig } from '@/shared/lib/query-string'
-import { RESTAURANT_STATUS_VALUES } from '@/entities/restaurant'
+import {
+  DEFAULT_RESTAURANT_STATUS_BY_ROLE,
+  RESTAURANT_STATUS_VALUES
+} from '@/entities/restaurant'
 import type { RestaurantListStatusFilter } from '@/shared/api/services/restaurant/types'
 import { useAuthStore } from '@/entities/auth'
-import { UserRole } from '@/shared/api/services/auth/types'
 
 const RESTAURANT_FILTER_QUERY_KEYS = {
   search: 'search',
   status: 'status'
 } as const
 
-export type RestaurantStatusFilter =
-  | 'all'
-  | RestaurantListStatusFilter
+export type RestaurantStatusFilter = 'all' | RestaurantListStatusFilter
 
 const DEFAULT_RESTAURANT_STATUS_FILTER: RestaurantStatusFilter = 'all'
 
@@ -54,13 +54,13 @@ export function useRestaurantFilters() {
     RESTAURANT_FILTER_QUERY_KEYS.status
   )
   const defaultStatus: RestaurantStatusFilter =
-    user?.role === UserRole.SYSTEM_OWNER
-      ? 'PENDING_APPROVAL'
-      : DEFAULT_RESTAURANT_STATUS_FILTER
+    (user?.role && DEFAULT_RESTAURANT_STATUS_BY_ROLE[user.role]) ??
+    DEFAULT_RESTAURANT_STATUS_FILTER
+
   const status = hasExplicitStatus ? params.status : defaultStatus
+
   const hasActiveFilters =
-    Boolean(params.search) ||
-    (hasExplicitStatus && status !== defaultStatus)
+    Boolean(params.search) || (hasExplicitStatus && status !== defaultStatus)
 
   const setSearch = useCallback(
     (value: string) => {

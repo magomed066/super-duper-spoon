@@ -5,6 +5,7 @@ import {
   AuthPermission,
   PlatformPermission,
   hasPermission,
+  USER_ROLE_LABELS,
   useAuthStore
 } from '@/entities/auth'
 import { NavLink } from 'react-router'
@@ -13,7 +14,6 @@ import { FaListCheck } from 'react-icons/fa6'
 import { IoMailOpenOutline } from 'react-icons/io5'
 import cn from 'classnames'
 import type { ReactNode } from 'react'
-import { UserRole } from '@/shared/api/services/auth/types'
 import { BiFoodMenu } from 'react-icons/bi'
 import { FaTasks } from 'react-icons/fa'
 
@@ -66,13 +66,7 @@ export function Sidebar() {
     hasPermission(user, item.permission)
   )
 
-  const roleLabel = user
-    ? {
-        [UserRole.SYSTEM_OWNER]: 'Владелец системы',
-        [UserRole.CLIENT]: 'Владелец ресторана',
-        [UserRole.STAFF]: 'Сотрудник'
-      }[user.role]
-    : null
+  const roleLabel = user ? USER_ROLE_LABELS[user.role] : null
 
   const initials = user
     ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()

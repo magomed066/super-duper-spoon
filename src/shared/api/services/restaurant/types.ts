@@ -1,13 +1,14 @@
 import type { Pagination } from '@/shared/lib/types/pagination'
 
-export type RestaurantModerationStatus =
-  | 'DRAFT'
-  | 'PENDING_APPROVAL'
-  | 'ACTIVE'
-  | 'CHANGES_REQUIRED'
-  | 'REJECTED'
-  | 'BLOCKED'
-  | 'ARCHIVED'
+export enum RestaurantModerationStatus {
+  DRAFT = 'DRAFT',
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
+  ACTIVE = 'ACTIVE',
+  CHANGES_REQUIRED = 'CHANGES_REQUIRED',
+  REJECTED = 'REJECTED',
+  BLOCKED = 'BLOCKED',
+  ARCHIVED = 'ARCHIVED'
+}
 
 export type RestaurantListStatusFilter = RestaurantModerationStatus
 

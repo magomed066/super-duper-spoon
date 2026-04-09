@@ -4,6 +4,7 @@ import MenuActions from '@/shared/ui/menu'
 import useRestaurantActions from '../hooks/use-restaurant-actions'
 import { useAuthStore } from '@/entities/auth'
 import { UserRole } from '@/shared/api/services/auth/types'
+import { RestaurantModerationStatus } from '@/shared/api/services/restaurant/types'
 
 type Props = {
   data: Restaurant
@@ -21,7 +22,7 @@ export function RestaurantActions({ data }: Props) {
   const { user } = useAuthStore()
   const isClient = user?.role === UserRole.CLIENT
 
-  if (isClient && data.status === 'PENDING_APPROVAL') {
+  if (isClient && data.status === RestaurantModerationStatus.PENDING_APPROVAL) {
     return null
   }
 

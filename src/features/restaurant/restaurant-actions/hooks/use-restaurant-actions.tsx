@@ -1,4 +1,11 @@
 import {
+  DEFAULT_RESTAURANT_STATUS_BY_ROLE,
+  RESTAURANT_ARCHIVABLE_BY_CLIENT_STATUSES,
+  RESTAURANT_ARCHIVABLE_BY_SYSTEM_OWNER_STATUSES,
+  RESTAURANT_DELETABLE_STATUSES,
+  RESTAURANT_EDITABLE_STATUSES,
+  RESTAURANT_SUBMITTABLE_STATUSES,
+  hasRestaurantStatus,
   useApproveRestaurantMutation,
   useArchiveRestaurantMutation,
   useBlockRestaurantMutation,
@@ -10,7 +17,10 @@ import {
 import { useAuthStore } from '@/entities/auth'
 import { UserRole } from '@/shared/api/services/auth/types'
 import { getRestaurantEditRoute } from '@/shared/config/routes'
-import type { Restaurant } from '@/shared/api/services/restaurant/types'
+import {
+  RestaurantModerationStatus,
+  type Restaurant
+} from '@/shared/api/services/restaurant/types'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -38,15 +48,9 @@ function useRestaurantActions(data: Restaurant) {
   const isSystemOwner = user?.role === UserRole.SYSTEM_OWNER
   const isClient = user?.role === UserRole.CLIENT
   const canEditRestaurant =
-    isClient &&
-    (data.status === 'DRAFT' ||
-      data.status === 'CHANGES_REQUIRED' ||
-      data.status === 'ACTIVE')
+    isClient && hasRestaurantStatus(data.status, RESTAURANT_EDITABLE_STATUSES)
   const canDeleteRestaurant =
-    isClient &&
-    (data.status === 'DRAFT' ||
-      data.status === 'CHANGES_REQUIRED' ||
-      data.status === 'REJECTED')
+    isClient && hasRestaurantStatus(data.status, RESTAURANT_DELETABLE_STATUSES)
   const isActionPending =
     submitForApprovalMutation.isPending ||
     approveMutation.isPending ||
@@ -99,16 +103,29 @@ function useRestaurantActions(data: Restaurant) {
   }
 
   const canSubmitForApproval =
-    isClient && (data.status === 'DRAFT' || data.status === 'CHANGES_REQUIRED')
-  const canApprove = isSystemOwner && data.status === 'PENDING_APPROVAL'
-  const canRequestChanges = isSystemOwner && data.status === 'PENDING_APPROVAL'
-  const canReject = isSystemOwner && data.status === 'PENDING_APPROVAL'
-  const canBlock = isSystemOwner && data.status === 'ACTIVE'
-  const canRestoreFromBlocked = isSystemOwner && data.status === 'BLOCKED'
+    isClient &&
+    hasRestaurantStatus(data.status, RESTAURANT_SUBMITTABLE_STATUSES)
+  const canApprove =
+    isSystemOwner &&
+    data.status === DEFAULT_RESTAURANT_STATUS_BY_ROLE[UserRole.SYSTEM_OWNER]
+  const canRequestChanges =
+    isSystemOwner &&
+    data.status === DEFAULT_RESTAURANT_STATUS_BY_ROLE[UserRole.SYSTEM_OWNER]
+  const canReject =
+    isSystemOwner &&
+    data.status === DEFAULT_RESTAURANT_STATUS_BY_ROLE[UserRole.SYSTEM_OWNER]
+  const canBlock =
+    isSystemOwner && data.status === RestaurantModerationStatus.ACTIVE
+  const canRestoreFromBlocked =
+    isSystemOwner && data.status === RestaurantModerationStatus.BLOCKED
   const canArchive =
     (isSystemOwner &&
-      (data.status === 'ACTIVE' || data.status === 'BLOCKED')) ||
-    (isClient && data.status === 'ACTIVE')
+      hasRestaurantStatus(
+        data.status,
+        RESTAURANT_ARCHIVABLE_BY_SYSTEM_OWNER_STATUSES
+      )) ||
+    (isClient &&
+      hasRestaurantStatus(data.status, RESTAURANT_ARCHIVABLE_BY_CLIENT_STATUSES))
 
   const menuActions = [
     {
@@ -189,15 +206,17 @@ function useRestaurantActions(data: Restaurant) {
       ? {
           opened: true,
           title:
-            data.status === 'BLOCKED'
+            data.status === RestaurantModerationStatus.BLOCKED
               ? 'Разблокировать ресторан?'
               : 'Одобрить ресторан?',
           description:
-            data.status === 'BLOCKED'
+            data.status === RestaurantModerationStatus.BLOCKED
               ? `Ресторан «${data.name}» снова станет активным.`
               : `Ресторан «${data.name}» будет опубликован.`,
           confirmLabel:
-            data.status === 'BLOCKED' ? 'Разблокировать' : 'Одобрить',
+            data.status === RestaurantModerationStatus.BLOCKED
+              ? 'Разблокировать'
+              : 'Одобрить',
           confirmColor: 'aurora' as const
         }
       : pendingAction === 'requestChanges'
