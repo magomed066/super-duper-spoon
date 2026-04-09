@@ -38,6 +38,19 @@ export const getRestaurantPrimaryPhone = (restaurant: Restaurant) =>
 export const getRestaurantAddress = (restaurant: Restaurant) =>
   [restaurant.city, restaurant.address].filter(Boolean).join(', ')
 
+const RESTAURANT_WEEKDAY_LABELS: Record<string, string> = {
+  monday: 'Понедельник',
+  tuesday: 'Вторник',
+  wednesday: 'Среда',
+  thursday: 'Четверг',
+  friday: 'Пятница',
+  saturday: 'Суббота',
+  sunday: 'Воскресенье'
+}
+
+export const getRestaurantWeekdayLabel = (day: string) =>
+  RESTAURANT_WEEKDAY_LABELS[day.trim().toLowerCase()] ?? day
+
 export const formatRestaurantSchedule = (restaurant: Restaurant) => {
   if (!restaurant.workSchedule.length) {
     return 'Расписание не указано'
@@ -51,5 +64,5 @@ export const formatRestaurantSchedule = (restaurant: Restaurant) => {
     return 'Расписание не указано'
   }
 
-  return `${firstOpenDay.day}: ${firstOpenDay.open} - ${firstOpenDay.close}`
+  return `${getRestaurantWeekdayLabel(firstOpenDay.day)}: ${firstOpenDay.open} - ${firstOpenDay.close}`
 }

@@ -46,6 +46,10 @@ export const PLATFORM_ROUTE_ACCESS: Partial<Record<string, RouteAccess>> = {
     permission: PlatformPermission.VIEW_RESTAURANTS,
     fallbackRoute: ROUTES.AUTH
   },
+  [ROUTES.RESTAURANTS_DETAILS]: {
+    permission: PlatformPermission.VIEW_RESTAURANTS,
+    fallbackRoute: ROUTES.AUTH
+  },
   [ROUTES.MENU]: {
     permission: PlatformPermission.VIEW_MENU,
     fallbackRoute: ROUTES.UNAUTHORIZED

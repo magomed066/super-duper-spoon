@@ -1,8 +1,10 @@
 import type { Restaurant } from '@/shared/api/services/restaurant/types'
+import { getRestaurantDetailsRoute } from '@/shared/config/routes'
 import { resolveMediaUrl } from '@/shared/lib/helpers/media'
 import {
   Avatar,
   Badge,
+  Button,
   Card,
   Group,
   Image,
@@ -11,6 +13,7 @@ import {
   Title
 } from '@mantine/core'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router'
 import {
   getRestaurantActivityMeta,
   getRestaurantModerationStatusMeta
@@ -85,6 +88,14 @@ export function RestaurantCard({ data, renderActions }: Props) {
           <Text size="sm" c="dimmed" className="line-clamp-3">
             {description}
           </Text>
+
+          <Button
+            component={Link}
+            to={getRestaurantDetailsRoute(data.id)}
+            fullWidth
+          >
+            Открыть ресторан
+          </Button>
         </Stack>
       </Stack>
     </Card>
