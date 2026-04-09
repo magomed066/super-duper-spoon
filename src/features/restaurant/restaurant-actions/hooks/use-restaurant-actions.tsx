@@ -16,7 +16,7 @@ import {
 } from '@/entities/restaurant'
 import { useAuthStore } from '@/entities/auth'
 import { UserRole } from '@/shared/api/services/auth/types'
-import { getRestaurantEditRoute } from '@/shared/config/routes'
+import { getRestaurantEditRoute, ROUTES } from '@/shared/config/routes'
 import {
   RestaurantModerationStatus,
   type Restaurant
@@ -84,7 +84,10 @@ function useRestaurantActions(data: Restaurant) {
 
     if (pendingAction === 'delete') {
       deleteMutation.mutate(data.id, {
-        onSuccess: () => setPendingAction(null)
+        onSuccess: () => {
+          setPendingAction(null)
+          navigate(ROUTES.RESTAURANTS)
+        }
       })
       return
     }

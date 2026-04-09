@@ -11,7 +11,8 @@ import { BasicInfoStep } from './components/basic-info-step'
 import {
   BASIC_STEP_FIELDS,
   DELIVERY_STEP_FIELDS,
-  FORM_STEPS
+  FORM_STEPS,
+  WEEK_DAYS
 } from './components/constants'
 import { DeliveryScheduleStep } from './components/delivery-schedule-step'
 import { FormStepHeader } from './components/form-step-header'
@@ -29,7 +30,12 @@ const initialValues: CreateRestaurantFormValues = {
   deliveryTime: '',
   deliveryConditions: '',
   cuisine: '',
-  workSchedule: []
+  workSchedule: WEEK_DAYS.map(({ day }) => ({
+    day,
+    enabled: false,
+    open: '09:00',
+    close: '22:00'
+  }))
 }
 
 export function CreateRestaurantForm() {
@@ -77,7 +83,23 @@ export function CreateRestaurantForm() {
       phone: data.phone.trim(),
       address: data.address.trim(),
       description: data.description.trim(),
-      email: data.email.trim() || undefined
+      email: data.email.trim() || undefined,
+      city: data.city.trim() || undefined,
+      logo: data.logo?.trim() || undefined,
+      preview: data.preview?.trim() || undefined,
+      deliveryTime: data.deliveryTime ? Number(data.deliveryTime) : undefined,
+      deliveryConditions: data.deliveryConditions.trim() || undefined,
+      cuisine: data.cuisine
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+      workSchedule: data.workSchedule
+        .filter((item) => item.enabled)
+        .map(({ day, open, close }) => ({
+          day,
+          open,
+          close
+        }))
     }
 
     mutate({
