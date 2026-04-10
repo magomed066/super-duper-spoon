@@ -38,8 +38,8 @@ const data: SidebarItem[] = [
     permission: AuthPermission.VIEW_RESTAURANTS
   },
   {
-    link: ROUTES.MENU,
-    label: 'Меню',
+    link: ROUTES.CATEGORIES,
+    label: 'Категории',
     icon: () => <BiFoodMenu size={20} />,
     permission: AuthPermission.VIEW_MENU
   },

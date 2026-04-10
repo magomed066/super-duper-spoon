@@ -8,6 +8,7 @@ export const ROUTES = {
   RESTAURANTS: '/restaurants',
   RESTAURANTS_DETAILS: '/restaurants/:id',
   MENU: '/menu',
+  CATEGORIES: '/categories',
   ORDERS: '/orders',
   RESTAURANTS_CREATE: '/restaurants/create',
   RESTAURANTS_EDIT: '/restaurants/:id/edit',
