@@ -42,14 +42,16 @@ export function CategoriesPage() {
 
         <Divider my={3} />
 
-        <CategoryManagement />
+        <Stack maw={1200}>
+          <CategoryManagement />
 
-        <ErrorBoundary
-          title="Не удалось отобразить список категорий"
-          message="Во время отображения категорий произошла ошибка. Попробуйте перезагрузить блок."
-        >
-          <CategoriesListWidget />
-        </ErrorBoundary>
+          <ErrorBoundary
+            title="Не удалось отобразить список категорий"
+            message="Во время отображения категорий произошла ошибка. Попробуйте перезагрузить блок."
+          >
+            <CategoriesListWidget />
+          </ErrorBoundary>
+        </Stack>
       </Stack>
     </Stack>
   )

@@ -1,17 +1,17 @@
 import {
   CategoriesEmptyPlaceholder,
   CategoryCard,
-  categoryManagementQueryConfig,
   useCategoriesQuery
 } from '@/entities/category'
+import { restaurantQueryUrlConfig } from '@/entities/restaurant'
 import CategoryActions from '@/features/category/category-actions'
 import { getApiErrorMessage } from '@/shared/api/errors'
 import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
-import { Alert, Loader, SimpleGrid, Stack } from '@mantine/core'
+import { Alert, Loader, Stack } from '@mantine/core'
 import { TbAlertCircle } from 'react-icons/tb'
 
 export function CategoriesListWidget() {
-  const { params } = useQueryParams(categoryManagementQueryConfig)
+  const { params } = useQueryParams(restaurantQueryUrlConfig)
   const { restaurantId } = params
 
   const { data, isError, error, isLoading } = useCategoriesQuery(
@@ -42,21 +42,19 @@ export function CategoriesListWidget() {
 
   return (
     <Stack className="w-full">
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing="lg">
-        {data.map((item) => (
-          <CategoryCard
-            key={item.id}
-            data={item}
-            renderActions={(category) => (
-              <CategoryActions
-                data={category}
-                restaurantId={restaurantId}
-                actionIconProps={{ variant: 'default' }}
-              />
-            )}
-          />
-        ))}
-      </SimpleGrid>
+      {data.map((item) => (
+        <CategoryCard
+          key={item.id}
+          data={item}
+          renderActions={(category) => (
+            <CategoryActions
+              data={category}
+              restaurantId={restaurantId}
+              actionIconProps={{ variant: 'default' }}
+            />
+          )}
+        />
+      ))}
     </Stack>
   )
 }
