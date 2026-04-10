@@ -8,6 +8,8 @@ import {
 } from 'typeorm'
 import type { Relation } from 'typeorm'
 
+import { MenuCategory } from '../../menu-categories/entities/menu-category.entity.js'
+import { MenuItem } from '../../menu-items/entities/menu-item.entity.js'
 import { RestaurantStatus } from '../enums/restaurant-status.enum.js'
 import { RestaurantUser } from './restaurant-user.entity.js'
 
@@ -83,6 +85,12 @@ export class Restaurant {
 
   @OneToMany(() => RestaurantUser, (membership) => membership.restaurant)
   memberships!: Relation<RestaurantUser[]>
+
+  @OneToMany(() => MenuCategory, (menuCategory) => menuCategory.restaurant)
+  menuCategories!: Relation<MenuCategory[]>
+
+  @OneToMany(() => MenuItem, (menuItem) => menuItem.restaurant)
+  menuItems!: Relation<MenuItem[]>
 
   get restaurantUsers(): Relation<RestaurantUser[]> {
     return this.memberships
