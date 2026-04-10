@@ -21,7 +21,7 @@ export function CategoryManagement() {
   const { restaurantId } = params
 
   const handleSelect = (id: string | null) => {
-    if (id) {
+    if (id && id !== restaurantId) {
       setParams({
         restaurantId: id
       })
@@ -34,7 +34,7 @@ export function CategoryManagement() {
         label="Ресторан"
         placeholder="Выберите ресторан"
         data={restaurantOptions}
-        value={restaurantId}
+        value={restaurantId || null}
         onChange={handleSelect}
         searchable
         error={error?.message}

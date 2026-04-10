@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useForm } from '@mantine/form'
 import {
   Button,
@@ -35,16 +34,15 @@ export function CreateCategoryModal({ opened, onClose, restaurantId }: Props) {
     validateInputOnBlur: true
   })
 
-  const { mutate, isPending } = useCreateCategoryMutation(restaurantId, () => {
+  const handleClose = () => {
     form.reset()
     onClose()
-  })
+  }
 
-  useEffect(() => {
-    if (!opened) {
-      form.reset()
-    }
-  }, [form, opened])
+  const { mutate, isPending } = useCreateCategoryMutation(
+    restaurantId,
+    handleClose
+  )
 
   const canSubmit = createCategorySchema.safeParse(form.values).success
 
@@ -59,7 +57,7 @@ export function CreateCategoryModal({ opened, onClose, restaurantId }: Props) {
   return (
     <Modal
       opened={opened}
-      onClose={onClose}
+      onClose={handleClose}
       title="Создать категорию"
       centered
       radius="lg"
