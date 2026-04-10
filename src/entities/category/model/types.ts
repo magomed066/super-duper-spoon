@@ -4,3 +4,7 @@ export type {
   CreateCategoryPayload,
   UpdateCategoryPayload
 } from '@/shared/api/services/category/types'
+
+export type CategoryManagementQuery = {
+  restaurantId: string
+}

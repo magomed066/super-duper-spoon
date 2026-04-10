@@ -1,18 +1,19 @@
 import {
   CategoriesEmptyPlaceholder,
   CategoryCard,
+  categoryManagementQueryConfig,
   useCategoriesQuery
 } from '@/entities/category'
 import { getApiErrorMessage } from '@/shared/api/errors'
+import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
 import { Alert, Loader, SimpleGrid, Stack } from '@mantine/core'
 import { TbAlertCircle } from 'react-icons/tb'
 
-type Props = {
-  restaurantId?: string
-}
+export function CategoriesListWidget() {
+  const { params } = useQueryParams(categoryManagementQueryConfig)
+  const { restaurantId } = params
 
-export function CategoriesListWidget({ restaurantId }: Props) {
-  const { data, error, isError, isLoading } = useCategoriesQuery(
+  const { data, isError, error, isLoading } = useCategoriesQuery(
     restaurantId,
     Boolean(restaurantId)
   )
@@ -34,7 +35,7 @@ export function CategoriesListWidget({ restaurantId }: Props) {
     return <Loader className="mx-auto" />
   }
 
-  if (!data?.length) {
+  if (!restaurantId || !data?.length) {
     return <CategoriesEmptyPlaceholder />
   }
 

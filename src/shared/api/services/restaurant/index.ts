@@ -19,7 +19,9 @@ export class RestaurantService {
     return apiService.get(`/restaurants/${id}`)
   }
 
-  static listPublic(params?: RestaurantsListParams): Promise<RestouranstsResponse> {
+  static listPublic(
+    params?: RestaurantsListParams
+  ): Promise<RestouranstsResponse> {
     return apiService.get('/restaurants/public', { params })
   }
 
@@ -40,8 +42,7 @@ export class RestaurantService {
   }
 
   private static toRestaurantFormData(
-    data: Partial<CreateRestaurantPayload> &
-      Partial<UpdateRestaurantPayload>
+    data: Partial<CreateRestaurantPayload> & Partial<UpdateRestaurantPayload>
   ): FormData {
     const formData = new FormData()
 
@@ -121,11 +122,15 @@ export class RestaurantService {
     data: UpdateRestaurantPayload
   ): Promise<Restaurant> {
     if (data.logoFile || data.previewFile) {
-      return apiService.patch(`/restaurants/${id}`, RestaurantService.toRestaurantFormData(data), {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      return apiService.patch(
+        `/restaurants/${id}`,
+        RestaurantService.toRestaurantFormData(data),
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         }
-      })
+      )
     }
 
     return apiService.patch(`/restaurants/${id}`, data)

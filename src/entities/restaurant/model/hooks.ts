@@ -3,7 +3,8 @@ import {
   useInfiniteQuery,
   useMutation,
   useQuery,
-  useQueryClient
+  useQueryClient,
+  type InfiniteData
 } from '@tanstack/react-query'
 import type { ApiError } from '@/shared/api/errors'
 import { RestaurantService } from '@/shared/api/services/restaurant'
@@ -21,11 +22,14 @@ import { restauranstsQueryKeys } from './constants'
 import { useNavigate } from 'react-router'
 import { ROUTES } from '@/shared/config/routes'
 
-export const useRestaurantsListQuery = (
+export const useRestaurantsListQuery = <
+  TData = InfiniteData<RestouranstsResponse, unknown>
+>(
   enabled = true,
-  params?: RestaurantsListParams
+  params?: RestaurantsListParams,
+  select?: (data: InfiniteData<RestouranstsResponse, unknown>) => TData
 ) => {
-  return useInfiniteQuery<RestouranstsResponse, ApiError>({
+  return useInfiniteQuery<RestouranstsResponse, ApiError, TData>({
     queryKey: restauranstsQueryKeys.all(params),
     queryFn: ({ pageParam }) =>
       RestaurantService.list({
@@ -37,7 +41,8 @@ export const useRestaurantsListQuery = (
     getNextPageParam: (lastPage) =>
       lastPage.pagination.hasNextPage
         ? lastPage.pagination.page + 1
-        : undefined
+        : undefined,
+    select
   })
 }
 
@@ -63,9 +68,7 @@ export const usePublicRestaurantsListQuery = (
     enabled,
     initialPageParam: 1,
     getNextPageParam: (lastPage) =>
-      lastPage.pagination.hasNextPage
-        ? lastPage.pagination.page + 1
-        : undefined
+      lastPage.pagination.hasNextPage ? lastPage.pagination.page + 1 : undefined
   })
 }
 
@@ -273,7 +276,10 @@ export const useUpdateRestaurantMutation = (
   })
 }
 
-export const useRestaurantUsersQuery = (restaurantId?: string, enabled = true) => {
+export const useRestaurantUsersQuery = (
+  restaurantId?: string,
+  enabled = true
+) => {
   return useQuery<RestaurantMembership[], ApiError>({
     queryKey: ['restaurant-users', restaurantId],
     queryFn: () => RestaurantService.getUsers(restaurantId ?? ''),
@@ -289,7 +295,8 @@ export const useAssignRestaurantManagerMutation = (restaurantId: string) => {
     ApiError,
     AssignRestaurantManagerPayload
   >({
-    mutationFn: (payload) => RestaurantService.assignManager(restaurantId, payload),
+    mutationFn: (payload) =>
+      RestaurantService.assignManager(restaurantId, payload),
     onSuccess: async () => {
       notifications.show({
         color: 'green',
@@ -315,7 +322,8 @@ export const useRemoveRestaurantManagerMutation = (restaurantId: string) => {
   const queryClient = useQueryClient()
 
   return useMutation<void, ApiError, string>({
-    mutationFn: (userId) => RestaurantService.removeManager(restaurantId, userId),
+    mutationFn: (userId) =>
+      RestaurantService.removeManager(restaurantId, userId),
     onSuccess: async () => {
       notifications.show({
         color: 'green',
