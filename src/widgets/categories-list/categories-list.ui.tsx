@@ -4,6 +4,7 @@ import {
   categoryManagementQueryConfig,
   useCategoriesQuery
 } from '@/entities/category'
+import CategoryActions from '@/features/category/category-actions'
 import { getApiErrorMessage } from '@/shared/api/errors'
 import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
 import { Alert, Loader, SimpleGrid, Stack } from '@mantine/core'
@@ -43,7 +44,17 @@ export function CategoriesListWidget() {
     <Stack className="w-full">
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing="lg">
         {data.map((item) => (
-          <CategoryCard key={item.id} data={item} />
+          <CategoryCard
+            key={item.id}
+            data={item}
+            renderActions={(category) => (
+              <CategoryActions
+                data={category}
+                restaurantId={restaurantId}
+                actionIconProps={{ variant: 'default' }}
+              />
+            )}
+          />
         ))}
       </SimpleGrid>
     </Stack>
