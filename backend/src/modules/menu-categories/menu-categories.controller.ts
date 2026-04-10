@@ -63,6 +63,24 @@ export class MenuCategoriesController {
     }
   }
 
+  reorder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const categories = await this.menuCategoriesService.reorderCategories(
+        this.getIdParam(req.params.restaurantId),
+        req.body,
+        req.user
+      )
+
+      res.status(200).json(categories)
+    } catch (error: unknown) {
+      next(this.normalizeError(error))
+    }
+  }
+
   delete = async (
     req: Request,
     res: Response,

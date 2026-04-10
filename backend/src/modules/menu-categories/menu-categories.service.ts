@@ -8,6 +8,7 @@ import { MenuItem } from '../menu-items/entities/menu-item.entity.js'
 import { Restaurant } from '../restaurants/entities/restaurant.entity.js'
 import { RestaurantUser } from '../restaurants/entities/restaurant-user.entity.js'
 import type { CreateMenuCategoryDto } from './dto/create-menu-category.dto.js'
+import type { ReorderMenuCategoriesDto } from './dto/reorder-menu-categories.dto.js'
 import type { UpdateMenuCategoryDto } from './dto/update-menu-category.dto.js'
 import { MenuCategory } from './entities/menu-category.entity.js'
 import {
@@ -50,13 +51,14 @@ export class MenuCategoriesService {
     actor: AuthenticatedRequestUser | undefined
   ): Promise<MenuCategory> {
     const restaurant = await this.assertRestaurantMutationAccess(restaurantId, actor)
+    const sortOrder = await this.getNextSortOrder(restaurant.id)
 
     const category = this.menuCategoryRepository.create(
       this.menuRestaurantGuardService.createScopedPayload(
         {
           name: dto.name,
           description: dto.description ?? null,
-          sortOrder: dto.sortOrder ?? 0,
+          sortOrder,
           isActive: true
         },
         restaurant.id
@@ -103,15 +105,67 @@ export class MenuCategoriesService {
       category.description = dto.description
     }
 
-    if (dto.sortOrder !== undefined) {
-      category.sortOrder = dto.sortOrder
-    }
-
     if (dto.isActive !== undefined) {
       category.isActive = dto.isActive
     }
 
     return this.menuCategoryRepository.save(category)
+  }
+
+  async reorderCategories(
+    restaurantId: string,
+    dto: ReorderMenuCategoriesDto,
+    actor: AuthenticatedRequestUser | undefined
+  ): Promise<MenuCategory[]> {
+    const restaurant = await this.assertRestaurantMutationAccess(restaurantId, actor)
+
+    await AppDataSource.transaction(async (manager) => {
+      const categoryRepository = manager.getRepository(MenuCategory)
+      const categories = await applyMenuCategorySorting(
+        this.menuRestaurantGuardService.buildScopedQuery(
+          categoryRepository,
+          'category',
+          restaurant.id
+        ),
+        'category'
+      ).getMany()
+
+      if (categories.length !== dto.categoryIds.length) {
+        throw new MenuCategoriesHttpError(
+          400,
+          'Category ids must include all restaurant categories exactly once',
+          'MENU_CATEGORY_REORDER_INVALID_SET'
+        )
+      }
+
+      const existingCategoryIds = new Set(categories.map((category) => category.id))
+
+      for (const categoryId of dto.categoryIds) {
+        if (!existingCategoryIds.has(categoryId)) {
+          throw new MenuCategoriesHttpError(
+            400,
+            'Category ids must include all restaurant categories exactly once',
+            'MENU_CATEGORY_REORDER_INVALID_SET'
+          )
+        }
+      }
+
+      const categoryById = new Map(categories.map((category) => [category.id, category]))
+
+      for (const [sortOrder, categoryId] of dto.categoryIds.entries()) {
+        const category = categoryById.get(categoryId)
+
+        if (!category) {
+          continue
+        }
+
+        category.sortOrder = sortOrder
+      }
+
+      await categoryRepository.save(categories)
+    })
+
+    return this.getRestaurantCategories(restaurant.id, actor)
   }
 
   async deleteCategory(
@@ -236,6 +290,18 @@ export class MenuCategoriesService {
     }
 
     return normalizedValue
+  }
+
+  private async getNextSortOrder(restaurantId: string): Promise<number> {
+    const result = await this.menuCategoryRepository
+      .createQueryBuilder('category')
+      .select('MAX(category.sortOrder)', 'maxSortOrder')
+      .where('category.restaurantId = :restaurantId', { restaurantId })
+      .getRawOne<{ maxSortOrder: string | null }>()
+
+    return result?.maxSortOrder === null || result?.maxSortOrder === undefined
+      ? 0
+      : Number(result.maxSortOrder) + 1
   }
 
   private createHttpError(error: unknown): MenuCategoriesHttpError {

@@ -16,12 +16,7 @@ const menuCategoryDescriptionSchema = z
 export const createMenuCategorySchema = z
   .object({
     name: z.string().trim().min(1, 'Name is required').max(255, 'Name is too long'),
-    description: menuCategoryDescriptionSchema.nullable().optional(),
-    sortOrder: z
-      .number()
-      .int('Sort order must be an integer')
-      .min(0, 'Sort order cannot be negative')
-      .optional()
+    description: menuCategoryDescriptionSchema.nullable().optional()
   })
   .merge(menuCategoryCreateProtectedFieldsSchema.partial())
   .strict()

@@ -1,5 +1,5 @@
 import type { Category } from '@/entities/category'
-import CategoryModal from '@/features/category/category-modal'
+import EditCategoryModal from '@/features/category/edit-category-modal'
 import ConfirmModal from '@/shared/ui/confirm-modal'
 import MenuActions from '@/shared/ui/menu'
 import type { ActionIconProps, MenuProps } from '@mantine/core'
@@ -40,7 +40,7 @@ export function CategoryActions({
         actionIconProps={actionIconProps}
       />
 
-      <CategoryModal
+      <EditCategoryModal
         opened={isEditOpen}
         onClose={closeEditModal}
         restaurantId={restaurantId}

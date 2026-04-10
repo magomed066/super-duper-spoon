@@ -16,11 +16,6 @@ export const updateMenuCategorySchema = z
   .object({
     name: z.string().trim().min(1, 'Name is required').max(255, 'Name is too long').optional(),
     description: menuCategoryDescriptionSchema.nullable().optional(),
-    sortOrder: z
-      .number()
-      .int('Sort order must be an integer')
-      .min(0, 'Sort order cannot be negative')
-      .optional(),
     isActive: z.boolean().optional()
   })
   .merge(menuCategoryUpdateProtectedFieldsSchema.partial())

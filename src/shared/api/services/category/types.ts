@@ -12,13 +12,9 @@ export type Category = {
 export type CategoryMutableFields = {
   name: string
   description?: string | null
-  sortOrder?: number
   isActive?: boolean
 }
 
-export type CreateCategoryPayload = Pick<
-  CategoryMutableFields,
-  'name' | 'description' | 'sortOrder'
->
+export type CreateCategoryPayload = Pick<CategoryMutableFields, 'name' | 'description'>
 
 export type UpdateCategoryPayload = Partial<CategoryMutableFields>
