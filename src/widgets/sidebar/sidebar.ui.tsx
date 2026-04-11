@@ -83,7 +83,7 @@ export function Sidebar() {
       to={item.link}
       className={({ isActive }) =>
         cn(
-          'group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors',
+          'group flex items-center gap-3 rounded-lg px-3 py-3 transition-colors',
           isActive
             ? 'bg-moss-50 text-moss-900 ring-1 ring-moss-200'
             : 'text-moss-700 hover:bg-moss-100 hover:text-moss-900'
@@ -95,10 +95,10 @@ export function Sidebar() {
         <>
           <div
             className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-xl transition-colors',
+              'flex h-7 w-7 items-center justify-center rounded-lg transition-colors',
               isActive
-                ? 'bg-white text-aurora-700 shadow-sm'
-                : 'bg-white text-moss-600 group-hover:bg-white group-hover:text-moss-900'
+                ? 'bg-moss-50 text-aurora-700'
+                : 'text-moss-600 group-hover:text-aurora-700 '
             )}
           >
             {item.icon()}
@@ -112,15 +112,6 @@ export function Sidebar() {
               {item.label}
             </Text>
           </div>
-
-          <div
-            className={cn(
-              'h-1.5 w-1.5 rounded-full transition-colors',
-              isActive
-                ? 'bg-aurora-500'
-                : 'bg-transparent group-hover:bg-moss-400'
-            )}
-          />
         </>
       )}
     </NavLink>
