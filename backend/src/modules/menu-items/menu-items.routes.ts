@@ -2,6 +2,9 @@ import { Router } from 'express'
 
 import { authMiddleware } from '../../common/middleware/auth.middleware.js'
 import {
+  menuItemImageUpload,
+} from '../../common/uploads/file-storage.js'
+import {
   validateRequestBody,
   validateRequestParams
 } from '../../common/middleware/zod-validation.middleware.js'
@@ -253,6 +256,7 @@ menuItemsRouter.post(
   '/restaurants/:restaurantId/items',
   authMiddleware,
   validateRequestParams(restaurantMenuParamsSchema),
+  menuItemImageUpload.single('imageFile'),
   validateRequestBody(createMenuItemSchema),
   menuItemsController.create
 )
@@ -268,6 +272,7 @@ menuItemsRouter.patch(
   '/restaurants/:restaurantId/items/:itemId',
   authMiddleware,
   validateRequestParams(restaurantMenuItemParamsSchema),
+  menuItemImageUpload.single('imageFile'),
   validateRequestBody(updateMenuItemSchema),
   menuItemsController.update
 )

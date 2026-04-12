@@ -17,7 +17,7 @@ import {
 import { useMenuNavigation } from '@/features/menu/navigation'
 import { TbAlertCircle, TbInfoCircle } from 'react-icons/tb'
 
-export function MenuEditorSidebar(_: MenuEditorSidebarProps) {
+export function MenuEditorSidebarWidget(_: MenuEditorSidebarProps) {
   const {
     restaurantId,
     selectedSectionId,
@@ -32,7 +32,8 @@ export function MenuEditorSidebar(_: MenuEditorSidebarProps) {
     isLoading
   } = useCategoriesQuery(restaurantId, Boolean(restaurantId))
 
-  const activeCategoriesCount = categories?.filter((item) => item.isActive).length ?? 0
+  const activeCategoriesCount =
+    categories?.filter((item) => item.isActive).length ?? 0
 
   return (
     <Paper

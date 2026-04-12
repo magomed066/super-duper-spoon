@@ -13,12 +13,38 @@ const menuItemNameSchema = z.string().trim().min(1, 'Name is required').max(255,
 
 const menuItemDescriptionSchema = z.string().trim().max(5000, 'Description is too long')
 
-const menuItemPriceSchema = z
+const menuItemPriceSchema = z.preprocess(
+  (value) => {
+    if (typeof value === 'string') {
+      const trimmedValue = value.trim()
+
+      if (!trimmedValue) {
+        return value
+      }
+
+      const parsedValue = Number(trimmedValue)
+      return Number.isNaN(parsedValue) ? value : parsedValue
+    }
+
+    return value
+  },
+  z
   .number()
   .int('Price must be an integer')
   .positive('Price must be a positive integer in whole currency units')
+)
 
-const menuItemImageSchema = z.string().trim().max(500, 'Image is too long')
+const menuItemImageSchema = z.preprocess(
+  (value) => {
+    if (typeof value !== 'string') {
+      return value
+    }
+
+    const trimmedValue = value.trim()
+    return trimmedValue ? trimmedValue : undefined
+  },
+  z.string().trim().max(500, 'Image is too long')
+)
 
 const menuItemSortOrderSchema = z
   .number()

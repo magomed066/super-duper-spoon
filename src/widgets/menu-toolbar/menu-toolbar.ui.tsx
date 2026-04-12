@@ -16,7 +16,7 @@ export function MenuToolbarWidget() {
         variant="filled"
         color="dark"
         h={36}
-        radius="xl"
+        radius="md"
         disabled
       >
         Скопировать меню

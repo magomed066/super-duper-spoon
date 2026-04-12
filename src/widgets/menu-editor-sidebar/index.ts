@@ -1,3 +1,3 @@
-import { MenuEditorSidebar } from './menu-editor-sidebar.ui'
+import { MenuEditorSidebarWidget } from './menu-editor-sidebar.ui'
 
-export default MenuEditorSidebar
+export default MenuEditorSidebarWidget
