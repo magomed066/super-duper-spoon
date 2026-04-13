@@ -5,6 +5,7 @@ import { CategoryService } from '@/shared/api/services/category'
 import type {
   Category,
   CreateCategoryPayload,
+  ReorderCategoriesPayload,
   UpdateCategoryPayload
 } from '@/shared/api/services/category/types'
 import { categoriesQueryKeys } from './constants'
@@ -114,6 +115,73 @@ export const useDeleteCategoryMutation = (
         title: 'Ошибка удаления категории',
         message: error.message
       })
+    }
+  })
+}
+
+export const useReorderCategoriesMutation = (restaurantId: string) => {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    Category[],
+    ApiError,
+    ReorderCategoriesPayload,
+    { previousCategories?: Category[] }
+  >({
+    mutationFn: (payload) => CategoryService.reorder(restaurantId, payload),
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({
+        queryKey: categoriesQueryKeys.all(restaurantId)
+      })
+
+      const previousCategories = queryClient.getQueryData<Category[]>(
+        categoriesQueryKeys.all(restaurantId)
+      )
+
+      if (previousCategories?.length) {
+        const nextSortOrder = new Map(
+          payload.categoryIds.map((categoryId, index) => [categoryId, index])
+        )
+
+        const reorderedCategories = [...previousCategories]
+          .sort((left, right) => {
+            return (
+              (nextSortOrder.get(left.id) ?? left.sortOrder) -
+              (nextSortOrder.get(right.id) ?? right.sortOrder)
+            )
+          })
+          .map((category, index) => ({
+            ...category,
+            sortOrder: index
+          }))
+
+        queryClient.setQueryData(
+          categoriesQueryKeys.all(restaurantId),
+          reorderedCategories
+        )
+      }
+
+      return { previousCategories }
+    },
+    onError: (error, _payload, context) => {
+      if (context?.previousCategories) {
+        queryClient.setQueryData(
+          categoriesQueryKeys.all(restaurantId),
+          context.previousCategories
+        )
+      }
+
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка сортировки категорий',
+        message: error.message
+      })
+    },
+    onSuccess: (categories) => {
+      queryClient.setQueryData(categoriesQueryKeys.all(restaurantId), categories)
+    },
+    onSettled: async () => {
+      await invalidateCategoryQueries(queryClient, restaurantId)
     }
   })
 }

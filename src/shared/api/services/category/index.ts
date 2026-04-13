@@ -2,6 +2,7 @@ import { apiService } from '../../base'
 import type {
   Category,
   CreateCategoryPayload,
+  ReorderCategoriesPayload,
   UpdateCategoryPayload
 } from './types'
 
@@ -32,5 +33,12 @@ export class CategoryService {
     return apiService.delete(
       `/restaurants/${restaurantId}/categories/${categoryId}`
     )
+  }
+
+  static reorder(
+    restaurantId: string,
+    payload: ReorderCategoriesPayload
+  ): Promise<Category[]> {
+    return apiService.patch(`/restaurants/${restaurantId}/categories/reorder`, payload)
   }
 }

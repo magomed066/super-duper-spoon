@@ -1,12 +1,11 @@
 import {
   CategoriesEmptyPlaceholder,
-  CategoryCard,
   useCategoriesQuery
 } from '@/entities/category'
 import { useRestaurantQueryParams } from '@/entities/restaurant'
-import CategoryActions from '@/features/category/category-actions'
+import { ReorderCategoriesFeature } from '@/features/category/reorder-categories'
 import { getApiErrorMessage } from '@/shared/api/errors'
-import { Alert, Loader, Stack } from '@mantine/core'
+import { Alert, Loader } from '@mantine/core'
 import { TbAlertCircle } from 'react-icons/tb'
 
 export function CategoriesListWidget() {
@@ -39,21 +38,5 @@ export function CategoriesListWidget() {
     return <CategoriesEmptyPlaceholder />
   }
 
-  return (
-    <Stack className="w-full">
-      {data.map((item) => (
-        <CategoryCard
-          key={item.id}
-          data={item}
-          renderActions={(category) => (
-            <CategoryActions
-              data={category}
-              restaurantId={restaurantId}
-              actionIconProps={{ variant: 'default' }}
-            />
-          )}
-        />
-      ))}
-    </Stack>
-  )
+  return <ReorderCategoriesFeature items={data} restaurantId={restaurantId} />
 }

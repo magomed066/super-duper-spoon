@@ -1,4 +1,4 @@
-import clsx from 'classnames'
+import classNames from 'classnames'
 import { Badge, Flex, Text } from '@mantine/core'
 import type { ReactNode } from 'react'
 import { TbGripVertical } from 'react-icons/tb'
@@ -7,9 +7,10 @@ import type { Category } from '../../model/types'
 type Props = {
   data: Category
   renderActions?: (item: Category) => ReactNode
+  className?: string
 }
 
-export function CategoryCard({ data, renderActions }: Props) {
+export function CategoryCard({ data, renderActions, className }: Props) {
   const description = data.description?.trim() || 'Описание отсутствует'
 
   return (
@@ -18,14 +19,14 @@ export function CategoryCard({ data, renderActions }: Props) {
       w="100%"
       p={12}
       gap={12}
-      className="relative border rounded-lg border-moss-200"
+      className={classNames('relative border rounded-lg border-moss-200', className)}
     >
       <Flex
         w={24}
         h={56}
         align="center"
         justify="center"
-        className={clsx(
+        className={classNames(
           'shrink-0 text-moss-400',
           data.isActive ? 'opacity-100' : 'opacity-50'
         )}

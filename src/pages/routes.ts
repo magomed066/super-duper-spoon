@@ -1,6 +1,5 @@
 import AuthPage from '@/pages/auth'
 import ApplicationsPage from '@/pages/applications'
-import CategoriesPage from '@/pages/categories'
 import NotFoundPage from '@/pages/not-found'
 import RestaurantCreatePage from '@/pages/restaurant-create'
 import RestaurantDetailsPage from '@/pages/restaurant-details'
@@ -47,10 +46,6 @@ export const privateRoutes = [
   {
     Component: MenuPage,
     path: ROUTES.MENU
-  },
-  {
-    Component: CategoriesPage,
-    path: ROUTES.CATEGORIES
   },
   {
     Component: RestaurantDetailsPage,

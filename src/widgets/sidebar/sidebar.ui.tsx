@@ -44,12 +44,6 @@ const data: SidebarItem[] = [
     permission: AuthPermission.VIEW_MENU
   },
   {
-    link: ROUTES.CATEGORIES,
-    label: 'Категории',
-    icon: () => <BiFoodMenu size={20} />,
-    permission: AuthPermission.VIEW_MENU
-  },
-  {
     link: ROUTES.ORDERS,
     label: 'Заказы',
     icon: () => <FaTasks size={20} />,

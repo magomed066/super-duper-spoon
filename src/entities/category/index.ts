@@ -2,7 +2,8 @@ export {
   useCategoriesQuery,
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
-  useDeleteCategoryMutation
+  useDeleteCategoryMutation,
+  useReorderCategoriesMutation
 } from './model/hooks'
 export * from './model/types'
 export * from './model/constants'

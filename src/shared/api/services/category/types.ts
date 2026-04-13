@@ -18,3 +18,7 @@ export type CategoryMutableFields = {
 export type CreateCategoryPayload = Pick<CategoryMutableFields, 'name' | 'description'>
 
 export type UpdateCategoryPayload = Partial<CategoryMutableFields>
+
+export type ReorderCategoriesPayload = {
+  categoryIds: string[]
+}
