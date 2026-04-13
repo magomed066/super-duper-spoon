@@ -47,9 +47,9 @@ export function MenuSidebarItem({
 
           {description ? (
             <Text size="xs" className={disabled ? 'leading-5 text-moss-400' : 'leading-5 text-moss-600'}>
-            {description}
-          </Text>
-        ) : null}
+              {description}
+            </Text>
+          ) : null}
         </Stack>
       </Group>
     </Box>

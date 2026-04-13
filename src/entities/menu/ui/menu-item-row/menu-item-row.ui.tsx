@@ -1,10 +1,11 @@
 import clsx from 'classnames'
-import { Avatar, Checkbox, Flex, Text, Title } from '@mantine/core'
+import { Avatar, Flex, Text, Title } from '@mantine/core'
 import type { MenuItem } from '@/shared/api/services/menu-item/types'
 import { resolveMediaUrl } from '@/shared/lib/helpers/media'
 import { TbPhoto } from 'react-icons/tb'
 import { priceFormatter } from '@/shared/lib/helpers/price-formatter'
 import type { ReactNode } from 'react'
+import cn from 'classnames'
 
 type MenuItemRowProps = {
   item: MenuItem
@@ -17,8 +18,6 @@ type MenuItemRowProps = {
 export function MenuItemRow({
   item,
   categoryLabel,
-  disabled = false,
-  onToggleActive,
   renderActions
 }: MenuItemRowProps) {
   return (
@@ -29,12 +28,6 @@ export function MenuItemRow({
       gap={12}
       className="relative border-b border-t border-moss-200"
     >
-      <Checkbox
-        checked={item.isActive}
-        disabled={disabled}
-        onChange={(event) => onToggleActive?.(event.currentTarget.checked)}
-      />
-
       {item.image ? (
         <Avatar
           w={56}
@@ -82,8 +75,8 @@ export function MenuItemRow({
       <Flex direction="column" align="flex-end" className="shrink-0">
         <Title
           order={4}
-          fw={400}
-          className={item.isActive ? 'text-moss-900' : 'text-moss-500'}
+          fw={600}
+          className={cn(item.isActive ? 'text-moss-900' : 'text-moss-500')}
         >
           {priceFormatter.format(item.price)}
         </Title>

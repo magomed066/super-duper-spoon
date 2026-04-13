@@ -1,6 +1,7 @@
-import { Badge, Card, Group, Stack, Text, Title } from '@mantine/core'
+import clsx from 'classnames'
+import { Badge, Flex, Text } from '@mantine/core'
 import type { ReactNode } from 'react'
-import { TbAlignBoxLeftMiddle, TbArrowsSort, TbNotes } from 'react-icons/tb'
+import { TbGripVertical } from 'react-icons/tb'
 import type { Category } from '../../model/types'
 
 type Props = {
@@ -9,54 +10,50 @@ type Props = {
 }
 
 export function CategoryCard({ data, renderActions }: Props) {
-  const description = data.description?.trim() || 'Описание категории пока не заполнено'
+  const description = data.description?.trim() || 'Описание отсутствует'
 
   return (
-    <Card
-      withBorder
-      radius="lg"
-      padding="lg"
-      className="bg-white shadow-sm transition-shadow duration-200 hover:shadow-md"
+    <Flex
+      align="center"
+      w="100%"
+      p={12}
+      gap={12}
+      className="relative border rounded-lg border-moss-200"
     >
-      <Group justify="space-between" align="flex-start" gap="lg" wrap="nowrap">
-        <Stack gap="md" className="min-w-0 flex-1">
-          <Group justify="space-between" align="flex-start" gap="md" wrap="wrap">
-            <Group gap="xs" wrap="wrap">
-              <Badge color={data.isActive ? 'green' : 'gray'} variant="light" size="lg">
-                {data.isActive ? 'Активна' : 'Скрыта'}
-              </Badge>
+      <Flex
+        w={24}
+        h={56}
+        align="center"
+        justify="center"
+        className={clsx(
+          'shrink-0 text-moss-400',
+          data.isActive ? 'opacity-100' : 'opacity-50'
+        )}
+      >
+        <TbGripVertical size={20} />
+      </Flex>
 
-              <Badge variant="dot" color="gray" size="lg" leftSection={<TbArrowsSort size={14} />}>
-                Позиция: {data.sortOrder + 1}
-              </Badge>
-            </Group>
+      <Flex direction="column" className="min-w-0 flex-1">
+        <Text
+          size="md"
+          fw={500}
+          className={data.isActive ? 'text-moss-900' : 'text-moss-500'}
+        >
+          {data.name}
+        </Text>
 
-            {renderActions ? <div className="shrink-0">{renderActions(data)}</div> : null}
-          </Group>
+        <Text size="sm" className="line-clamp-2 text-moss-600">
+          {description}
+        </Text>
+      </Flex>
 
-          <Stack gap={8} className="min-w-0">
-            <Group gap="xs" wrap="nowrap">
-              <TbAlignBoxLeftMiddle size={18} className="shrink-0 text-aurora-500" />
-              <Title order={3} className="truncate text-moss-900">
-                {data.name}
-              </Title>
-            </Group>
+      <Flex direction="column" align="flex-end" gap={8} className="shrink-0">
+        <Badge color={data.isActive ? 'green' : 'gray'} variant="light">
+          {data.isActive ? 'Активна' : 'Скрыта'}
+        </Badge>
 
-            <Group gap="xs" align="flex-start" wrap="nowrap">
-              <TbNotes size={16} className="mt-0.5 shrink-0 text-moss-500" />
-              <Text size="sm" c="dimmed" className="line-clamp-3">
-                {description}
-              </Text>
-            </Group>
-          </Stack>
-        </Stack>
-
-        {!renderActions ? (
-          <Badge color={data.isActive ? 'green' : 'gray'} variant="light" size="lg">
-            {data.isActive ? 'Активна' : 'Скрыта'}
-          </Badge>
-        ) : null}
-      </Group>
-    </Card>
+        {renderActions ? <div>{renderActions(data)}</div> : null}
+      </Flex>
+    </Flex>
   )
 }

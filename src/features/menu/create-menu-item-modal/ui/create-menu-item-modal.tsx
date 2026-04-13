@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AspectRatio,
   NumberInput,
@@ -9,6 +9,7 @@ import {
   Modal,
   Select,
   Stack,
+  Switch,
   Text,
   TextInput,
   Textarea
@@ -17,11 +18,16 @@ import { useForm } from '@mantine/form'
 import type { Category } from '@/entities/category'
 import {
   createMenuItemSchema,
+  editMenuItemSchema,
+  getEditMenuItemInitialValues,
   initialCreateMenuItemValues,
   type CreateMenuItemFormValues,
+  type EditMenuItemFormValues,
   useCreateMenuItemMutation,
+  useUpdateMenuItemMutation,
   validateCreateMenuItemForm
 } from '@/entities/menu'
+import type { MenuItem } from '@/shared/api/services/menu-item/types'
 import { resolveMediaUrl } from '@/shared/lib/helpers/media'
 import { TbPhotoPlus, TbTrash } from 'react-icons/tb'
 
@@ -31,6 +37,7 @@ type Props = {
   restaurantId: string
   categoryId?: string
   categories?: Category[]
+  menuItem?: MenuItem
 }
 
 export function CreateMenuItemModal({
@@ -38,16 +45,53 @@ export function CreateMenuItemModal({
   onClose,
   restaurantId,
   categoryId,
-  categories
+  categories,
+  menuItem
 }: Props) {
-  const form = useForm<CreateMenuItemFormValues>({
-    initialValues: initialCreateMenuItemValues,
+  const isEditMode = Boolean(menuItem)
+  const form = useForm<CreateMenuItemFormValues & EditMenuItemFormValues>({
+    initialValues: menuItem
+      ? {
+          ...getEditMenuItemInitialValues(menuItem)
+        }
+      : {
+          ...initialCreateMenuItemValues,
+          categoryId: categoryId ?? '',
+          isActive: true
+        },
     validate: validateCreateMenuItemForm,
     validateInputOnBlur: true
   })
   const [selectedCategoryId, setSelectedCategoryId] = useState(categoryId ?? '')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState('')
+
+  useEffect(() => {
+    if (!opened) {
+      return
+    }
+
+    if (menuItem) {
+      const initialValues = getEditMenuItemInitialValues(menuItem)
+      form.setValues(initialValues)
+      form.resetDirty(initialValues)
+      setSelectedCategoryId(menuItem.categoryId)
+      setImagePreviewUrl(resolveMediaUrl(menuItem.image))
+      setImageFile(null)
+      return
+    }
+
+    const initialValues = {
+      ...initialCreateMenuItemValues,
+      categoryId: categoryId ?? '',
+      isActive: true
+    }
+    form.setValues(initialValues)
+    form.resetDirty(initialValues)
+    setSelectedCategoryId(categoryId ?? '')
+    setImagePreviewUrl('')
+    setImageFile(null)
+  }, [opened, menuItem, categoryId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClose = () => {
     form.reset()
@@ -61,18 +105,35 @@ export function CreateMenuItemModal({
     restaurantId,
     handleClose
   )
+  const updateMutation = useUpdateMenuItemMutation(restaurantId, handleClose)
   const canSubmit =
-    createMenuItemSchema.safeParse(form.values).success &&
+    (isEditMode
+      ? editMenuItemSchema.safeParse({
+          ...form.values,
+          categoryId: selectedCategoryId
+        }).success
+      : createMenuItemSchema.safeParse(form.values).success) &&
     Boolean(selectedCategoryId)
 
   const handleSubmit = (values: CreateMenuItemFormValues) => {
-    mutate({
+    const payload = {
       categoryId: selectedCategoryId,
       name: values.name.trim(),
       description: values.description.trim() || undefined,
       price: values.price,
-      imageFile: imageFile ?? undefined
-    })
+      imageFile: imageFile ?? undefined,
+      ...(isEditMode ? { isActive: form.values.isActive } : {})
+    }
+
+    if (menuItem) {
+      updateMutation.mutate({
+        itemId: menuItem.id,
+        payload
+      })
+      return
+    }
+
+    mutate(payload)
   }
 
   const handleImageUpload = (file: File | null) => {
@@ -93,7 +154,7 @@ export function CreateMenuItemModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title="Добавить блюдо"
+      title={isEditMode ? 'Редактировать блюдо' : 'Добавить блюдо'}
       centered
       radius="lg"
     >
@@ -141,6 +202,13 @@ export function CreateMenuItemModal({
             clampBehavior="strict"
             {...form.getInputProps('price')}
           />
+
+          {isEditMode ? (
+            <Switch
+              label="Блюдо активно"
+              {...form.getInputProps('isActive', { type: 'checkbox' })}
+            />
+          ) : null}
 
           <Stack gap="xs">
             <Text size="sm" fw={500}>
@@ -195,8 +263,12 @@ export function CreateMenuItemModal({
             <Button variant="default" onClick={handleClose}>
               Отмена
             </Button>
-            <Button type="submit" loading={isPending} disabled={!canSubmit}>
-              Добавить
+            <Button
+              type="submit"
+              loading={isEditMode ? updateMutation.isPending : isPending}
+              disabled={!canSubmit}
+            >
+              {isEditMode ? 'Сохранить' : 'Добавить'}
             </Button>
           </Group>
         </Stack>

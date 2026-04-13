@@ -86,3 +86,31 @@ export const useUpdateMenuItemMutation = (
     }
   })
 }
+
+export const useDeleteMenuItemMutation = (
+  restaurantId: string,
+  onSuccess?: () => void
+) => {
+  const queryClient = useQueryClient()
+
+  return useMutation<void, ApiError, string>({
+    mutationFn: (itemId) => MenuItemService.delete(restaurantId, itemId),
+    onSuccess: async () => {
+      await invalidateMenuItemQueries(queryClient, restaurantId)
+      onSuccess?.()
+
+      notifications.show({
+        color: 'green',
+        title: 'Блюдо удалено',
+        message: 'Позиция была успешно удалена'
+      })
+    },
+    onError: (error) => {
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка удаления блюда',
+        message: error.message
+      })
+    }
+  })
+}

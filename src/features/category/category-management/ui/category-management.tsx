@@ -3,6 +3,7 @@ import { Button, Flex } from '@mantine/core'
 import CreateCategoryModal from '@/features/category/create-category-modal'
 import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
 import { restaurantQueryUrlConfig } from '@/entities/restaurant'
+import { TbPlus } from 'react-icons/tb'
 
 export function CategoryManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -11,12 +12,17 @@ export function CategoryManagement() {
   const { restaurantId } = params
 
   return (
-    <Flex justify="space-between" align="flex-end">
+    <Flex justify="space-between" align="flex-end" className="ml-auto">
       <Button
+        leftSection={<TbPlus size={16} />}
         onClick={() => setIsCreateModalOpen(true)}
         disabled={!restaurantId}
+        color="aurora"
+        radius="md"
+        h={40}
+        className="px-4 font-medium"
       >
-        Создать категорию
+        Добавить категорию
       </Button>
 
       {restaurantId ? (
