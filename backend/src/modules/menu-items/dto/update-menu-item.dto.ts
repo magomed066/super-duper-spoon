@@ -46,10 +46,44 @@ const menuItemImageSchema = z.preprocess(
   z.string().trim().max(500, 'Image is too long')
 )
 
-const menuItemSortOrderSchema = z
-  .number()
-  .int('Sort order must be an integer')
-  .min(0, 'Sort order cannot be negative')
+const menuItemBooleanSchema = z.preprocess((value) => {
+  if (typeof value !== 'string') {
+    return value
+  }
+
+  const normalizedValue = value.trim().toLowerCase()
+
+  if (normalizedValue === 'true') {
+    return true
+  }
+
+  if (normalizedValue === 'false') {
+    return false
+  }
+
+  return value
+}, z.boolean())
+
+const menuItemSortOrderSchema = z.preprocess(
+  (value) => {
+    if (typeof value === 'string') {
+      const trimmedValue = value.trim()
+
+      if (!trimmedValue) {
+        return value
+      }
+
+      const parsedValue = Number(trimmedValue)
+      return Number.isNaN(parsedValue) ? value : parsedValue
+    }
+
+    return value
+  },
+  z
+    .number()
+    .int('Sort order must be an integer')
+    .min(0, 'Sort order cannot be negative')
+)
 
 export const updateMenuItemSchema = z
   .object({
@@ -58,7 +92,7 @@ export const updateMenuItemSchema = z
     description: menuItemDescriptionSchema.nullable().optional(),
     price: menuItemPriceSchema.optional(),
     image: menuItemImageSchema.nullable().optional(),
-    isActive: z.boolean().optional(),
+    isActive: menuItemBooleanSchema.optional(),
     sortOrder: menuItemSortOrderSchema.optional()
   })
   .merge(menuItemUpdateProtectedFieldsSchema.partial())
