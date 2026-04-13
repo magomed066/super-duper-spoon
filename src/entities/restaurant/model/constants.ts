@@ -1,7 +1,6 @@
 import { RestaurantModerationStatus } from '@/shared/api/services/restaurant/types'
 import type { RestaurantsListParams } from '@/shared/api/services/restaurant/types'
 import { UserRole } from '@/shared/api/services/auth/types'
-import type { QueryParamConfig } from '@/shared/lib/query-string'
 
 export const restauranstsQueryKeys = {
   all: (params?: RestaurantsListParams) =>
@@ -75,12 +74,3 @@ export const RESTAURANT_STATUS_VALUES = [
   'all',
   ...Object.keys(RESTAURANT_MODERATION_STATUS_META)
 ] as const
-
-export const restaurantQueryUrlConfig: QueryParamConfig<{
-  restaurantId: string
-}> = {
-  restaurantId: {
-    parse: (value) => value?.trim() ?? '',
-    serialize: (value) => value.trim() || undefined
-  }
-}

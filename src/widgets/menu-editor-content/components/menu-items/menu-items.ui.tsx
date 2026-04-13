@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import { useCategoriesQuery } from '@/entities/category'
-import { MenuItemRow, MenuItemsEmptyPlaceholder } from '@/entities/menu'
+import {
+  MenuItemRow,
+  MenuItemsEmptyPlaceholder,
+  useMenuQueryParams
+} from '@/entities/menu'
 import { useMenuItemsQuery } from '@/entities/menu/model/hooks'
 import CreateMenuItemModal from '@/features/menu/create-menu-item-modal'
 import { MenuItemActions } from '@/features/menu/menu-item-actions/ui/menu-item-actions'
 import { getApiErrorMessage } from '@/shared/api/errors'
-import { queryUrlConfig } from '@/shared/config/routes'
-import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
 import { Alert, Button, Flex, Loader, Stack, Text } from '@mantine/core'
 import { TbAlertCircle, TbPlus } from 'react-icons/tb'
 
 export function MenuItemsWidget() {
-  const { params } = useQueryParams(queryUrlConfig)
+  const { params } = useMenuQueryParams()
   const { restaurantId } = params
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
@@ -85,7 +87,6 @@ export function MenuItemsWidget() {
 
   return (
     <Stack>
-      {/* <Flex justify="space-between" align="center" wrap="wrap" gap="md"> */}
       <Button
         leftSection={<TbPlus size={16} />}
         onClick={() => setIsCreateModalOpen(true)}
@@ -97,7 +98,6 @@ export function MenuItemsWidget() {
       >
         Добавить блюдо
       </Button>
-      {/* </Flex> */}
 
       <Stack gap={4} mt={12}>
         <Stack gap="sm">

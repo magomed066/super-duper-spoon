@@ -25,6 +25,7 @@ export function MenuEditorSidebarWidget(_: MenuEditorSidebarProps) {
     handleSectionSelect,
     handleCategorySelect
   } = useMenuNavigation()
+
   const {
     data: categories,
     error,

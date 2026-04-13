@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { Button, Flex } from '@mantine/core'
+import { useRestaurantQueryParams } from '@/entities/restaurant'
 import CreateCategoryModal from '@/features/category/create-category-modal'
-import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
-import { restaurantQueryUrlConfig } from '@/entities/restaurant'
 import { TbPlus } from 'react-icons/tb'
 
 export function CategoryManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-  const { params } = useQueryParams(restaurantQueryUrlConfig)
+  const { params } = useRestaurantQueryParams()
   const { restaurantId } = params
 
   return (

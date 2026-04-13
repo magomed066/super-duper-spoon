@@ -1,9 +1,8 @@
 import {
-  restaurantQueryUrlConfig,
+  useRestaurantQueryParams,
   useRestaurantsListQuery
 } from '@/entities/restaurant'
 import { mapSelectData } from '@/shared/lib/helpers/arrays'
-import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
 import { Select } from '@mantine/core'
 
 export function SelectRestaurantFeature() {
@@ -16,7 +15,7 @@ export function SelectRestaurantFeature() {
   )
   const restaurantOptions = mapSelectData(data, 'id', 'name')
 
-  const { params, setParams } = useQueryParams(restaurantQueryUrlConfig)
+  const { params, setParams } = useRestaurantQueryParams()
   const { restaurantId } = params
 
   const handleSelect = (id: string | null) => {

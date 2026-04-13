@@ -1,13 +1,15 @@
-import { MENU_SECTIONS, MenuEditorEmptyState } from '@/entities/menu'
+import {
+  MENU_SECTIONS,
+  MenuEditorEmptyState,
+  useMenuQueryParams
+} from '@/entities/menu'
 import { CategoryManagement } from '@/features/category/category-management'
-import { queryUrlConfig } from '@/shared/config/routes'
-import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
 import { Box, Paper, Stack } from '@mantine/core'
 import MenuItemsWidget from './components/menu-items'
 import CategoriesListWidget from '../categories-list'
 
 export function MenuEditorContentWdiget() {
-  const { params } = useQueryParams(queryUrlConfig)
+  const { params } = useMenuQueryParams()
   const { restaurantId, section } = params
 
   if (!restaurantId) {
@@ -30,6 +32,7 @@ export function MenuEditorContentWdiget() {
             <CategoriesListWidget />
           </Stack>
         ) : null}
+        {section === MENU_SECTIONS.CATEGORY ? <MenuItemsWidget /> : null}
       </Box>
     </Paper>
   )

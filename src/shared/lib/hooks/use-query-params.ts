@@ -48,3 +48,11 @@ export function useQueryParams<T extends Record<string, unknown>>(
     setParams
   }
 }
+
+export function createUseQueryParams<T extends Record<string, unknown>>(
+  config: QueryParamConfig<T>
+) {
+  return function useConfiguredQueryParams() {
+    return useQueryParams(config)
+  }
+}

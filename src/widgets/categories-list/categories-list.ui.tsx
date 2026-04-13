@@ -3,15 +3,14 @@ import {
   CategoryCard,
   useCategoriesQuery
 } from '@/entities/category'
-import { restaurantQueryUrlConfig } from '@/entities/restaurant'
+import { useRestaurantQueryParams } from '@/entities/restaurant'
 import CategoryActions from '@/features/category/category-actions'
 import { getApiErrorMessage } from '@/shared/api/errors'
-import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
 import { Alert, Loader, Stack } from '@mantine/core'
 import { TbAlertCircle } from 'react-icons/tb'
 
 export function CategoriesListWidget() {
-  const { params } = useQueryParams(restaurantQueryUrlConfig)
+  const { params } = useRestaurantQueryParams()
   const { restaurantId } = params
 
   const { data, isError, error, isLoading } = useCategoriesQuery(

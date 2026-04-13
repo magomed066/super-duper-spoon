@@ -1,6 +1,8 @@
-import { MENU_EDITOR_SECTIONS, type MenuEditorSectionId } from '@/entities/menu'
-import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
-import { menuNavigationQueryConfig } from './config'
+import {
+  MENU_EDITOR_SECTIONS,
+  useMenuQueryParams,
+  type MenuEditorSectionId
+} from '@/entities/menu'
 
 const defaultSection = MENU_EDITOR_SECTIONS[0]
 
@@ -9,7 +11,7 @@ function isMenuEditorSectionId(value: string): value is MenuEditorSectionId {
 }
 
 export function useMenuNavigation() {
-  const { params, setParams } = useQueryParams(menuNavigationQueryConfig)
+  const { params, setParams } = useMenuQueryParams()
   const { restaurantId, section, categoryId } = params
 
   const selectedSectionId = isMenuEditorSectionId(section)

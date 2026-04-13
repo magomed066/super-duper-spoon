@@ -7,19 +7,18 @@ import {
   hasPermission,
   useAuthStore
 } from '@/entities/auth'
-import { queryUrlConfig, ROUTES } from '@/shared/config/routes'
+import { ROUTES } from '@/shared/config/routes'
+import { MenuEditorEmptyState, useMenuQueryParams } from '@/entities/menu'
 import MenuEditorContentWdiget from '@/widgets/menu-editor-content'
 import MenuEditorSidebarWidget from '@/widgets/menu-editor-sidebar'
 import MenuToolbarWidget from '@/widgets/menu-toolbar'
 import PageHeaderWidget from '@/widgets/page-header'
-import { useQueryParams } from '@/shared/lib/hooks/use-query-params'
-import { MenuEditorEmptyState } from '@/entities/menu'
 
 export function MenuPage() {
   const user = useAuthStore((state) => state.user)
   const canViewMenu = hasPermission(user, AuthPermission.VIEW_MENU)
 
-  const { params } = useQueryParams(queryUrlConfig)
+  const { params } = useMenuQueryParams()
 
   const { restaurantId } = params
 

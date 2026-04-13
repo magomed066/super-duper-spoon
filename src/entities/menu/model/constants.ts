@@ -42,5 +42,6 @@ export const MENU_EDITOR_SECTIONS: MenuEditorSection[] = [
 export const MENU_SECTIONS = {
   DISHES: 'dishes',
   ADDONS: 'addons',
-  CATEGORIES: 'categories'
+  CATEGORIES: 'categories',
+  CATEGORY: 'category'
 }
