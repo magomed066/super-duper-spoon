@@ -286,11 +286,13 @@ const swaggerOptions = {
             },
             logo: {
               type: 'string',
-              example: '/uploads/restaurants/logo-1712497612345-123456789.png'
+              description: 'Base64 data URL for the restaurant logo.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             preview: {
               type: 'string',
-              example: '/uploads/restaurants/preview-1712497612345-987654321.png'
+              description: 'Base64 data URL for the restaurant preview image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             workSchedule: {
               type: 'array',
@@ -456,8 +458,7 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
-              description:
-                'Additional contact phones. In multipart/form-data requests this field can be sent as a JSON string.',
+              description: 'Additional contact phones.',
               example: ['+79991234567', '+79997654321']
             },
             city: {
@@ -467,22 +468,14 @@ const swaggerOptions = {
             logo: {
               type: 'string',
               description:
-                'Optional existing image URL. Ignored when logoFile is uploaded.',
-              example: '/uploads/restaurants/logo-1712497612345-123456789.png'
+                'Optional base64 data URL for the restaurant logo.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             preview: {
               type: 'string',
               description:
-                'Optional existing image URL. Ignored when previewFile is uploaded.',
-              example: '/uploads/restaurants/preview-1712497612345-987654321.png'
-            },
-            logoFile: {
-              type: 'string',
-              format: 'binary'
-            },
-            previewFile: {
-              type: 'string',
-              format: 'binary'
+                'Optional base64 data URL for the restaurant preview image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             deliveryTime: {
               type: 'integer',
@@ -497,8 +490,7 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
-              description:
-                'Cuisine labels. In multipart/form-data requests this field can be sent as a JSON string.',
+              description: 'Cuisine labels.',
               example: ['European', 'Breakfast']
             },
             workSchedule: {
@@ -506,8 +498,7 @@ const swaggerOptions = {
               items: {
                 $ref: '#/components/schemas/RestaurantWorkScheduleItem'
               },
-              description:
-                'Restaurant working hours. In multipart/form-data requests this field can be sent as a JSON string.'
+              description: 'Restaurant working hours.'
             }
           }
         },
@@ -545,8 +536,7 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
-              description:
-                'Additional contact phones. In multipart/form-data requests this field can be sent as a JSON string.'
+              description: 'Additional contact phones.'
             },
             city: {
               type: 'string',
@@ -554,11 +544,13 @@ const swaggerOptions = {
             },
             logo: {
               type: 'string',
-              example: 'https://cdn.example.com/restaurants/sunrise/logo.png'
+              description: 'Base64 data URL for the restaurant logo.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             preview: {
               type: 'string',
-              example: 'https://cdn.example.com/restaurants/sunrise/preview.png'
+              description: 'Base64 data URL for the restaurant preview image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             deliveryTime: {
               type: 'integer',
@@ -573,16 +565,14 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
-              description:
-                'Cuisine labels. In multipart/form-data requests this field can be sent as a JSON string.'
+              description: 'Cuisine labels.'
             },
             workSchedule: {
               type: 'array',
               items: {
                 $ref: '#/components/schemas/RestaurantWorkScheduleItem'
               },
-              description:
-                'Restaurant working hours. In multipart/form-data requests this field can be sent as a JSON string.'
+              description: 'Restaurant working hours.'
             }
           }
         },
@@ -721,7 +711,8 @@ const swaggerOptions = {
             image: {
               type: 'string',
               nullable: true,
-              example: '/uploads/menu/cappuccino.png'
+              description: 'Base64 data URL for the menu item image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             isActive: {
               type: 'boolean',
@@ -770,7 +761,8 @@ const swaggerOptions = {
             image: {
               type: 'string',
               nullable: true,
-              example: '/uploads/menu/cappuccino.png'
+              description: 'Base64 data URL for the menu item image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             sortOrder: {
               type: 'integer',
@@ -805,7 +797,8 @@ const swaggerOptions = {
             image: {
               type: 'string',
               nullable: true,
-              example: '/uploads/menu/cappuccino.png'
+              description: 'Base64 data URL for the menu item image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             isActive: {
               type: 'boolean',
@@ -845,7 +838,8 @@ const swaggerOptions = {
             image: {
               type: 'string',
               nullable: true,
-              example: '/uploads/menu/cappuccino.png'
+              description: 'Base64 data URL for the menu item image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             sortOrder: {
               type: 'integer',

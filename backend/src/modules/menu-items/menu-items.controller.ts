@@ -1,13 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
 
-import {
-  toPublicMenuUploadPath
-} from '../../common/uploads/file-storage.js'
-import {
-  assertUploadedMenuItemFileSize,
-  cleanupReplacedMenuItemFile,
-  cleanupUploadedMenuItemFile
-} from './helpers/menu-item-media.helpers.js'
 import { MenuItemsDomainError, MenuItemsHttpError } from './menu-items.errors.js'
 import { MenuItemsService } from './menu-items.service.js'
 
@@ -20,22 +12,14 @@ export class MenuItemsController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const imageFile = req.file
-
-      assertUploadedMenuItemFileSize(imageFile, 10, 'Изображение блюда')
-
       const item = await this.menuItemsService.createItem(
         this.getIdParam(req.params.restaurantId),
-        {
-          ...req.body,
-          image: imageFile ? toPublicMenuUploadPath(imageFile.filename) : req.body.image
-        },
+        req.body,
         req.user
       )
 
       res.status(201).json(item)
     } catch (error: unknown) {
-      await cleanupUploadedMenuItemFile(req.file)
       next(this.normalizeError(error))
     }
   }
@@ -63,36 +47,15 @@ export class MenuItemsController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const imageFile = req.file
-
-      assertUploadedMenuItemFileSize(imageFile, 10, 'Изображение блюда')
-
-      const currentItem = imageFile
-        ? await this.menuItemsService.getItemForRestaurant(
-            this.getIdParam(req.params.itemId),
-            this.getIdParam(req.params.restaurantId)
-          )
-        : null
-
       const item = await this.menuItemsService.updateItem(
         this.getIdParam(req.params.restaurantId),
         this.getIdParam(req.params.itemId),
-        {
-          ...req.body,
-          image: imageFile ? toPublicMenuUploadPath(imageFile.filename) : req.body.image
-        },
+        req.body,
         req.user
-      )
-
-      await cleanupReplacedMenuItemFile(
-        currentItem?.image ?? null,
-        item.image,
-        Boolean(imageFile)
       )
 
       res.status(200).json(item)
     } catch (error: unknown) {
-      await cleanupUploadedMenuItemFile(req.file)
       next(this.normalizeError(error))
     }
   }

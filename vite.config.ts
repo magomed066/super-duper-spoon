@@ -18,5 +18,5 @@ export default defineConfig({
   }
 })
 
-// owner@test.ru
-// sofibGsX9D7X
+// owner1@test.ru
+// 00INYbFmAiPw

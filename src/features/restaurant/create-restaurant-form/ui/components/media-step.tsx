@@ -7,7 +7,7 @@ type MediaStepProps = {
   isPending: boolean
   required?: boolean
   allowUpload?: boolean
-  onUpload: (file: File, uploadType?: 'logo' | 'preview') => void
+  onUpload: (imageValue: string, uploadType?: 'logo' | 'preview') => void
 }
 
 export function MediaStep({
@@ -35,7 +35,7 @@ export function MediaStep({
       <Text size="sm" className="leading-6 text-moss-700">
         {allowUpload
           ? 'После создания ресторан появится в общем списке и будет привязан к вашей учетной записи как к владельцу.'
-          : 'В режиме редактирования можно просмотреть текущие изображения. Замена файлов потребует отдельной поддержки обновления медиа на сервере.'}
+          : 'В режиме редактирования можно просмотреть и заменить текущие изображения.'}
       </Text>
     </Stack>
   )

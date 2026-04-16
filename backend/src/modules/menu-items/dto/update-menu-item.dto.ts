@@ -34,6 +34,28 @@ const menuItemPriceSchema = z.preprocess(
   .positive('Price must be a positive integer in whole currency units')
 )
 
+const allowedMenuItemImageMimeTypes = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/svg+xml'
+] as const
+
+const menuItemImageSizeLimitBytes = 10 * 1024 * 1024
+
+const base64DataUrlPattern =
+  /^data:(?<mime>image\/(?:jpeg|png|webp|svg\+xml));base64,(?<data>[A-Za-z0-9+/]+=*)$/i
+
+const getBase64PayloadSize = (base64Value: string): number => {
+  const paddingLength = base64Value.endsWith('==')
+    ? 2
+    : base64Value.endsWith('=')
+      ? 1
+      : 0
+
+  return Math.floor((base64Value.length * 3) / 4) - paddingLength
+}
+
 const menuItemImageSchema = z.preprocess(
   (value) => {
     if (typeof value !== 'string') {
@@ -43,7 +65,34 @@ const menuItemImageSchema = z.preprocess(
     const trimmedValue = value.trim()
     return trimmedValue ? trimmedValue : undefined
   },
-  z.string().trim().max(500, 'Image is too long')
+  z
+    .string()
+    .trim()
+    .refine((value) => base64DataUrlPattern.test(value), {
+      message: 'Image must be a valid base64 data URL'
+    })
+    .refine((value) => {
+      const matchedGroups = value.match(base64DataUrlPattern)?.groups
+      return matchedGroups?.mime
+        ? allowedMenuItemImageMimeTypes.includes(
+            matchedGroups.mime.toLowerCase() as
+              (typeof allowedMenuItemImageMimeTypes)[number]
+          )
+        : false
+    }, {
+      message: 'Only JPG, PNG, WEBP and SVG image files are supported'
+    })
+    .refine((value) => {
+      const matchedGroups = value.match(base64DataUrlPattern)?.groups
+
+      if (!matchedGroups?.data) {
+        return false
+      }
+
+      return getBase64PayloadSize(matchedGroups.data) <= menuItemImageSizeLimitBytes
+    }, {
+      message: 'Изображение блюда должно быть не больше 10 МБ'
+    })
 )
 
 const menuItemBooleanSchema = z.preprocess((value) => {

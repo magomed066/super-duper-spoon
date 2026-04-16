@@ -31,7 +31,7 @@ export class MenuItem extends RestaurantScopedEntity {
   @Column({ type: 'integer' })
   price!: number
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: 'text', nullable: true })
   image!: string | null
 
   @Column({ type: 'boolean', default: true })

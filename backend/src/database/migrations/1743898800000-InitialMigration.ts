@@ -229,13 +229,11 @@ export class InitialMigration1743898800000 implements MigrationInterface {
           },
           {
             name: 'logo',
-            type: 'varchar',
-            length: '500'
+            type: 'text'
           },
           {
             name: 'preview',
-            type: 'varchar',
-            length: '500'
+            type: 'text'
           },
           {
             name: 'workSchedule',
@@ -438,8 +436,7 @@ export class InitialMigration1743898800000 implements MigrationInterface {
           },
           {
             name: 'image',
-            type: 'varchar',
-            length: '500',
+            type: 'text',
             isNullable: true
           },
           {

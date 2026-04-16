@@ -15,6 +15,7 @@ import {
   Textarea
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { notifications } from '@mantine/notifications'
 import type { Category } from '@/entities/category'
 import {
   createMenuItemSchema,
@@ -63,7 +64,7 @@ export function CreateMenuItemModal({
     validateInputOnBlur: true
   })
   const [selectedCategoryId, setSelectedCategoryId] = useState(categoryId ?? '')
-  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imageValue, setImageValue] = useState<string | null>(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState('')
 
   useEffect(() => {
@@ -76,8 +77,8 @@ export function CreateMenuItemModal({
       form.setValues(initialValues)
       form.resetDirty(initialValues)
       setSelectedCategoryId(menuItem.categoryId)
+      setImageValue(menuItem.image)
       setImagePreviewUrl(resolveMediaUrl(menuItem.image))
-      setImageFile(null)
       return
     }
 
@@ -89,14 +90,14 @@ export function CreateMenuItemModal({
     form.setValues(initialValues)
     form.resetDirty(initialValues)
     setSelectedCategoryId(categoryId ?? '')
+    setImageValue(null)
     setImagePreviewUrl('')
-    setImageFile(null)
   }, [opened, menuItem, categoryId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClose = () => {
     form.reset()
     setSelectedCategoryId(categoryId ?? '')
-    setImageFile(null)
+    setImageValue(null)
     setImagePreviewUrl('')
     onClose()
   }
@@ -116,37 +117,56 @@ export function CreateMenuItemModal({
     Boolean(selectedCategoryId)
 
   const handleSubmit = (values: CreateMenuItemFormValues) => {
+    const nextImageValue = imageValue ?? null
     const payload = {
       categoryId: selectedCategoryId,
       name: values.name.trim(),
       description: values.description.trim() || undefined,
       price: values.price,
-      imageFile: imageFile ?? undefined,
       ...(isEditMode ? { isActive: form.values.isActive } : {})
     }
 
     if (menuItem) {
       updateMutation.mutate({
         itemId: menuItem.id,
-        payload
+        payload: {
+          ...payload,
+          ...(nextImageValue !== (menuItem.image ?? null)
+            ? { image: nextImageValue }
+            : {})
+        }
       })
       return
     }
 
-    mutate(payload)
+    mutate({
+      ...payload,
+      ...(nextImageValue ? { image: nextImageValue } : {})
+    })
   }
 
-  const handleImageUpload = (file: File | null) => {
+  const handleImageUpload = async (file: File | null) => {
     if (!file) {
       return
     }
 
-    setImageFile(file)
-    setImagePreviewUrl(URL.createObjectURL(file))
+    try {
+      const dataUrl = await readFileAsDataUrl(file)
+
+      setImageValue(dataUrl)
+      setImagePreviewUrl(dataUrl)
+    } catch (error) {
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка загрузки изображения',
+        message:
+          error instanceof Error ? error.message : 'Не удалось обработать файл'
+      })
+    }
   }
 
   const handleImageReset = () => {
-    setImageFile(null)
+    setImageValue(null)
     setImagePreviewUrl('')
   }
 
@@ -276,3 +296,23 @@ export function CreateMenuItemModal({
     </Modal>
   )
 }
+
+const readFileAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('Failed to read image file'))
+    }
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error('Failed to read image file'))
+    }
+
+    reader.readAsDataURL(file)
+  })

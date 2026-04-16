@@ -87,15 +87,10 @@ export type RestaurantMutableFields = {
 }
 
 export type CreateRestaurantPayload = RestaurantMutableFields & {
-  logoFile?: File
-  previewFile?: File
 }
 
 export type UpdateRestaurantPayload = Partial<
-  RestaurantMutableFields & {
-    logoFile?: File
-    previewFile?: File
-  }
+  RestaurantMutableFields
 > &
   Partial<Pick<Restaurant, 'isActive'>>
 

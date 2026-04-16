@@ -21,14 +21,13 @@ export type MenuItemMutableFields = {
   description?: string | null
   price: number
   image?: string | null
-  imageFile?: File
   isActive?: boolean
   sortOrder?: number
 }
 
 export type CreateMenuItemPayload = Pick<
   MenuItemMutableFields,
-  'categoryId' | 'name' | 'description' | 'price' | 'image' | 'imageFile'
+  'categoryId' | 'name' | 'description' | 'price' | 'image'
 >
 
 export type UpdateMenuItemPayload = Partial<MenuItemMutableFields>

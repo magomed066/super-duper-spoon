@@ -6,7 +6,6 @@ import {
   PLATFORM_USER_ROLES,
   RESTAURANT_CREATION_PLATFORM_ROLES
 } from '../../common/rbac/index.js'
-import { restaurantMediaUpload } from '../../common/uploads/file-storage.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantController } from './restaurant.controller.js'
 import { RestaurantService } from './restaurant.service.js'
@@ -175,16 +174,9 @@ const restaurantController = new RestaurantController(restaurantService)
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/UpdateRestaurantRequest'
- *           encoding:
- *             phones:
- *               contentType: application/json
- *             cuisine:
- *               contentType: application/json
- *             workSchedule:
- *               contentType: application/json
  *     responses:
  *       200:
  *         description: Restaurant updated successfully
@@ -843,16 +835,9 @@ const restaurantController = new RestaurantController(restaurantService)
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/CreateRestaurantRequest'
- *           encoding:
- *             phones:
- *               contentType: application/json
- *             cuisine:
- *               contentType: application/json
- *             workSchedule:
- *               contentType: application/json
  *     responses:
  *       201:
  *         description: Restaurant created successfully
@@ -900,10 +885,6 @@ restaurantsRouter.patch(
   '/:id',
   authMiddleware,
   roleMiddleware(PLATFORM_USER_ROLES),
-  restaurantMediaUpload.fields([
-    { name: 'logoFile', maxCount: 1 },
-    { name: 'previewFile', maxCount: 1 }
-  ]),
   restaurantController.update
 )
 
@@ -995,10 +976,6 @@ restaurantsRouter.post(
   '/',
   authMiddleware,
   roleMiddleware(RESTAURANT_CREATION_PLATFORM_ROLES),
-  restaurantMediaUpload.fields([
-    { name: 'logoFile', maxCount: 1 },
-    { name: 'previewFile', maxCount: 1 }
-  ]),
   restaurantController.create
 )
 
