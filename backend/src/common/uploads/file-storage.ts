@@ -11,8 +11,10 @@ const __dirname = path.dirname(__filename)
 
 export const uploadsRootDir = path.resolve(__dirname, '../../../uploads')
 const restaurantUploadsDir = path.join(uploadsRootDir, 'restaurants')
+const menuUploadsDir = path.join(uploadsRootDir, 'menu')
 
 fs.mkdirSync(restaurantUploadsDir, { recursive: true })
+fs.mkdirSync(menuUploadsDir, { recursive: true })
 
 const IMAGE_MIME_TYPES = new Set([
   'image/jpeg',
@@ -52,6 +54,16 @@ const storage = multer.diskStorage({
   }
 })
 
+const menuStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, menuUploadsDir)
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`
+    cb(null, `menu-item-${uniqueSuffix}${getFileExtension(file)}`)
+  }
+})
+
 export const restaurantMediaUpload = multer({
   storage,
   limits: {
@@ -73,11 +85,45 @@ export const restaurantMediaUpload = multer({
   }
 })
 
+export const menuItemImageUpload = multer({
+  storage: menuStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    files: 1
+  },
+  fileFilter: (_req, file, cb) => {
+    if (!IMAGE_MIME_TYPES.has(file.mimetype)) {
+      cb(
+        new RestaurantsHttpError(
+          400,
+          'Only JPG, PNG, WEBP and SVG image files are supported'
+        )
+      )
+      return
+    }
+
+    cb(null, true)
+  }
+})
+
 export const toPublicUploadPath = (filename: string): string =>
   `/uploads/restaurants/${filename}`
 
+export const toPublicMenuUploadPath = (filename: string): string =>
+  `/uploads/menu/${filename}`
+
 export const toStoredUploadPath = (publicPath?: string | null): string | null => {
   if (!publicPath?.startsWith('/uploads/restaurants/')) {
+    return null
+  }
+
+  return path.join(uploadsRootDir, publicPath.replace('/uploads/', ''))
+}
+
+export const toStoredMenuUploadPath = (
+  publicPath?: string | null
+): string | null => {
+  if (!publicPath?.startsWith('/uploads/menu/')) {
     return null
   }
 

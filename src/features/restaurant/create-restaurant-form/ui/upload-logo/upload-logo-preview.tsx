@@ -11,6 +11,7 @@ import {
   LoadingOverlay,
   Text
 } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
 import Frame from './img/frame.png'
 import { type Props } from './types'
 import { BiImageAdd } from 'react-icons/bi'
@@ -39,21 +40,30 @@ export function UploadLogoPreviewFeature(props: Props) {
     setLogo(resolvedDefaultLogo)
   }, [resolvedDefaultLogo])
 
-  const handleFile = (file: File | null, type: 'logo' | 'preview') => {
+  const handleFile = async (file: File | null, type: 'logo' | 'preview') => {
     if (!file) {
       return
     }
 
-    const url = URL.createObjectURL(file)
+    try {
+      const dataUrl = await readFileAsDataUrl(file)
 
-    if (type === 'logo') {
-      setLogo(url)
-      onUpload?.(file, type)
-    }
+      if (type === 'logo') {
+        setLogo(dataUrl)
+        onUpload?.(dataUrl, type)
+      }
 
-    if (type === 'preview') {
-      setPreview(url)
-      onUpload?.(file, type)
+      if (type === 'preview') {
+        setPreview(dataUrl)
+        onUpload?.(dataUrl, type)
+      }
+    } catch (error) {
+      notifications.show({
+        color: 'red',
+        title: 'Ошибка загрузки изображения',
+        message:
+          error instanceof Error ? error.message : 'Не удалось обработать файл'
+      })
     }
   }
 
@@ -222,3 +232,23 @@ export function UploadLogoPreviewFeature(props: Props) {
     </Flex>
   )
 }
+
+const readFileAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('Failed to read image file'))
+    }
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error('Failed to read image file'))
+    }
+
+    reader.readAsDataURL(file)
+  })

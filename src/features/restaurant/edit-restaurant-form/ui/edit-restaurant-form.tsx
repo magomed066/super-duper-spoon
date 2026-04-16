@@ -63,10 +63,6 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
   const navigate = useNavigate()
   const [activeStep, setActiveStep] = useState(0)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<{
-    logoFile?: File
-    previewFile?: File
-  }>({})
   const initialValues = useMemo(
     () => getInitialValues(restaurant),
     [restaurant]
@@ -98,25 +94,12 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
     form.resetDirty(initialValues)
   }, [initialValues])
 
-  const handleUpload = (file: File, uploadType?: 'logo' | 'preview') => {
+  const handleUpload = (imageValue: string, uploadType?: 'logo' | 'preview') => {
     if (!uploadType) {
       return
     }
 
-    form.setFieldValue(uploadType, URL.createObjectURL(file))
-
-    if (uploadType === 'logo') {
-      setUploadedFiles((current) => ({
-        ...current,
-        logoFile: file
-      }))
-      return
-    }
-
-    setUploadedFiles((current) => ({
-      ...current,
-      previewFile: file
-    }))
+    form.setFieldValue(uploadType, imageValue)
   }
 
   const handleSubmit = (data: UpdateRestaurantFormValues) => {
@@ -133,8 +116,6 @@ export function EditRestaurantForm({ restaurant }: EditRestaurantFormProps) {
       city: data.city.trim() || undefined,
       logo: data.logo?.trim() || undefined,
       preview: data.preview?.trim() || undefined,
-      logoFile: uploadedFiles.logoFile,
-      previewFile: uploadedFiles.previewFile,
       deliveryTime: data.deliveryTime ? Number(data.deliveryTime) : undefined,
       deliveryConditions: data.deliveryConditions.trim() || undefined,
       cuisine: data.cuisine

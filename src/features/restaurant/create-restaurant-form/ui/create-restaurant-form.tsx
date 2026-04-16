@@ -40,10 +40,6 @@ const initialValues: CreateRestaurantFormValues = {
 
 export function CreateRestaurantForm() {
   const [activeStep, setActiveStep] = useState(0)
-  const [uploadedFiles, setUploadedFiles] = useState<{
-    logoFile?: File
-    previewFile?: File
-  }>({})
   const form = useForm<CreateRestaurantFormValues>({
     initialValues,
     validate: validateCreateRestaurantForm,
@@ -56,25 +52,12 @@ export function CreateRestaurantForm() {
 
   const canSubmit = createRestaurantSchema.safeParse(form.values).success
 
-  const handleUpload = (file: File, uploadType?: 'logo' | 'preview') => {
+  const handleUpload = (imageValue: string, uploadType?: 'logo' | 'preview') => {
     if (!uploadType) {
       return
     }
 
-    form.setFieldValue(uploadType, URL.createObjectURL(file))
-
-    if (uploadType === 'logo') {
-      setUploadedFiles((current) => ({
-        ...current,
-        logoFile: file
-      }))
-      return
-    }
-
-    setUploadedFiles((current) => ({
-      ...current,
-      previewFile: file
-    }))
+    form.setFieldValue(uploadType, imageValue)
   }
 
   const handleSubmit = (data: CreateRestaurantFormValues) => {
@@ -102,11 +85,7 @@ export function CreateRestaurantForm() {
         }))
     }
 
-    mutate({
-      ...payload,
-      logoFile: uploadedFiles.logoFile,
-      previewFile: uploadedFiles.previewFile
-    })
+    mutate(payload)
   }
 
   const validateStep = (step: number) => {

@@ -54,6 +54,10 @@ export const PLATFORM_ROUTE_ACCESS: Partial<Record<string, RouteAccess>> = {
     permission: PlatformPermission.VIEW_MENU,
     fallbackRoute: ROUTES.UNAUTHORIZED
   },
+  [ROUTES.CATEGORIES]: {
+    permission: PlatformPermission.VIEW_MENU,
+    fallbackRoute: ROUTES.UNAUTHORIZED
+  },
   [ROUTES.ORDERS]: {
     permission: PlatformPermission.VIEW_ORDERS,
     fallbackRoute: ROUTES.UNAUTHORIZED

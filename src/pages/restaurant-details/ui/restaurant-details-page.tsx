@@ -20,6 +20,7 @@ export function RestaurantDetailsPage() {
     user,
     AuthPermission.VIEW_RESTAURANTS
   )
+  const canViewMenu = hasPermission(user, AuthPermission.VIEW_MENU)
 
   if (!canViewRestaurants) {
     return (
@@ -44,17 +45,34 @@ export function RestaurantDetailsPage() {
       />
 
       <Stack className="mt-3 px-5">
-        <Button
-          component={Link}
-          to={ROUTES.RESTAURANTS}
-          variant="transparent"
-          color="dark"
-          leftSection={<FiArrowLeft size={16} />}
-          p={0}
-          className="self-start px-0 text-moss-900"
+        <Stack
+          gap="sm"
+          className="w-full"
         >
-          К списку ресторанов
-        </Button>
+          <Button
+            component={Link}
+            to={ROUTES.RESTAURANTS}
+            variant="transparent"
+            color="dark"
+            leftSection={<FiArrowLeft size={16} />}
+            p={0}
+            className="self-start px-0 text-moss-900"
+          >
+            К списку ресторанов
+          </Button>
+
+          {canViewMenu ? (
+            <Button
+              component={Link}
+              to={`${ROUTES.MENU}?restaurantId=${encodeURIComponent(id)}`}
+              variant="light"
+              color="aurora"
+              className="self-start"
+            >
+              Перейти в меню ресторана
+            </Button>
+          ) : null}
+        </Stack>
 
         <ErrorBoundary
           title="Не удалось отобразить информацию о ресторане"

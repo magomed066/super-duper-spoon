@@ -8,6 +8,7 @@ import RestaurantPage from '@/pages/restaurants'
 import RequestPage from '@/pages/request'
 import RequestSuccessPage from '@/pages/request-success'
 import UnauthorizedPage from '@/pages/unauthorized'
+import MenuPage from '@/pages/menu'
 import { ROUTES } from '@/shared/config/routes'
 
 export const publicRoutes = [
@@ -41,6 +42,10 @@ export const privateRoutes = [
   {
     Component: RestaurantPage,
     path: ROUTES.RESTAURANTS
+  },
+  {
+    Component: MenuPage,
+    path: ROUTES.MENU
   },
   {
     Component: RestaurantDetailsPage,

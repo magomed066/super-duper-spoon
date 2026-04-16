@@ -11,9 +11,13 @@ export const errorHandler = (
     'statusCode' in error &&
     typeof error.statusCode === 'number'
   ) {
+    const errorCode =
+      'code' in error && typeof error.code === 'string' ? error.code : undefined
+
     res.status(error.statusCode).json({
       status: 'error',
-      message: error.message
+      message: error.message,
+      ...(errorCode ? { code: errorCode } : {})
     })
     return
   }

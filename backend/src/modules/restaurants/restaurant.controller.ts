@@ -1,20 +1,9 @@
 import type { NextFunction, Request, Response } from 'express'
-import type { MulterError } from 'multer'
 
-import {
-  assertUploadedFileSize,
-  cleanupReplacedFiles,
-  cleanupUploadedFiles,
-  getMulterErrorMessage,
-  getUploadedFiles
-} from './helpers/restaurant-media.helpers.js'
 import { normalizeRestaurantPayload } from './helpers/restaurant-payload.helpers.js'
 import { RestaurantStatus } from './enums/restaurant-status.enum.js'
 import { RestaurantsHttpError } from './restaurants.errors.js'
 import { RestaurantService } from './restaurant.service.js'
-import {
-  toPublicUploadPath
-} from '../../common/uploads/file-storage.js'
 
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
@@ -130,30 +119,16 @@ export class RestaurantController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const uploadedFiles = getUploadedFiles(req.files)
-
     try {
       const normalizedBody = normalizeRestaurantPayload(req.body)
-      const logoFile = uploadedFiles.logoFile?.[0]
-      const previewFile = uploadedFiles.previewFile?.[0]
-
-      assertUploadedFileSize(logoFile, 5, 'Логотип')
-      assertUploadedFileSize(previewFile, 10, 'Обложка')
 
       const creationResult = await this.restaurantService.createRestaurant(
-        {
-          ...normalizedBody,
-          logo: logoFile ? toPublicUploadPath(logoFile.filename) : normalizedBody.logo,
-          preview: previewFile
-            ? toPublicUploadPath(previewFile.filename)
-            : normalizedBody.preview
-        },
+        normalizedBody,
         req.user
       )
 
       res.status(201).json(creationResult)
     } catch (error: unknown) {
-      await cleanupUploadedFiles(uploadedFiles)
       next(this.normalizeError(error))
     }
   }
@@ -163,42 +138,16 @@ export class RestaurantController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const uploadedFiles = getUploadedFiles(req.files)
-
     try {
       const normalizedBody = normalizeRestaurantPayload(req.body)
-      const logoFile = uploadedFiles.logoFile?.[0]
-      const previewFile = uploadedFiles.previewFile?.[0]
-
-      assertUploadedFileSize(logoFile, 5, 'Логотип')
-      assertUploadedFileSize(previewFile, 10, 'Обложка')
-
-      const currentRestaurant = await this.restaurantService.getRestaurantForUpdateById(
-        this.getIdParam(req.params.id),
-        req.user
-      )
       const restaurant = await this.restaurantService.updateRestaurant(
         this.getIdParam(req.params.id),
-        {
-          ...normalizedBody,
-          logo: logoFile ? toPublicUploadPath(logoFile.filename) : normalizedBody.logo,
-          preview: previewFile
-            ? toPublicUploadPath(previewFile.filename)
-            : normalizedBody.preview
-        },
+        normalizedBody,
         req.user
-      )
-
-      await cleanupReplacedFiles(
-        currentRestaurant,
-        restaurant,
-        Boolean(logoFile),
-        Boolean(previewFile)
       )
 
       res.status(200).json(restaurant)
     } catch (error: unknown) {
-      await cleanupUploadedFiles(uploadedFiles)
       next(this.normalizeError(error))
     }
   }
@@ -395,16 +344,6 @@ export class RestaurantController {
   private normalizeError(error: unknown): Error {
     if (error instanceof RestaurantsHttpError) {
       return error
-    }
-
-    if (
-      error &&
-      typeof error === 'object' &&
-      'name' in error &&
-      error.name === 'MulterError'
-    ) {
-      const multerError = error as MulterError
-      return new RestaurantsHttpError(400, getMulterErrorMessage(multerError))
     }
 
     return new Error('Unexpected restaurant error')

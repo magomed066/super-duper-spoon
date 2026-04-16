@@ -12,6 +12,9 @@ import { uploadsRootDir } from './common/uploads/file-storage.js'
 import { swaggerSpec } from './config/swagger.js'
 import { applicationsRouter } from './modules/applications/applications.routes.js'
 import { authRouter } from './modules/auth/auth.routes.js'
+import { menuCategoriesRouter } from './modules/menu-categories/menu-categories.routes.js'
+import { menuItemsRouter } from './modules/menu-items/menu-items.routes.js'
+import { menuRouter } from './modules/menu/menu.routes.js'
 import { restaurantsRouter } from './modules/restaurants/restaurant.routes.js'
 import { usersRouter } from './modules/users/users.routes.js'
 
@@ -53,6 +56,9 @@ export const createApp = (): express.Express => {
 
   app.use(`${apiPrefix}/auth`, authRouter)
   app.use(`${apiPrefix}/applications`, applicationsRouter)
+  app.use(apiPrefix, menuCategoriesRouter)
+  app.use(apiPrefix, menuItemsRouter)
+  app.use(apiPrefix, menuRouter)
   app.use(`${apiPrefix}/restaurants`, restaurantsRouter)
   app.use(`${apiPrefix}/users`, usersRouter)
 

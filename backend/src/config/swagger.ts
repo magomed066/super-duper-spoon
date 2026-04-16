@@ -286,11 +286,13 @@ const swaggerOptions = {
             },
             logo: {
               type: 'string',
-              example: '/uploads/restaurants/logo-1712497612345-123456789.png'
+              description: 'Base64 data URL for the restaurant logo.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             preview: {
               type: 'string',
-              example: '/uploads/restaurants/preview-1712497612345-987654321.png'
+              description: 'Base64 data URL for the restaurant preview image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             workSchedule: {
               type: 'array',
@@ -456,8 +458,7 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
-              description:
-                'Additional contact phones. In multipart/form-data requests this field can be sent as a JSON string.',
+              description: 'Additional contact phones.',
               example: ['+79991234567', '+79997654321']
             },
             city: {
@@ -467,22 +468,14 @@ const swaggerOptions = {
             logo: {
               type: 'string',
               description:
-                'Optional existing image URL. Ignored when logoFile is uploaded.',
-              example: '/uploads/restaurants/logo-1712497612345-123456789.png'
+                'Optional base64 data URL for the restaurant logo.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             preview: {
               type: 'string',
               description:
-                'Optional existing image URL. Ignored when previewFile is uploaded.',
-              example: '/uploads/restaurants/preview-1712497612345-987654321.png'
-            },
-            logoFile: {
-              type: 'string',
-              format: 'binary'
-            },
-            previewFile: {
-              type: 'string',
-              format: 'binary'
+                'Optional base64 data URL for the restaurant preview image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             deliveryTime: {
               type: 'integer',
@@ -497,8 +490,7 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
-              description:
-                'Cuisine labels. In multipart/form-data requests this field can be sent as a JSON string.',
+              description: 'Cuisine labels.',
               example: ['European', 'Breakfast']
             },
             workSchedule: {
@@ -506,8 +498,7 @@ const swaggerOptions = {
               items: {
                 $ref: '#/components/schemas/RestaurantWorkScheduleItem'
               },
-              description:
-                'Restaurant working hours. In multipart/form-data requests this field can be sent as a JSON string.'
+              description: 'Restaurant working hours.'
             }
           }
         },
@@ -545,8 +536,7 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
-              description:
-                'Additional contact phones. In multipart/form-data requests this field can be sent as a JSON string.'
+              description: 'Additional contact phones.'
             },
             city: {
               type: 'string',
@@ -554,11 +544,13 @@ const swaggerOptions = {
             },
             logo: {
               type: 'string',
-              example: 'https://cdn.example.com/restaurants/sunrise/logo.png'
+              description: 'Base64 data URL for the restaurant logo.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             preview: {
               type: 'string',
-              example: 'https://cdn.example.com/restaurants/sunrise/preview.png'
+              description: 'Base64 data URL for the restaurant preview image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
             },
             deliveryTime: {
               type: 'integer',
@@ -573,16 +565,14 @@ const swaggerOptions = {
               items: {
                 type: 'string'
               },
-              description:
-                'Cuisine labels. In multipart/form-data requests this field can be sent as a JSON string.'
+              description: 'Cuisine labels.'
             },
             workSchedule: {
               type: 'array',
               items: {
                 $ref: '#/components/schemas/RestaurantWorkScheduleItem'
               },
-              description:
-                'Restaurant working hours. In multipart/form-data requests this field can be sent as a JSON string.'
+              description: 'Restaurant working hours.'
             }
           }
         },
@@ -604,6 +594,299 @@ const swaggerOptions = {
             userId: {
               type: 'string',
               format: 'uuid'
+            }
+          }
+        },
+        MenuCategory: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid'
+            },
+            restaurantId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            name: {
+              type: 'string',
+              example: 'Breakfast'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'Morning dishes and coffee.'
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            },
+            sortOrder: {
+              type: 'integer',
+              example: 0
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time'
+            }
+          }
+        },
+        CreateMenuCategoryRequest: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              type: 'string',
+              example: 'Breakfast'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'Morning dishes and coffee.'
+            },
+            sortOrder: {
+              type: 'integer',
+              minimum: 0,
+              example: 0
+            }
+          }
+        },
+        UpdateMenuCategoryRequest: {
+          type: 'object',
+          minProperties: 1,
+          properties: {
+            name: {
+              type: 'string',
+              example: 'Breakfast'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'Morning dishes and coffee.'
+            },
+            sortOrder: {
+              type: 'integer',
+              minimum: 0,
+              example: 1
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            }
+          }
+        },
+        MenuItem: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid'
+            },
+            restaurantId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            categoryId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            name: {
+              type: 'string',
+              example: 'Cappuccino'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'Double espresso with steamed milk.'
+            },
+            price: {
+              type: 'integer',
+              example: 320,
+              description: 'Price in whole currency units.'
+            },
+            image: {
+              type: 'string',
+              nullable: true,
+              description: 'Base64 data URL for the menu item image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            },
+            sortOrder: {
+              type: 'integer',
+              example: 0
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            category: {
+              $ref: '#/components/schemas/MenuCategory'
+            }
+          }
+        },
+        CreateMenuItemRequest: {
+          type: 'object',
+          required: ['categoryId', 'name', 'price'],
+          properties: {
+            categoryId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            name: {
+              type: 'string',
+              example: 'Cappuccino'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'Double espresso with steamed milk.'
+            },
+            price: {
+              type: 'integer',
+              minimum: 1,
+              example: 320,
+              description: 'Price in whole currency units.'
+            },
+            image: {
+              type: 'string',
+              nullable: true,
+              description: 'Base64 data URL for the menu item image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
+            },
+            sortOrder: {
+              type: 'integer',
+              minimum: 0,
+              example: 0
+            }
+          }
+        },
+        UpdateMenuItemRequest: {
+          type: 'object',
+          minProperties: 1,
+          properties: {
+            categoryId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            name: {
+              type: 'string',
+              example: 'Cappuccino'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'Double espresso with steamed milk.'
+            },
+            price: {
+              type: 'integer',
+              minimum: 1,
+              example: 350,
+              description: 'Price in whole currency units.'
+            },
+            image: {
+              type: 'string',
+              nullable: true,
+              description: 'Base64 data URL for the menu item image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
+            },
+            isActive: {
+              type: 'boolean',
+              example: true
+            },
+            sortOrder: {
+              type: 'integer',
+              minimum: 0,
+              example: 1
+            }
+          }
+        },
+        MenuReadModelItem: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid'
+            },
+            categoryId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            name: {
+              type: 'string',
+              example: 'Cappuccino'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'Double espresso with steamed milk.'
+            },
+            price: {
+              type: 'integer',
+              example: 320
+            },
+            image: {
+              type: 'string',
+              nullable: true,
+              description: 'Base64 data URL for the menu item image.',
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'
+            },
+            sortOrder: {
+              type: 'integer',
+              example: 0
+            }
+          }
+        },
+        MenuReadModelCategory: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid'
+            },
+            name: {
+              type: 'string',
+              example: 'Breakfast'
+            },
+            description: {
+              type: 'string',
+              nullable: true,
+              example: 'Morning dishes and coffee.'
+            },
+            sortOrder: {
+              type: 'integer',
+              example: 0
+            },
+            items: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/MenuReadModelItem'
+              }
+            }
+          }
+        },
+        RestaurantMenuReadModel: {
+          type: 'object',
+          properties: {
+            restaurantId: {
+              type: 'string',
+              format: 'uuid'
+            },
+            categories: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/MenuReadModelCategory'
+              }
             }
           }
         }
@@ -635,6 +918,18 @@ const swaggerOptions = {
       {
         name: 'Restaurants',
         description: 'Restaurant CRUD, moderation, and membership endpoints'
+      },
+      {
+        name: 'Menu',
+        description: 'Public restaurant menu read endpoints'
+      },
+      {
+        name: 'Menu Categories',
+        description: 'Authenticated restaurant menu category management endpoints'
+      },
+      {
+        name: 'Menu Items',
+        description: 'Authenticated restaurant menu item management endpoints'
       }
     ]
   },

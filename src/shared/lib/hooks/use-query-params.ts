@@ -24,6 +24,13 @@ export function useQueryParams<T extends Record<string, unknown>>(
   const setParams = useCallback(
     (updates: Partial<T>, options?: SetQueryParamsOptions) => {
       const nextSearch = updateQueryParams(location.search, updates, config)
+      const currentSearch = location.search.startsWith('?')
+        ? location.search.slice(1)
+        : location.search
+
+      if (nextSearch === currentSearch) {
+        return
+      }
 
       navigate(
         {
@@ -39,5 +46,13 @@ export function useQueryParams<T extends Record<string, unknown>>(
   return {
     params,
     setParams
+  }
+}
+
+export function createUseQueryParams<T extends Record<string, unknown>>(
+  config: QueryParamConfig<T>
+) {
+  return function useConfiguredQueryParams() {
+    return useQueryParams(config)
   }
 }

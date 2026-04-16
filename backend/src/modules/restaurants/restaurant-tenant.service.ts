@@ -15,10 +15,10 @@ import { AppDataSource } from '../../database/data-source.js'
 import type { AuthenticatedRequestUser } from '../auth/types/auth.types.js'
 import { UserRole } from '../users/enums/user-role.enum.js'
 import { RestaurantAccessService } from './restaurant-access.service.js'
-import { RestaurantStatus } from './enums/restaurant-status.enum.js'
 import { Restaurant } from './entities/restaurant.entity.js'
 import { RestaurantUser } from './entities/restaurant-user.entity.js'
 import { RestaurantsHttpError } from './restaurants.errors.js'
+import { RestaurantStatusGuardService } from './restaurant-status-guard.service.js'
 
 export type RestaurantTenantAction =
   | 'read'
@@ -26,12 +26,6 @@ export type RestaurantTenantAction =
   | 'delete'
   | 'archive'
   | 'manage'
-
-const OWNER_EDITABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
-  RestaurantStatus.DRAFT,
-  RestaurantStatus.CHANGES_REQUIRED,
-  RestaurantStatus.ACTIVE
-])
 
 /**
  * Tenant boundary for restaurant-scoped modules.
@@ -43,6 +37,7 @@ const OWNER_EDITABLE_RESTAURANT_STATUSES = new Set<RestaurantStatus>([
 export class RestaurantTenantService {
   private readonly restaurantRepository: Repository<Restaurant>
   private readonly restaurantAccessService: RestaurantAccessService
+  private readonly restaurantStatusGuardService: RestaurantStatusGuardService
 
   constructor(
     restaurantRepository: Repository<Restaurant> = AppDataSource.getRepository(Restaurant),
@@ -55,6 +50,7 @@ export class RestaurantTenantService {
       restaurantRepository,
       restaurantUserRepository
     )
+    this.restaurantStatusGuardService = new RestaurantStatusGuardService()
   }
 
   async getAccessibleRestaurant(
@@ -143,13 +139,9 @@ export class RestaurantTenantService {
 
     if (
       action === 'update' &&
-      !isSystemOwner(currentUser.role) &&
-      !OWNER_EDITABLE_RESTAURANT_STATUSES.has(restaurant.status)
+      !isSystemOwner(currentUser.role)
     ) {
-      throw new RestaurantsHttpError(
-        409,
-        `Restaurant cannot be updated from status ${restaurant.status}`
-      )
+      this.restaurantStatusGuardService.assertOwnerCanEdit(restaurant.status)
     }
 
     return restaurant
