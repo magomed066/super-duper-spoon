@@ -66,7 +66,12 @@ export function MenuEditorSidebarWidget(_: MenuEditorSidebarProps) {
               key={item.id}
               title={item.title}
               description={item.description}
-              active={selectedSectionId === item.id && !selectedCategoryId}
+              active={
+                !item.disabled &&
+                selectedSectionId === item.id &&
+                !selectedCategoryId
+              }
+              disabled={item.disabled}
               onClick={() => handleSectionSelect(item.id)}
             />
           ))}

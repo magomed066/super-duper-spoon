@@ -1,5 +1,6 @@
 import {
   MENU_EDITOR_SECTIONS,
+  MENU_SECTIONS,
   useMenuQueryParams,
   type MenuEditorSectionId
 } from '@/entities/menu'
@@ -7,7 +8,9 @@ import {
 const defaultSection = MENU_EDITOR_SECTIONS[0]
 
 function isMenuEditorSectionId(value: string): value is MenuEditorSectionId {
-  return MENU_EDITOR_SECTIONS.some((section) => section.id === value)
+  return MENU_EDITOR_SECTIONS.some(
+    (section) => section.id === value && !section.disabled
+  )
 }
 
 export function useMenuNavigation() {
@@ -27,6 +30,14 @@ export function useMenuNavigation() {
   }
 
   const handleSectionSelect = (nextSection: MenuEditorSectionId) => {
+    const nextSectionConfig = MENU_EDITOR_SECTIONS.find(
+      (section) => section.id === nextSection
+    )
+
+    if (nextSectionConfig?.disabled) {
+      return
+    }
+
     setParams({
       section: nextSection,
       categoryId: ''
@@ -35,7 +46,7 @@ export function useMenuNavigation() {
 
   const handleCategorySelect = (nextCategoryId: string) => {
     setParams({
-      section: defaultSection.id,
+      section: MENU_SECTIONS.CATEGORY,
       categoryId: nextCategoryId
     })
   }

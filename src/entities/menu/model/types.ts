@@ -12,6 +12,7 @@ export type MenuEditorSection = {
   title: string
   description: string
   icon: ComponentType<{ size?: number }>
+  disabled?: boolean
 }
 
 export type MenuEditorSidebarProps = Record<string, never>

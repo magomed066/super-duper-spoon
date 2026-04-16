@@ -20,22 +20,24 @@ export const MENU_EDITOR_SECTIONS: MenuEditorSection[] = [
     icon: TbSoup
   },
   {
-    id: 'addons',
-    title: 'Добавки',
-    description: 'Соусы, топпинги и дополнительные опции.',
-    icon: TbPlus
-  },
-  {
     id: 'categories',
     title: 'Категории',
     description: 'Структура разделов меню и порядок отображения.',
     icon: TbCategory
   },
   {
+    id: 'addons',
+    title: 'Добавки',
+    description: 'Скоро появится.',
+    icon: TbPlus,
+    disabled: true
+  },
+  {
     id: 'order-extras',
     title: 'Добавить к заказу',
-    description: 'Дополнительные предложения перед оформлением заказа.',
-    icon: TbCategory
+    description: 'Скоро появится.',
+    icon: TbCategory,
+    disabled: true
   }
 ]
 

@@ -14,7 +14,7 @@ import { TbAlertCircle, TbPlus } from 'react-icons/tb'
 
 export function MenuItemsWidget() {
   const { params } = useMenuQueryParams()
-  const { restaurantId } = params
+  const { restaurantId, categoryId } = params
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   const { data, isError, error, isLoading } = useMenuItemsQuery(
@@ -25,6 +25,13 @@ export function MenuItemsWidget() {
     restaurantId,
     Boolean(restaurantId)
   )
+  const selectedCategory = categories?.find((item) => item.id === categoryId)
+  const visibleItems = categoryId
+    ? data?.filter((item) => item.categoryId === categoryId) ?? []
+    : data ?? []
+  const canCreateItem = categoryId
+    ? selectedCategory?.isActive
+    : categories?.some((item) => item.isActive)
 
   if (isError) {
     return (
@@ -47,23 +54,25 @@ export function MenuItemsWidget() {
     )
   }
 
-  if (!restaurantId || !data?.length) {
+  if (!restaurantId || !visibleItems.length) {
     return (
       <Stack gap="lg">
         <Flex justify="space-between" align="center" wrap="wrap" gap="md">
           <div>
             <Text fw={700} className="text-moss-900">
-              Блюда
+              {selectedCategory ? `Блюда: ${selectedCategory.name}` : 'Блюда'}
             </Text>
             <Text size="sm" className="text-moss-600">
-              Добавляйте позиции меню и управляйте их состоянием.
+              {selectedCategory
+                ? 'Позиции только для выбранной категории.'
+                : 'Добавляйте позиции меню и управляйте их состоянием.'}
             </Text>
           </div>
 
           <Button
             leftSection={<TbPlus size={16} />}
             onClick={() => setIsCreateModalOpen(true)}
-            disabled={!categories?.some((item) => item.isActive)}
+            disabled={!canCreateItem}
             color="aurora"
             radius="md"
             h={40}
@@ -73,12 +82,19 @@ export function MenuItemsWidget() {
           </Button>
         </Flex>
 
-        <MenuItemsEmptyPlaceholder />
+        {categoryId && data?.length ? (
+          <Text size="sm" className="text-moss-600">
+            Для выбранной категории пока нет блюд.
+          </Text>
+        ) : (
+          <MenuItemsEmptyPlaceholder />
+        )}
 
         <CreateMenuItemModal
           opened={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           restaurantId={restaurantId}
+          categoryId={categoryId || undefined}
           categories={categories}
         />
       </Stack>
@@ -87,21 +103,34 @@ export function MenuItemsWidget() {
 
   return (
     <Stack>
-      <Button
-        leftSection={<TbPlus size={16} />}
-        onClick={() => setIsCreateModalOpen(true)}
-        disabled={!categories?.some((item) => item.isActive)}
-        color="aurora"
-        radius="md"
-        h={40}
-        className="px-4 font-medium ml-auto"
-      >
-        Добавить блюдо
-      </Button>
+      <Flex justify="space-between" align="center" wrap="wrap" gap="md">
+        <div>
+          <Text fw={700} className="text-moss-900">
+            {selectedCategory ? `Блюда: ${selectedCategory.name}` : 'Блюда'}
+          </Text>
+          <Text size="sm" className="text-moss-600">
+            {selectedCategory
+              ? 'Показаны позиции только выбранной категории.'
+              : 'Все блюда выбранного ресторана.'}
+          </Text>
+        </div>
+
+        <Button
+          leftSection={<TbPlus size={16} />}
+          onClick={() => setIsCreateModalOpen(true)}
+          disabled={!canCreateItem}
+          color="aurora"
+          radius="md"
+          h={40}
+          className="px-4 font-medium"
+        >
+          Добавить блюдо
+        </Button>
+      </Flex>
 
       <Stack gap={4} mt={12}>
         <Stack gap="sm">
-          {data.map((item) => {
+          {visibleItems.map((item) => {
             return (
               <MenuItemRow
                 key={item.id}
@@ -124,6 +153,7 @@ export function MenuItemsWidget() {
         opened={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         restaurantId={restaurantId}
+        categoryId={categoryId || undefined}
         categories={categories}
       />
     </Stack>
